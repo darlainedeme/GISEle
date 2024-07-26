@@ -268,7 +268,7 @@ elif page == "Area Selection":
                         g = json.loads(data_gdf.to_json())
                         coords = np.array(g['features'][0]['geometry']['coordinates'])
                         geom = ee.Geometry.Polygon(coords[0].tolist())
-                        fc = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons')
+                        fc = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons_FeatureView')
                         buildings = fc.filter(ee.Filter.intersects('.geo', geom))
                         downloadUrl = buildings.getDownloadURL('geojson', None, 'buildings')
                         chunk_size=128
