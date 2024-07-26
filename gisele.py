@@ -7,7 +7,7 @@ import requests
 import tempfile
 import ee
 from geopy.geocoders import Nominatim
-from folium.plugins import Draw, Fullscreen, MeasureControl
+from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -34,13 +34,19 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     if geojson_data:
         folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
-    # Add Google Buildings data to the map
+    # Add Google Buildings data to the map as a selectable layer
     if buildings_data:
         folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
             'fillColor': 'green',
             'color': 'green',
             'weight': 1,
         }).add_to(m)
+
+        # Add MarkerCluster for Google Buildings
+        marker_cluster = MarkerCluster(name='Google Buildings Clusters').add_to(m)
+        for feature in buildings_data['features']:
+            coords = feature['geometry']['coordinates']
+            folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
 
     # Add drawing and fullscreen plugins
     Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
@@ -76,6 +82,8 @@ elif page == "Area Selection":
             if location:
                 # Create map with dummy data as placeholder
                 create_map(location.latitude, location.longitude, None, None)
+            else:
+                st.error("Could not geocode the address.")
         except Exception as e:
             st.error(f"Error fetching location: {e}")
     elif which_mode == 'By coordinates':  
@@ -86,6 +94,8 @@ elif page == "Area Selection":
             if latitude and longitude:
                 # Create map with dummy data as placeholder
                 create_map(float(latitude), float(longitude), None, None)
+            else:
+                st.error("Please provide both latitude and longitude.")
         except Exception as e:
             st.error(f"Error creating map: {e}")
     elif which_mode == 'Upload file':
@@ -118,15 +128,15 @@ elif page == "Analysis":
 st.sidebar.title("About")
 st.sidebar.info(
     """
-    Web App URL: https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/
-    GitHub repository: https://github.com/darlainedeme/local_gisele
+    Web App URL: [https://gisele.streamlit.app/](https://gisele.streamlit.app/)
+    GitHub repository: [https://github.com/darlainedeme/GISEle](https://github.com/darlainedeme/GISEle)
     """
 )
 
 st.sidebar.title("Contact")
 st.sidebar.info(
     """
-    Darlain Edeme: http://www.e4g.polimi.it/
-    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
+    Darlain Edeme: [http://www.e4g.polimi.it/](http://www.e4g.polimi.it/)
+    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
     """
 )
