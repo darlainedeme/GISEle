@@ -17,16 +17,9 @@ def initialize_earth_engine():
     credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
     ee.Initialize(credentials)
 
-# Initialize the app
-st.set_page_config(layout="wide")
-st.title("Local GISEle")
-
-# Define navigation
-page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
-
-# Call to initialize Earth Engine
 initialize_earth_engine()
 
+<<<<<<< HEAD
 # Load the world administrative boundaries GeoJSON
 world = gpd.read_file("data/world-administrative-boundaries.geojson")
 
@@ -44,6 +37,49 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
             'color': 'green',
             'weight': 1,
         }).add_to(m)
+=======
+st.set_page_config(layout="wide")
+st.title("Simple GIS App")
+
+# File uploader for GeoJSON
+uploaded_file = st.file_uploader("Upload a GeoJSON file", type=["geojson"])
+
+if uploaded_file:
+    # Save the uploaded file to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
+        temp_file.write(uploaded_file.getvalue())
+        temp_filepath = temp_file.name
+
+    # Load the GeoJSON file into a GeoDataFrame
+    gdf = gpd.read_file(temp_filepath)
+
+    # Convert GeoDataFrame to JSON
+    geojson_data = gdf.to_json()
+
+    # Create a Folium map centered on the centroid of the GeoDataFrame
+    centroid = gdf.geometry.centroid.iloc[0]
+    m = folium.Map(location=[centroid.y, centroid.x], zoom_start=12)
+
+    # Add the GeoDataFrame to the map
+    folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+
+    # Fetch and add Google Buildings data to the map
+    coords = gdf.geometry.iloc[0].bounds
+    geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
+    
+    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+        .filter(ee.Filter.intersects('.geo', geom))
+    
+    download_url = buildings.getDownloadURL('geojson')
+    response = requests.get(download_url)
+    buildings_data = response.json()
+
+    folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
+        'fillColor': 'green',
+        'color': 'green',
+        'weight': 1,
+    }).add_to(m)
+>>>>>>> parent of 651e4c9 (google only)
 
     # Add drawing and fullscreen plugins
     Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
@@ -54,6 +90,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
 
     # Display the map
     folium_static(m, width=800, height=600)
+<<<<<<< HEAD
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
@@ -135,19 +172,15 @@ elif page == "Area Selection":
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
     st.write("Analysis page under construction")
+=======
+else:
+    st.write("Please upload a GeoJSON file to display the map.")
+>>>>>>> parent of 651e4c9 (google only)
 
 st.sidebar.title("About")
 st.sidebar.info(
     """
-    Web App URL: https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/
-    GitHub repository: https://github.com/darlainedeme/local_gisele
-    """
-)
-
-st.sidebar.title("Contact")
-st.sidebar.info(
-    """
-    Darlain Edeme: http://www.e4g.polimi.it/
-    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
+    This app allows you to upload a GeoJSON file and visualize it on a map,
+    along with buildings data from Google Earth Engine.
     """
 )
