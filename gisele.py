@@ -111,7 +111,7 @@ elif page == "Area Selection":
                                         
                     # Create map with uploaded GeoJSON and new dataset buildings data
                     gdf = gdf.to_crs(epsg=4326)  # Ensure GeoDataFrame is in geographic CRS for mapping
-                    st.write(len(gdf))
+                    st.dataframe(gdf)
                     
                     centroid = gdf.geometry.centroid.iloc[0]
                     create_map(centroid.y, centroid.x, geojson_data, buildings_data)
