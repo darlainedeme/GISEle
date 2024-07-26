@@ -19,6 +19,7 @@ def initialize_earth_engine():
 
 initialize_earth_engine()
 
+
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
