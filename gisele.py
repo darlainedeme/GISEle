@@ -14,6 +14,7 @@ import fiona
 import rasterio
 import rioxarray
 from pystac_client import Client
+import os
 
 # Initialize Earth Engine
 def initialize_earth_engine():
