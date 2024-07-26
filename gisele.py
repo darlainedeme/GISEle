@@ -6,6 +6,7 @@ import json
 import requests
 import tempfile
 import ee
+from geopy.geocoders import Nominatim
 
 # Initialize Earth Engine
 def initialize_earth_engine():
