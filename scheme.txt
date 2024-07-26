@@ -1,0 +1,44 @@
+Initialization and Imports:
+
+Imported necessary libraries for geospatial analysis, visualization, and Streamlit functionality.
+Included libraries such as streamlit, folium, geopandas, numpy, osmnx, earthengine-api, etc.
+Earth Engine Authentication:
+
+Read credentials from Streamlit secrets and authenticated with Google Earth Engine (EE) API using a service account.
+Streamlit Configuration:
+
+Set up the Streamlit app layout to be wide.
+Defined sidebar navigation options and a title for the app.
+Mode Selection:
+
+Provided options in the sidebar for users to select a mode for specifying the area of interest (by address, coordinates, or uploading a file).
+Map Creation Function:
+
+Defined a function to create and display a Folium map with various layers (e.g., Google Maps, Google Hybrid, Esri Satellite).
+Added functionalities to display the uploaded area, roads, buildings, points of interest (POIs), and nighttime lights data.
+File Upload Handling:
+
+Allowed users to upload GIS files (e.g., GeoJSON, KML, GPKG).
+Read the uploaded file into a GeoDataFrame and processed it accordingly.
+Address and Coordinates Handling:
+
+Provided input fields for users to enter an address or coordinates.
+Geocoded the address or used the coordinates to center and display the map.
+OSM and Google Buildings Data:
+
+Based on the selected mode, fetched and displayed OpenStreetMap (OSM) or Google buildings data within the area of interest.
+Nighttime Lights Data:
+
+Integrated with Microsoft’s Planetary Computer to fetch nighttime lights data for the specified area.
+GeoDataFrame to Map:
+
+Added various features to the map (e.g., selected area, roads, buildings, POIs) based on the processed GeoDataFrame and other data sources.
+Interactive Map Controls:
+
+Included controls for drawing, full-screen view, and measuring distances on the map.
+Sidebar Information:
+
+Provided additional information and contact details in the sidebar.
+Caching:
+
+Used Streamlit’s caching mechanism to optimize data loading and processing.
