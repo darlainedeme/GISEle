@@ -16,6 +16,8 @@ import rioxarray
 from pystac_client import Client
 import os
 import uuid
+import tempfile
+
 
 # Initialize Earth Engine
 def initialize_earth_engine():
