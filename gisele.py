@@ -14,10 +14,8 @@ import fiona
 import rasterio
 import rioxarray
 from pystac_client import Client
-import os
-import uuid
 import tempfile
-
+import uuid
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -220,11 +218,13 @@ elif page == "Area Selection":
             try:
                 data_gdf, file_path = uploaded_file_to_gdf(data)
                 if data_gdf is not None:
+                    # Reproject to a projected CRS before buffering
+                    data_gdf = data_gdf.to_crs(epsg=3857)
                     data_gdf_2 = data_gdf.copy()
-                    data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
+                    data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(400)  # 400 meters buffer
                     
                     G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
-                    pois = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
+                    pois = ox.features_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
 
                     if len(pois) == 0:
                         pois = None
@@ -233,7 +233,7 @@ elif page == "Area Selection":
                     gdf_edges = gpd.clip(gdf_edges, data_gdf)
                     
                     if which_buildings == 'OSM':
-                        buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
+                        buildings = ox.features_from_polygon(data_gdf.iloc[0]['geometry'], tags)
                         buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
                         buildings = buildings.loc[buildings.geometry.type=='Polygon']        
                         buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
@@ -252,6 +252,13 @@ elif page == "Area Selection":
                             for chunk in r.iter_content(chunk_size=chunk_size):
                                 fd.write(chunk)
                         buildings_save = gpd.read_file('data/buildings.geojson')
+                    
+                    # Reproject back to original CRS after processing
+                    data_gdf = data_gdf.to_crs(epsg=4326)
+                    data_gdf_2 = data_gdf_2.to_crs(epsg=4326)
+                    gdf_edges = gdf_edges.to_crs(epsg=4326)
+                    if buildings_save is not None:
+                        buildings_save = buildings_save.to_crs(epsg=4326)
                 
                     create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, None)
             except Exception as e:
