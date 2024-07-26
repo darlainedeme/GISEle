@@ -163,7 +163,7 @@ elif page == "Area Selection":
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
     st.write("Analysis page under construction")
-=======
+
 else:
     st.write("Please upload a GeoJSON file to display the map.")
 
