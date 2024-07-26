@@ -168,7 +168,6 @@ elif page == "Analysis":
 =======
 else:
     st.write("Please upload a GeoJSON file to display the map.")
->>>>>>> parent of 651e4c9 (google only)
 
 st.sidebar.title("About")
 st.sidebar.info(
