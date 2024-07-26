@@ -9,7 +9,6 @@ import requests
 from shapely.geometry import mapping
 
 # Initialize Earth Engine
-@st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
@@ -19,9 +18,9 @@ def initialize_earth_engine():
 
 initialize_earth_engine()
 
-
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
+@st.cache_resource
 
 # Define the modes
 which_modes = ['By address', 'By coordinates', 'Upload file']
