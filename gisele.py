@@ -7,7 +7,6 @@ import requests
 import tempfile
 import ee
 from geopy.geocoders import Nominatim
-from folium.plugins import Draw, Fullscreen, MeasureControl
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -81,11 +80,6 @@ if uploaded_file:
     }).add_to(m)
 >>>>>>> parent of 651e4c9 (google only)
 
-    # Add drawing and fullscreen plugins
-    Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
-    Fullscreen(position='topleft').add_to(m)
-    MeasureControl(position='bottomleft').add_to(m)
-    
     folium.LayerControl().add_to(m)
 
     # Display the map
