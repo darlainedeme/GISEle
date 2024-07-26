@@ -110,10 +110,13 @@ elif page == "Area Selection":
                     buildings_data = response.json()
                     
                     # Create map with uploaded GeoJSON and new dataset buildings data
-                    centroid = gdf.to_crs(epsg=4326).geometry.centroid.iloc[0]  # Reproject back to geographic CRS for mapping
+                    gdf = gdf.to_crs(epsg=4326)  # Ensure GeoDataFrame is in geographic CRS for mapping
+                    centroid = gdf.geometry.centroid.iloc[0]
                     create_map(centroid.y, centroid.x, geojson_data, buildings_data)
                 else:
                     st.error("Unable to determine the country for the provided location.")
+            except KeyError as e:
+                st.error(f"Error processing file: {e}")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
