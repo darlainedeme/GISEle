@@ -82,7 +82,6 @@ if uploaded_file:
 
     # Display the map
     folium_static(m, width=800, height=600)
-<<<<<<< HEAD
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
