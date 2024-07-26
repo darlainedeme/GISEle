@@ -15,6 +15,7 @@ import rasterio
 import rioxarray
 from pystac_client import Client
 import os
+import uuid
 
 # Initialize Earth Engine
 def initialize_earth_engine():
