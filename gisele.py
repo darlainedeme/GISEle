@@ -18,7 +18,6 @@ def initialize_earth_engine():
 
 initialize_earth_engine()
 
-<<<<<<< HEAD
 # Load the world administrative boundaries GeoJSON
 world = gpd.read_file("data/world-administrative-boundaries.geojson")
 
