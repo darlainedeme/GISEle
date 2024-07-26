@@ -57,7 +57,7 @@ def uploaded_file_to_gdf(data):
 def get_country_iso(gdf, world_data):
     centroid = gdf.geometry.centroid.iloc[0]
     point = gpd.GeoDataFrame(geometry=[centroid], crs="EPSG:4326")
-    country = gpd.sjoin(point, world_data, how="left", op="intersects")
+    country = gpd.sjoin(point, world_data, how="left", predicate="intersects")
     return country.iloc[0]['iso3'] if not country.empty else None
 
 if page == "Home":
@@ -65,7 +65,7 @@ if page == "Home":
     st.write("Use the sidebar to navigate to different sections of the app.")
 elif page == "Area Selection":
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
+    which_mode = st.sidebar.selectbox('Select mode', which modes, index=2, key="mode_select")
 
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
