@@ -78,7 +78,6 @@ if uploaded_file:
         'color': 'green',
         'weight': 1,
     }).add_to(m)
->>>>>>> parent of 651e4c9 (google only)
 
     folium.LayerControl().add_to(m)
 
