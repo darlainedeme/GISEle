@@ -1,25 +1,56 @@
-import streamlit as st
-import ee
-import json
-import folium
-from streamlit_folium import folium_static
-import geopandas as gpd
-import numpy as np
-import requests
-from shapely.geometry import mapping
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 30 14:18:38 2022
 
-# Initialize Earth Engine
-@st.cache_resource
+@author: EDEME_D
+"""
+import os
+import streamlit as st
+import matplotlib.pyplot as plt
+from streamlit_folium import folium_static
+import folium
+import geopandas as gpd
+
+import numpy as np 
+from geopy.geocoders import Nominatim
+import fiona
+import warnings
+import osmnx as ox
+import ee
+import requests
+import json
+import tempfile
+import uuid
+from folium.features import DivIcon
+from folium.plugins import MarkerCluster
+import rioxarray
+from pystac_client import Client
+from shapely.geometry import Polygon, mapping
+import rasterio
+import pystac
+
+warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
+
+st.set_page_config(layout="wide")
+
+# Streamlit secrets management
+@st.cache_data
 def initialize_earth_engine():
-    json_data = st.secrets["general"]["json_data"]
+    json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
     service_account = json_object['client_email']
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+    json_object = json.dumps(json_object)
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
     ee.Initialize(credentials)
 
 initialize_earth_engine()
 
-st.set_page_config(layout="wide")
+warnings.filterwarnings("ignore")
+
+# Streamlit multipage support
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Home", "Area Selection", "Analysis"])
+
 st.title("Local GISEle")
 
 # Define the modes
@@ -176,13 +207,15 @@ def uploaded_file_to_gdf(data):
         return None, None
 
 # Page logic
-if st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Home":
+if page == "Home":
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
-elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Area Selection":
+
+elif page == "Area Selection":
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
-        sentence = st.sidebar.text_input('Enter your address:', value='B12 Bovisa') 
+        
+        sentence = st.sidebar.text_input('Scrivi il tuo indirizzo:', value='B12 Bovisa') 
 
         try:
             location = geolocator.geocode(sentence)
@@ -190,6 +223,7 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
                 create_map(location.latitude, location.longitude, sentence, None, None, None, None, None)
         except Exception as e:
             st.error(f"Error fetching location: {e}")
+    
     elif which_mode == 'By coordinates':  
         latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
         longitude = st.sidebar.text_input('Longitude:', value=9.1598) 
@@ -200,10 +234,13 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
                 create_map(latitude, longitude, sentence, None, None, None, None, None)
         except Exception as e:
             st.error(f"Error creating map: {e}")
+
     elif which_mode == 'Upload file':
         which_buildings_list = ['OSM', 'Google']
         which_buildings = st.sidebar.selectbox('Select building dataset', which_buildings_list, index=1)
-        data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.", type=["geojson", "kml", "zip", "gpkg"])
+        
+        data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
+                                        type=["geojson", "kml", "zip", "gpkg"])
 
         if data:
             try:
@@ -213,7 +250,7 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
                     data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
                     
                     G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
-                    pois = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
+                    pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
 
                     if len(pois) == 0:
                         pois = None
@@ -226,14 +263,13 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
                         buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
                         buildings = buildings.loc[buildings.geometry.type=='Polygon']        
                         buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
+                    
                     elif which_buildings == 'Google':
                         g = json.loads(data_gdf.to_json())
                         coords = np.array(g['features'][0]['geometry']['coordinates'])
                         geom = ee.Geometry.Polygon(coords[0].tolist())
-                        
-                        fc = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons')
-                        buildings = fc.filter(ee.Filter.intersects('.geo', geom)).filter(ee.Filter.gte('confidence', 0.65))
-                        
+                        fc = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons_FeatureView')
+                        buildings = fc.filter(ee.Filter.intersects('.geo', geom))
                         downloadUrl = buildings.getDownloadURL('geojson', None, 'buildings')
                         chunk_size=128
                         r = requests.get(downloadUrl, stream=True)
@@ -242,24 +278,68 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
                                 fd.write(chunk)
                         buildings_save = gpd.read_file('data/buildings.geojson')
                 
-                    create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, None)
+                    # importing nighttime lights from HREA on MS Planeraty computer
+                    catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
+
+                    aoi = data_gdf_2.iloc[0]['geometry']
+                    daterange = {"interval": ["2019-01-01", "2019-12-31"]}
+
+                    search = catalog.search(filter_lang="cql2-json", filter={
+                      "op": "and",
+                      "args": [
+                        {"op": "s_intersects", "args": [{"property": "geometry"}, mapping(aoi)]},
+                        {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
+                        {"op": "=", "args": [{"property": "collection"}, "hrea"]}
+                      ]
+                    })
+                    
+                    items = search.get_all_items()
+                    if items:
+                        selected_item = items[0]
+                        first_item = next(search.items())
+                        data = rioxarray.open_rasterio(first_item.assets.get('lightscore').href)
+                        data.values[data.values < 0] = np.nan
+
+                        with fiona.open(file_path, "r") as shapefile:
+                            shapes = [feature["geometry"] for feature in shapefile]
+
+                        with rasterio.open("light.tif") as src:
+                            out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+                            out_meta = src.meta
+                        out_meta.update({"driver": "GTiff", "height": out_image.shape[1], "width": out_image.shape[2], "transform": out_transform})
+
+                        with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
+                            dest.write(out_image)
+
+                        with rasterio.open("clipped_light.tif") as src:
+                            lights = src.read()
+                            lights[lights==0] = np.nan
+                            bounds = src.bounds
+                            bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
+                        os.remove("light.tif")
+                    else:
+                        lights = None
+                        bbox = None
+                    
+                    create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
             except Exception as e:
                 st.error(f"Error processing file: {e}")
-elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Analysis":
+
+elif page == "Analysis":
     st.write("Analysis page under construction")
 
 st.sidebar.title("About")
 st.sidebar.info(
     """
-    Web App URL: https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/
-    GitHub repository: https://github.com/darlainedeme/local_gisele
+    Web App URL: <https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/>
+    GitHub repository: <https://github.com/darlainedeme/local_gisele>
     """
 )
 
 st.sidebar.title("Contact")
 st.sidebar.info(
     """
-    Darlain Edeme: http://www.e4g.polimi.it/
+    Darlain Edeme: <http://www.e4g.polimi.it/>
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
     """
 )
