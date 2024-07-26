@@ -35,7 +35,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
             'color': 'green',
             'weight': 1,
         }).add_to(m)
-=======
+
 st.set_page_config(layout="wide")
 st.title("Simple GIS App")
 
