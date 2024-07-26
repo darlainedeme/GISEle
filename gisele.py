@@ -33,14 +33,16 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     m = folium.Map(location=[latitude, longitude], zoom_start=12)
     
     # Add GeoDataFrame to the map
-    folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+    if geojson_data:
+        folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
     # Add new dataset buildings data to the map
-    folium.GeoJson(buildings_data, name="New Buildings Dataset", style_function=lambda x: {
-        'fillColor': 'green',
-        'color': 'green',
-        'weight': 1,
-    }).add_to(m)
+    if buildings_data:
+        folium.GeoJson(buildings_data, name="New Buildings Dataset", style_function=lambda x: {
+            'fillColor': 'green',
+            'color': 'green',
+            'weight': 1,
+        }).add_to(m)
 
     folium.LayerControl().add_to(m)
 
@@ -76,9 +78,10 @@ elif page == "Area Selection":
 
         try:
             location = geolocator.geocode(address)
-            if address:
-                # Create map with dummy data as placeholder
+            if location:
                 create_map(location.latitude, location.longitude, None, None)
+            else:
+                st.error("Could not geocode the address.")
         except Exception as e:
             st.error(f"Error fetching location: {e}")
     elif which_mode == 'By coordinates':  
@@ -87,8 +90,9 @@ elif page == "Area Selection":
         
         try:
             if latitude and longitude:
-                # Create map with dummy data as placeholder
                 create_map(float(latitude), float(longitude), None, None)
+            else:
+                st.error("Please provide both latitude and longitude.")
         except Exception as e:
             st.error(f"Error creating map: {e}")
     elif which_mode == 'Upload file':
@@ -97,28 +101,28 @@ elif page == "Area Selection":
         if data:
             try:
                 gdf = uploaded_file_to_gdf(data)
-                geojson_data = gdf.to_json()
-                
-                # Get the ISO code from the uploaded GeoJSON
-                iso_code = get_country_iso(gdf, world)
-                
-                if iso_code:
-                    # Fetch and add new dataset buildings data
-                    buildings = ee.FeatureCollection(f"projects/sat-io/open-datasets/VIDA_COMBINED/{iso_code}")
-                    
-                    download_url = buildings.getDownloadURL('geojson')
-                    response = requests.get(download_url)
-                    buildings_data = response.json()
-                                        
-                    # Create map with uploaded GeoJSON and new dataset buildings data
-                    gdf = gdf.to_crs(epsg=4326)  # Ensure GeoDataFrame is in geographic CRS for mapping
-                    st.dataframe(gdf.drop(columns='geometry'))
-
-                    
-                    centroid = gdf.geometry.centroid.iloc[0]
-                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                if gdf.empty or gdf.isnull().values.any():
+                    st.error("Uploaded GeoJSON file is empty or contains null values.")
                 else:
-                    st.error("Unable to determine the country for the provided location.")
+                    geojson_data = gdf.to_json()
+                    iso_code = get_country_iso(gdf, world)
+                    
+                    if iso_code:
+                        # Fetch and add new dataset buildings data
+                        buildings = ee.FeatureCollection(f"projects/sat-io/open-datasets/VIDA_COMBINED/{iso_code}")
+                        
+                        download_url = buildings.getDownloadURL('geojson')
+                        response = requests.get(download_url)
+                        buildings_data = response.json()
+                        
+                        # Reproject GeoDataFrame to geographic CRS for mapping and display
+                        gdf = gdf.to_crs(epsg=4326)
+                        st.dataframe(gdf.drop(columns='geometry'))  # Display the GeoDataFrame as a table without the geometry column
+                        
+                        centroid = gdf.geometry.centroid.iloc[0]
+                        create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                    else:
+                        st.error("Unable to determine the country for the provided location.")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
             except Exception as e:
