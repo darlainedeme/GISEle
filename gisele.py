@@ -6,7 +6,8 @@ import json
 import requests
 import tempfile
 import ee
-from shapely.geometry import Point
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -25,15 +26,6 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 
 # Call to initialize Earth Engine
 initialize_earth_engine()
-
-# Download and load the naturalearth_lowres dataset
-@st.cache_data
-def load_world_data():
-    url = "https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip"
-    world = gpd.read_file(url)
-    return world
-
-world = load_world_data()
 
 def create_map(latitude, longitude, geojson_data, buildings_data):
     m = folium.Map(location=[latitude, longitude], zoom_start=12)
@@ -61,10 +53,15 @@ def uploaded_file_to_gdf(data):
     gdf = gpd.read_file(temp_filepath)
     return gdf
 
-def get_country_iso(lat, lon, world_data):
-    point = Point(lon, lat)
-    country = world_data[world_data.contains(point)]
-    return country.iloc[0]['ADM0_A3'] if not country.empty else None
+def get_country_iso(lat, lon):
+    geolocator = Nominatim(user_agent="geoapiExercises")
+    try:
+        location = geolocator.reverse((lat, lon), language='en', exactly_one=True)
+        if location and 'country_code' in location.raw['address']:
+            return location.raw['address']['country_code'].upper()
+    except GeocoderTimedOut:
+        return None
+    return None
 
 if page == "Home":
     st.write("Welcome to Local GISEle")
@@ -104,7 +101,7 @@ elif page == "Area Selection":
                 
                 # Get the centroid of the GeoDataFrame to determine the country ISO code
                 centroid = gdf.geometry.centroid.iloc[0]
-                iso_code = get_country_iso(centroid.y, centroid.x, world)
+                iso_code = get_country_iso(centroid.y, centroid.x)
                 
                 if iso_code:
                     # Fetch and add new dataset buildings data
