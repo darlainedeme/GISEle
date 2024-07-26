@@ -25,6 +25,7 @@ st.title("Local GISEle")
 which_modes = ['By address', 'By coordinates', 'Upload file']
 which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
 
+@st.cache_resource
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois, lights):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     
