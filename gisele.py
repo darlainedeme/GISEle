@@ -117,9 +117,12 @@ elif page == "Area Selection":
                 response = requests.get(download_url)
                 buildings_data = response.json()
                 
-                # Create map with uploaded GeoJSON and Google Buildings data
-                centroid = gdf.geometry.centroid.iloc[0]
-                create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                if 'features' not in buildings_data or len(buildings_data['features']) == 0:
+                    st.error("No building data found for the selected area.")
+                else:
+                    # Create map with uploaded GeoJSON and Google Buildings data
+                    centroid = gdf.geometry.centroid.iloc[0]
+                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
