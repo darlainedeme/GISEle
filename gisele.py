@@ -6,6 +6,7 @@ import json
 import requests
 import tempfile
 import ee
+from shapely.geometry import Point
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -31,8 +32,8 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     # Add GeoDataFrame to the map
     folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
-    # Add Google Buildings data to the map
-    folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
+    # Add new dataset buildings data to the map
+    folium.GeoJson(buildings_data, name="New Buildings Dataset", style_function=lambda x: {
         'fillColor': 'green',
         'color': 'green',
         'weight': 1,
@@ -50,6 +51,12 @@ def uploaded_file_to_gdf(data):
 
     gdf = gpd.read_file(temp_filepath)
     return gdf
+
+def get_country_iso(lat, lon):
+    point = Point(lon, lat)
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    country = world[world.contains(point)]
+    return country.iloc[0]['iso_a3'] if not country.empty else None
 
 if page == "Home":
     st.write("Welcome to Local GISEle")
@@ -87,20 +94,22 @@ elif page == "Area Selection":
                 gdf = uploaded_file_to_gdf(data)
                 geojson_data = gdf.to_json()
                 
-                # Fetch and add Google Buildings data
-                coords = gdf.geometry.total_bounds
-                geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
-                
-                buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-                    .filter(ee.Filter.intersects('.geo', geom))
-                
-                download_url = buildings.getDownloadURL('geojson')
-                response = requests.get(download_url)
-                buildings_data = response.json()
-                
-                # Create map with uploaded GeoJSON and Google Buildings data
+                # Get the centroid of the GeoDataFrame to determine the country ISO code
                 centroid = gdf.geometry.centroid.iloc[0]
-                create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                iso_code = get_country_iso(centroid.y, centroid.x)
+                
+                if iso_code:
+                    # Fetch and add new dataset buildings data
+                    buildings = ee.FeatureCollection(f"projects/sat-io/open-datasets/VIDA_COMBINED/{iso_code}")
+                    
+                    download_url = buildings.getDownloadURL('geojson')
+                    response = requests.get(download_url)
+                    buildings_data = response.json()
+                    
+                    # Create map with uploaded GeoJSON and new dataset buildings data
+                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                else:
+                    st.error("Unable to determine the country for the provided location.")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
