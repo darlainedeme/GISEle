@@ -100,10 +100,12 @@ elif page == "Area Selection":
                 
                 # Get the ISO code from the uploaded GeoJSON
                 iso_code = get_country_iso(gdf, world)
+                st.write(iso_code)
                 
                 if iso_code:
                     # Fetch and add new dataset buildings data
                     buildings = ee.FeatureCollection(f"projects/sat-io/open-datasets/VIDA_COMBINED/{iso_code}")
+                    st.write("buildings")
                     
                     download_url = buildings.getDownloadURL('geojson')
                     response = requests.get(download_url)
