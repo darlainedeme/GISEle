@@ -16,7 +16,6 @@ import rioxarray
 from pystac_client import Client
 
 # Initialize Earth Engine
-@st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
