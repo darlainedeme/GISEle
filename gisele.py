@@ -176,6 +176,10 @@ if st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Ho
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
 elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Area Selection":
+    # Define the modes
+    which_modes = ['By address', 'By coordinates', 'Upload file']
+    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
+
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
         sentence = st.sidebar.text_input('Enter your address:', value='B12 Bovisa') 
