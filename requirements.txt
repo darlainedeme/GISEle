@@ -1,0 +1,17 @@
+streamlit==1.15.0
+matplotlib==3.7.1
+streamlit_folium==0.10.0
+folium==0.12.1
+geopandas==0.10.2
+numpy==1.21.4
+geopy==2.2.0
+fiona==1.8.20
+osmnx==1.1.1
+earthengine-api==0.1.311
+requests==2.26.0
+rioxarray==0.7.1
+pystac-client==0.3.0
+shapely==1.7.1
+rasterio==1.2.10
+pystac==1.2.0
+
