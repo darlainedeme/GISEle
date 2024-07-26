@@ -20,7 +20,6 @@ initialize_earth_engine()
 
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
-@st.cache_resource
 
 # Define the modes
 which_modes = ['By address', 'By coordinates', 'Upload file']
