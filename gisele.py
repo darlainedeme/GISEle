@@ -7,8 +7,16 @@ import geopandas as gpd
 import numpy as np
 import requests
 from shapely.geometry import mapping
+from folium.features import DivIcon
+from folium.plugins import MarkerCluster
+import osmnx as ox
+import fiona
+import rasterio
+import rioxarray
+from pystac_client import Client
 
 # Initialize Earth Engine
+@st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
@@ -21,7 +29,9 @@ initialize_earth_engine()
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
-@st.cache_resource
+# Define navigation
+page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
+
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois, lights):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     
@@ -171,18 +181,16 @@ def uploaded_file_to_gdf(data):
         st.error(f"Error loading file: {e}")
         return None, None
 
-# Page logic
-if st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Home":
+if page == "Home":
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
-elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Area Selection":
-    # Define the modes
+elif page == "Area Selection":
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
-
+    which_mode = st.selectbox('Select mode', which_modes, index=2, key="mode_select")
+    
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
-        sentence = st.sidebar.text_input('Enter your address:', value='B12 Bovisa') 
+        sentence = st.text_input('Enter your address:', value='B12 Bovisa', key="address_input") 
 
         try:
             location = geolocator.geocode(sentence)
@@ -191,8 +199,8 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
         except Exception as e:
             st.error(f"Error fetching location: {e}")
     elif which_mode == 'By coordinates':  
-        latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
-        longitude = st.sidebar.text_input('Longitude:', value=9.1598) 
+        latitude = st.text_input('Latitude:', value=45.5065, key="latitude_input") 
+        longitude = st.text_input('Longitude:', value=9.1598, key="longitude_input") 
         
         try:
             sentence = str((float(latitude), float(longitude)))
@@ -202,8 +210,8 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
             st.error(f"Error creating map: {e}")
     elif which_mode == 'Upload file':
         which_buildings_list = ['OSM', 'Google']
-        which_buildings = st.sidebar.selectbox('Select building dataset', which_buildings_list, index=1)
-        data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.", type=["geojson", "kml", "zip", "gpkg"])
+        which_buildings = st.selectbox('Select building dataset', which_buildings_list, index=1, key="buildings_select")
+        data = st.file_uploader("Draw the interest area directly on the chart or upload a GIS file.", type=["geojson", "kml", "zip", "gpkg"])
 
         if data:
             try:
@@ -245,7 +253,7 @@ elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "
                     create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, None)
             except Exception as e:
                 st.error(f"Error processing file: {e}")
-elif st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"]) == "Analysis":
+elif page == "Analysis":
     st.write("Analysis page under construction")
 
 st.sidebar.title("About")
