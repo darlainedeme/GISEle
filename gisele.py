@@ -55,8 +55,10 @@ def uploaded_file_to_gdf(data):
     return gdf
 
 def get_country_iso(gdf, world_data):
+    gdf = gdf.to_crs(epsg=3857)  # Reproject to a projected CRS
     centroid = gdf.geometry.centroid.iloc[0]
-    point = gpd.GeoDataFrame(geometry=[centroid], crs="EPSG:4326")
+    point = gpd.GeoDataFrame(geometry=[centroid], crs=gdf.crs)
+    world_data = world_data.to_crs(epsg=3857)  # Ensure world data is in the same CRS
     country = gpd.sjoin(point, world_data, how="left", predicate="intersects")
     return country.iloc[0]['iso3'] if not country.empty else None
 
@@ -108,7 +110,7 @@ elif page == "Area Selection":
                     buildings_data = response.json()
                     
                     # Create map with uploaded GeoJSON and new dataset buildings data
-                    centroid = gdf.geometry.centroid.iloc[0]
+                    centroid = gdf.to_crs(epsg=4326).geometry.centroid.iloc[0]  # Reproject back to geographic CRS for mapping
                     create_map(centroid.y, centroid.x, geojson_data, buildings_data)
                 else:
                     st.error("Unable to determine the country for the provided location.")
