@@ -6,6 +6,8 @@ import json
 import requests
 import tempfile
 import ee
+from geopy.geocoders import Nominatim
+from folium.plugins import Draw, Fullscreen, MeasureControl
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -29,15 +31,22 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     m = folium.Map(location=[latitude, longitude], zoom_start=12)
     
     # Add GeoDataFrame to the map
-    folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+    if geojson_data:
+        folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
     # Add Google Buildings data to the map
-    folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
-        'fillColor': 'green',
-        'color': 'green',
-        'weight': 1,
-    }).add_to(m)
+    if buildings_data:
+        folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
+            'fillColor': 'green',
+            'color': 'green',
+            'weight': 1,
+        }).add_to(m)
 
+    # Add drawing and fullscreen plugins
+    Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
+    Fullscreen(position='topleft').add_to(m)
+    MeasureControl(position='bottomleft').add_to(m)
+    
     folium.LayerControl().add_to(m)
 
     # Display the map
@@ -64,7 +73,7 @@ elif page == "Area Selection":
 
         try:
             location = geolocator.geocode(address)
-            if address:
+            if location:
                 # Create map with dummy data as placeholder
                 create_map(location.latitude, location.longitude, None, None)
         except Exception as e:
