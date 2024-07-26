@@ -224,7 +224,7 @@ elif page == "Area Selection":
                     data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(400)  # 400 meters buffer
                     
                     G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
-                    pois = ox.features_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
+                    pois = ox.features_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity': True})
 
                     if len(pois) == 0:
                         pois = None
@@ -234,8 +234,8 @@ elif page == "Area Selection":
                     
                     if which_buildings == 'OSM':
                         buildings = ox.features_from_polygon(data_gdf.iloc[0]['geometry'], tags)
-                        buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
-                        buildings = buildings.loc[buildings.geometry.type=='Polygon']        
+                        buildings = buildings.loc[:, buildings.columns.str.contains('addr:|geometry')]
+                        buildings = buildings.loc[buildings.geometry.type == 'Polygon']
                         buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
                     elif which_buildings == 'Google':
                         g = json.loads(data_gdf.to_json())
@@ -246,7 +246,7 @@ elif page == "Area Selection":
                         buildings = fc.filter(ee.Filter.intersects('.geo', geom)).filter(ee.Filter.gte('confidence', 0.65))
                         
                         downloadUrl = buildings.getDownloadURL('geojson', None, 'buildings')
-                        chunk_size=128
+                        chunk_size = 128
                         r = requests.get(downloadUrl, stream=True)
                         with open('data/buildings.geojson', 'wb') as fd:
                             for chunk in r.iter_content(chunk_size=chunk_size):
@@ -259,10 +259,11 @@ elif page == "Area Selection":
                     gdf_edges = gdf_edges.to_crs(epsg=4326)
                     if buildings_save is not None:
                         buildings_save = buildings_save.to_crs(epsg=4326)
-                
+                    
                     create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, None)
             except Exception as e:
                 st.error(f"Error processing file: {e}")
+
 elif page == "Analysis":
     st.write("Analysis page under construction")
 
