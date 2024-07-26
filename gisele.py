@@ -6,8 +6,6 @@ import json
 import requests
 import tempfile
 import ee
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
 
 # Initialize Earth Engine
 def initialize_earth_engine():
@@ -26,6 +24,9 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 
 # Call to initialize Earth Engine
 initialize_earth_engine()
+
+# Load the world administrative boundaries GeoJSON
+world = gpd.read_file("data/world-administrative-boundaries.geojson")
 
 def create_map(latitude, longitude, geojson_data, buildings_data):
     m = folium.Map(location=[latitude, longitude], zoom_start=12)
@@ -53,15 +54,11 @@ def uploaded_file_to_gdf(data):
     gdf = gpd.read_file(temp_filepath)
     return gdf
 
-def get_country_iso(lat, lon):
-    geolocator = Nominatim(user_agent="geoapiExercises")
-    try:
-        location = geolocator.reverse((lat, lon), language='en', exactly_one=True)
-        if location and 'country_code' in location.raw['address']:
-            return location.raw['address']['country_code'].upper()
-    except GeocoderTimedOut:
-        return None
-    return None
+def get_country_iso(gdf, world_data):
+    centroid = gdf.geometry.centroid.iloc[0]
+    point = gpd.GeoDataFrame(geometry=[centroid], crs="EPSG:4326")
+    country = gpd.sjoin(point, world_data, how="left", op="intersects")
+    return country.iloc[0]['iso3'] if not country.empty else None
 
 if page == "Home":
     st.write("Welcome to Local GISEle")
@@ -99,9 +96,8 @@ elif page == "Area Selection":
                 gdf = uploaded_file_to_gdf(data)
                 geojson_data = gdf.to_json()
                 
-                # Get the centroid of the GeoDataFrame to determine the country ISO code
-                centroid = gdf.geometry.centroid.iloc[0]
-                iso_code = get_country_iso(centroid.y, centroid.x)
+                # Get the ISO code from the uploaded GeoJSON
+                iso_code = get_country_iso(gdf, world)
                 
                 if iso_code:
                     # Fetch and add new dataset buildings data
@@ -112,6 +108,7 @@ elif page == "Area Selection":
                     buildings_data = response.json()
                     
                     # Create map with uploaded GeoJSON and new dataset buildings data
+                    centroid = gdf.geometry.centroid.iloc[0]
                     create_map(centroid.y, centroid.x, geojson_data, buildings_data)
                 else:
                     st.error("Unable to determine the country for the provided location.")
