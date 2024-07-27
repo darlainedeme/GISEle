@@ -40,6 +40,21 @@ GOOGLE_BUILDINGS_GEOJSON = os.path.join(RESULTS_DIR, "google_buildings.geojson")
 # Ensure results directory exists
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
+def validate_geojson(geojson_data):
+    try:
+        data = json.loads(geojson_data)
+        if "features" in data and isinstance(data["features"], list):
+            for feature in data["features"]:
+                if "geometry" not in feature or feature["geometry"] is None:
+                    return False
+                if feature["geometry"]["type"] not in ["Polygon", "MultiPolygon"]:
+                    return False
+                if not feature["geometry"]["coordinates"]:
+                    return False
+        return True
+    except (ValueError, KeyError):
+        return False
+
 @st.cache_data
 def create_combined_buildings_layer(osm_buildings, google_buildings):
     # Ensure both GeoDataFrames are in the same CRS
@@ -91,16 +106,19 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
 
     # Add the original area of interest
     if geojson_data:
-        folium.GeoJson(
-            geojson_data,
-            name="Original Area",
-            style_function=lambda x: {
-                'fillColor': 'blue',
-                'color': 'blue',
-                'weight': 2,
-                'fillOpacity': 0.2,
-            }
-        ).add_to(m)
+        if validate_geojson(geojson_data):
+            folium.GeoJson(
+                geojson_data,
+                name="Original Area",
+                style_function=lambda x: {
+                    'fillColor': 'blue',
+                    'color': 'blue',
+                    'weight': 2,
+                    'fillOpacity': 0.2,
+                }
+            ).add_to(m)
+        else:
+            st.error("The uploaded GeoJSON data has invalid or missing geometries.")
 
     # Add combined buildings data to the map
     if combined_buildings is not None:
@@ -184,33 +202,29 @@ elif main_nav == "Area Selection":
             except Exception as e:
                 st.error(f"Error fetching location: {e}")
 
-    elif which_mode == 'By coordinates':  
-        latitude = st.sidebar.text_input('Latitude:', value='45.5065', key="latitude_input") 
-        longitude = st.sidebar.text_input('Longitude:', value='9.1598', key="longitude_input") 
-        
-        if latitude and longitude:
-            try:
-                with st.spinner('Creating map...'):
-                    st.session_state.latitude = float(latitude)
-                    st.session_state.longitude = float(longitude)
-                    st.session_state.geojson_data = None
-                    st.session_state.combined_buildings = None
-                    st.session_state.osm_roads = None
-                    st.session_state.osm_pois = None
-                    st.session_state.missing_layers = []
-                    create_map(float(latitude), float(longitude))
-            except ValueError:
-                st.error("Invalid coordinates. Please enter valid latitude and longitude.")
-            except Exception as e:
-                st.error(f"Error creating map: {e}")
+    elif which_mode == 'By coordinates':
+        latitude = st.sidebar.number_input('Latitude:', value=0.0, key="latitude_input")
+        longitude = st.sidebar.number_input('Longitude:', value=0.0, key="longitude_input")
 
+        if latitude and longitude:
+            st.session_state.latitude = latitude
+            st.session_state.longitude = longitude
+            st.session_state.geojson_data = None
+            st.session_state.combined_buildings = None
+            st.session_state.osm_roads = None
+            st.session_state.osm_pois = None
+            st.session_state.missing_layers = []
+            # Create a map showing only the polygon area
+            create_map(latitude, longitude)
+            
     elif which_mode == 'Upload file':
-        uploaded_file = st.file_uploader("Upload a GeoJSON file", type="geojson", key="upload_file")
+        uploaded_file = st.file_uploader("Upload GeoJSON file", type="geojson")
+
         if uploaded_file:
             try:
                 geojson_data = uploaded_file.read()
                 gdf = uploaded_file_to_gdf(uploaded_file)
-                
+
                 # Get the centroid of the uploaded GeoJSON data
                 centroid = gdf.unary_union.centroid
                 st.session_state.latitude = centroid.y
@@ -250,14 +264,14 @@ elif main_nav == "Data Collection":
                 st.info("Fetching building data...")
                 try:
                     geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude + 0.01, latitude + 0.01])
-                    
+
                     buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
                         .filter(ee.Filter.intersects('.geo', geom))
-                    
+
                     download_url = buildings.getDownloadURL('geojson')
                     response = requests.get(download_url)
                     google_buildings = response.json()
-                    
+
                     st.info("Fetching OSM data...")
                     try:
                         osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
@@ -280,7 +294,7 @@ elif main_nav == "Data Collection":
             st.info("Fetching OSM roads data...")
             try:
                 osm_roads = ox.features_from_polygon(polygon.unary_union, tags={'highway': True})
-                create_map(latitude, longitude, _osm_roads=osm_roads)
+                create_map(latitude, longitude, osm_roads=osm_roads)
             except Exception as e:
                 st.error(f"Error fetching OSM roads data: {e}")
 
@@ -289,7 +303,7 @@ elif main_nav == "Data Collection":
             st.info("Fetching OSM points of interest data...")
             try:
                 osm_pois = ox.features_from_polygon(polygon.unary_union, tags={'amenity': True})
-                create_map(latitude, longitude, _osm_pois=osm_pois)
+                create_map(latitude, longitude, osm_pois=osm_pois)
             except Exception as e:
                 st.error(f"Error fetching OSM points of interest data: {e}")
 
