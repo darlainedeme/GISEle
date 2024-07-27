@@ -29,7 +29,7 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 initialize_earth_engine()
 
 def create_map(latitude, longitude, geojson_data, buildings_data):
-    m = folium.Map(location=[latitude, longitude], zoom_start=12)
+    m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -71,7 +71,13 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
         # Add MarkerCluster for Google Buildings
         marker_cluster = MarkerCluster(name='Google Buildings Clusters').add_to(m)
         for feature in buildings_data['features']:
-            coords = feature['geometry']['coordinates']
+            geom = feature['geometry']
+            if geom['type'] == 'Polygon':
+                coords = geom['coordinates'][0][0]
+            elif geom['type'] == 'MultiPolygon':
+                coords = geom['coordinates'][0][0][0]
+            else:
+                coords = geom['coordinates']
             if len(coords) >= 2:
                 folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
 
@@ -83,7 +89,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     folium.LayerControl().add_to(m)
 
     # Display the map
-    folium_static(m, width=1200, height=800)  # Wider map
+    folium_static(m, width=1400, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
