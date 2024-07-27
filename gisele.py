@@ -95,12 +95,14 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         }).add_to(m)
 
     # Add drawing and fullscreen plugins
-    Draw(export=True, filename='data.geojson', position='topright').add_to(m)
-    Fullscreen(position='topright').add_to(m)
-    MeasureControl(position='bottomleft').add_to(m)
-    
+    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
+                        edit_options=None).add_to(m)
+    folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
+                              force_separate_button=False).add_to(m)
+    folium.plugins.MeasureControl(position='bottomleft', primary_length_unit='meters', secondary_length_unit='miles',
+                                  primary_area_unit='sqmeters', secondary_area_unit='acres').add_to(m)
     folium.LayerControl().add_to(m)
-
+    
     # Save map to session state
     st.session_state.map = m
 
