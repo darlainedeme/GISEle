@@ -12,20 +12,22 @@ import osmnx as ox
 from shapely.geometry import mapping
 import pandas as pd
 
-# Initialize Earth Engine
-def initialize_earth_engine():
-    json_data = st.secrets["json_data"]
-    json_object = json.loads(json_data, strict=False)
-    service_account = json_object['client_email']
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
-    ee.Initialize(credentials)
-    st.session_state.ee_initialized = True  # Mark as initialized
-
-initialize_earth_engine()
-
 # Initialize the app
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
+
+# Initialize Earth Engine
+if 'ee_initialized' not in st.session_state:
+    @st.cache_resource
+    def initialize_earth_engine():
+        json_data = st.secrets["json_data"]
+        json_object = json.loads(json_data, strict=False)
+        service_account = json_object['client_email']
+        credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+        ee.Initialize(credentials)
+        st.session_state.ee_initialized = True  # Mark as initialized
+
+    initialize_earth_engine()
 
 # Define navigation
 page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
