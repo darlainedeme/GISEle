@@ -249,4 +249,66 @@ elif main_nav == "Data Collection":
             if not os.path.exists(BUILDINGS_GEOJSON):
                 st.info("Fetching building data...")
                 try:
-                    geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude +
+                    geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude + 0.01, latitude + 0.01])
+                    
+                    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+                        .filter(ee.Filter.intersects('.geo', geom))
+                    
+                    download_url = buildings.getDownloadURL('geojson')
+                    response = requests.get(download_url)
+                    google_buildings = response.json()
+                    
+                    st.info("Fetching OSM data...")
+                    try:
+                        osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
+                        combined_buildings = create_combined_buildings_layer(
+                            gpd.GeoDataFrame.from_features(osm_buildings),
+                            gpd.GeoDataFrame.from_features(google_buildings["features"])
+                        )
+                        combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
+                        create_map(latitude, longitude, combined_buildings=combined_buildings)
+                    except Exception as e:
+                        st.error(f"Error fetching OSM buildings data: {e}")
+                except Exception as e:
+                    st.error(f"Error fetching building data: {e}")
+            else:
+                combined_buildings = gpd.read_file(BUILDINGS_GEOJSON)
+                create_map(latitude, longitude, combined_buildings=combined_buildings)
+
+        elif data_collection_nav == "Roads":
+            st.write("Data Collection: Roads")
+            st.info("Fetching OSM roads data...")
+            try:
+                osm_roads = ox.features_from_polygon(polygon.unary_union, tags={'highway': True})
+                create_map(latitude, longitude, _osm_roads=osm_roads)
+            except Exception as e:
+                st.error(f"Error fetching OSM roads data: {e}")
+
+        elif data_collection_nav == "Points of Interest":
+            st.write("Data Collection: Points of Interest")
+            st.info("Fetching OSM points of interest data...")
+            try:
+                osm_pois = ox.features_from_polygon(polygon.unary_union, tags={'amenity': True})
+                create_map(latitude, longitude, _osm_pois=osm_pois)
+            except Exception as e:
+                st.error(f"Error fetching OSM points of interest data: {e}")
+
+elif main_nav == "Data Analysis":
+    st.write("Data Analysis page under construction")
+
+# Add About and Contact sections in the sidebar
+st.sidebar.title("About")
+st.sidebar.info(
+    """
+    Web App URL: [https://gisele.streamlit.app/](https://gisele.streamlit.app/)
+    GitHub repository: [https://github.com/darlainedeme/GISEle](https://github.com/darlainedeme/GISEle)
+    """
+)
+
+st.sidebar.title("Contact")
+st.sidebar.info(
+    """
+    Darlain Edeme: [http://www.e4g.polimi.it/](http://www.e4g.polimi.it/)
+    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
+    """
+)
