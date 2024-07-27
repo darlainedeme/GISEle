@@ -9,7 +9,7 @@ import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
-from shapely.geometry import mapping, box
+from shapely.geometry import mapping
 import pandas as pd
 
 # Initialize Earth Engine
@@ -31,30 +31,7 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 # Call to initialize Earth Engine
 initialize_earth_engine()
 
-@st.cache_data
-def fetch_buildings_data(_geom):
-    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-        .filter(ee.Filter.intersects('.geo', _geom))
-    download_url = buildings.getDownloadURL('geojson')
-    response = requests.get(download_url)
-    return response.json()
-
-@st.cache_data
-def fetch_osm_buildings(polygon):
-    return ox.features_from_polygon(polygon, tags={'building': True})
-
-@st.cache_data
-def fetch_osm_roads(polygon):
-    return ox.features_from_polygon(polygon, tags={'highway': True})
-
-@st.cache_data
-def fetch_osm_pois(polygon):
-    return ox.features_from_polygon(polygon, tags={'amenity': True})
-
 def create_combined_buildings_layer(osm_buildings, google_buildings):
-    if osm_buildings is None or google_buildings is None:
-        raise ValueError("One of the building layers is None")
-    
     # Ensure both GeoDataFrames are in the same CRS
     osm_buildings = osm_buildings.to_crs(epsg=4326)
     google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
@@ -62,10 +39,8 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     # Remove Google buildings that touch OSM buildings
     osm_buildings['source'] = 'osm'
     google_buildings['source'] = 'google'
-    
-    google_buildings = google_buildings[~google_buildings.geometry.apply(lambda x: osm_buildings.geometry.apply(lambda y: y.touches(x)).any())]
-    
-    combined_buildings = pd.concat([google_buildings, osm_buildings], ignore_index=True)
+    combined_buildings = gpd.overlay(google_buildings, osm_buildings, how='difference')
+    combined_buildings = pd.concat([combined_buildings, osm_buildings])
 
     return combined_buildings
 
@@ -205,26 +180,34 @@ elif page == "Area Selection":
                     coords = gdf.geometry.total_bounds
                     geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
                     
-                    google_buildings = fetch_buildings_data(geom)
+                    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+                        .filter(ee.Filter.intersects('.geo', geom))
+                    
+                    download_url = buildings.getDownloadURL('geojson')
+                    response = requests.get(download_url)
+                    google_buildings = response.json()
                     
                     st.info("Fetching OSM data...")
                     polygon = gdf.unary_union
                     missing_layers = []
                     try:
-                        osm_buildings = fetch_osm_buildings(polygon)
+                        osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
                     except Exception as e:
+                        st.error(f"Error fetching OSM buildings data: {e}")
                         osm_buildings = None
                         missing_layers.append('buildings')
 
                     try:
-                        osm_roads = fetch_osm_roads(polygon)
+                        osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
                     except Exception as e:
+                        st.error(f"Error fetching OSM roads data: {e}")
                         osm_roads = None
                         missing_layers.append('roads')
 
                     try:
-                        osm_pois = fetch_osm_pois(polygon)
+                        osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
                     except Exception as e:
+                        st.error(f"Error fetching OSM points of interest data: {e}")
                         osm_pois = None
                         missing_layers.append('points of interest')
 
@@ -236,8 +219,6 @@ elif page == "Area Selection":
                     centroid = gdf.geometry.centroid.iloc[0]
                     create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
                     st.success("Map created successfully!")
-            except ValueError as e:
-                st.error(f"Error processing file: {e}")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
             except IndexError as e:
