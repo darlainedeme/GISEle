@@ -9,7 +9,7 @@ import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
-from shapely.geometry import mapping
+from shapely.geometry import mapping, box
 import pandas as pd
 
 # Initialize Earth Engine
@@ -95,8 +95,8 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         }).add_to(m)
 
     # Add drawing and fullscreen plugins
-    Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
-    Fullscreen(position='topleft').add_to(m)
+    Draw(export=True, filename='data.geojson', position='topright').add_to(m)
+    Fullscreen(position='topright').add_to(m)
     MeasureControl(position='bottomleft').add_to(m)
     
     folium.LayerControl().add_to(m)
@@ -105,7 +105,7 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
     st.session_state.map = m
 
     # Display the map
-    st_folium(m, width=1400, height=800)  # Wider map
+    st_folium(m, width=1450, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
@@ -121,9 +121,6 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
 
     # Remove Google buildings that touch OSM buildings
-    osm_buildings['source'] = 'osm'
-    google_buildings['source'] = 'google'
-    
     osm_dissolved = osm_buildings.unary_union
 
     # Filter Google buildings that do not intersect with OSM buildings
@@ -197,11 +194,10 @@ elif main_nav == "Area Selection":
                 if gdf.empty or gdf.is_empty.any():
                     st.error("Uploaded GeoJSON file is empty or contains null geometries.")
                 else:
-                    geojson_data = gdf.to_json()
-                    
-                    # Save map data to session state
-                    coords = gdf.geometry.total_bounds
-                    centroid = gdf.geometry.centroid.iloc[0]
+                    # Assuming the first feature in the GeoDataFrame is representative
+                    feature = gdf.iloc[0]
+                    centroid = feature.geometry.centroid
+                    geojson_data = mapping(feature.geometry)
 
                     st.session_state.latitude = centroid.y
                     st.session_state.longitude = centroid.x
@@ -229,20 +225,16 @@ elif main_nav == "Data Collection":
 
         latitude = st.session_state.latitude
         longitude = st.session_state.longitude
-        polygon = gpd.GeoDataFrame(gpd.GeoSeries(gpd.box(st.session_state.longitude - 0.01, 
-                                                           st.session_state.latitude - 0.01, 
-                                                           st.session_state.longitude + 0.01, 
-                                                           st.session_state.latitude + 0.01, 
-                                                           crs='EPSG:4326')), columns=['geometry'])
+        polygon = gpd.GeoDataFrame(
+            {'geometry': [box(longitude - 0.01, latitude - 0.01, longitude + 0.01, latitude + 0.01)]},
+            crs='EPSG:4326'
+        )
 
         if data_collection_nav == "Buildings":
             st.write("Data Collection: Buildings")
             st.info("Fetching building data...")
             try:
-                geom = ee.Geometry.Rectangle([st.session_state.longitude - 0.01, 
-                                              st.session_state.latitude - 0.01, 
-                                              st.session_state.longitude + 0.01, 
-                                              st.session_state.latitude + 0.01])
+                geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude + 0.01, latitude + 0.01])
                 
                 buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
                     .filter(ee.Filter.intersects('.geo', geom))
