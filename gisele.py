@@ -327,3 +327,4 @@ st.sidebar.info(
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
     """
 )
+
