@@ -215,7 +215,8 @@ elif main_nav == "Area Selection":
                     
                     if gdf.empty:
                         st.error("Uploaded file is empty or not valid GeoJSON.")
-                        
+                        return
+
                     centroid = gdf.geometry.unary_union.centroid
                     st.session_state.latitude = centroid.y
                     st.session_state.longitude = centroid.x
@@ -268,14 +269,11 @@ elif main_nav == "Data Collection":
                     st.info("Fetching OSM data...")
                     try:
                         osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
-                        osm_buildings_gdf = gpd.GeoDataFrame.from_features(osm_buildings)
-                        osm_buildings_gdf['source'] = 'osm'
-
-                        google_buildings_gdf = gpd.GeoDataFrame.from_features(google_buildings["features"])
-                        google_buildings_gdf['source'] = 'google'
-
-                        combined_buildings = create_combined_buildings_layer(osm_buildings_gdf, google_buildings_gdf)
-                        # combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
+                        # Label sources
+                        osm_buildings['source'] = 'osm'
+                        google_buildings['source'] = 'google'
+                        combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)   
+                        combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
                         st.info("Combined buildings data saved.")
                     except Exception as e:
                         st.error(f"Error fetching OSM buildings data: {e}")
@@ -326,4 +324,3 @@ st.sidebar.info(
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
     """
 )
-
