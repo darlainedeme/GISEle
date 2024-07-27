@@ -25,33 +25,15 @@ def initialize_earth_engine():
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
-# Main navigation
+# Define navigation
 main_nav = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Data Collection", "Data Analysis"], key="main_nav")
 
-# Call to initialize Earth Engine
+# Initialize Earth Engine
 initialize_earth_engine()
 
-def create_combined_buildings_layer(osm_buildings, google_buildings):
-    # Ensure both GeoDataFrames are in the same CRS
-    osm_buildings = osm_buildings.to_crs(epsg=4326)
-    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
-
-    # Remove Google buildings that touch OSM buildings
-    osm_buildings['source'] = 'osm'
-    google_buildings['source'] = 'google'
-    
-    osm_dissolved = osm_buildings.unary_union
-
-    # Filter Google buildings that do not intersect with OSM buildings
-    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
-
-    # Combine OSM buildings and filtered Google buildings
-    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
-
-    return combined_buildings
-
-def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
-    m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
+# Define functions
+def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
+    m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -125,12 +107,6 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     # Display the map
     st_folium(m, width=1450, height=800)  # Wider map
 
-    # Indicate missing layers
-    if missing_layers:
-        st.write("The following layers weren't possible to obtain for the selected area:")
-        for layer in missing_layers:
-            st.write(f"- {layer}")
-
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
         temp_file.write(data.getvalue())
@@ -139,14 +115,33 @@ def uploaded_file_to_gdf(data):
     gdf = gpd.read_file(temp_filepath)
     return gdf
 
+def create_combined_buildings_layer(osm_buildings, google_buildings):
+    # Ensure both GeoDataFrames are in the same CRS
+    osm_buildings = osm_buildings.to_crs(epsg=4326)
+    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+
+    # Remove Google buildings that touch OSM buildings
+    osm_buildings['source'] = 'osm'
+    google_buildings['source'] = 'google'
+    
+    osm_dissolved = osm_buildings.unary_union
+
+    # Filter Google buildings that do not intersect with OSM buildings
+    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
+
+    # Combine OSM buildings and filtered Google buildings
+    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
+
+    return combined_buildings
+
+# Main app logic
 if main_nav == "Home":
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
 
 elif main_nav == "Area Selection":
-    # Mode selection for area
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.radio('Select mode', which_modes, index=2, key="mode_select")
+    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0, key="mode_select")
 
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
@@ -164,8 +159,8 @@ elif main_nav == "Area Selection":
                         st.session_state.osm_roads = None
                         st.session_state.osm_pois = None
                         st.session_state.missing_layers = []
-                        st.session_state.mode_selected = 'address'
-                        create_map(location.latitude, location.longitude, None, None, None, None, [])
+                        # Create a map showing only the polygon area
+                        create_map(location.latitude, location.longitude)
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
@@ -185,13 +180,12 @@ elif main_nav == "Area Selection":
                     st.session_state.osm_roads = None
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
-                    st.session_state.mode_selected = 'coordinates'
-                    create_map(float(latitude), float(longitude), None, None, None, None, [])
+                    # Create a map showing only the polygon area
+                    create_map(float(latitude), float(longitude))
             except Exception as e:
                 st.error(f"Error creating map: {e}")
         else:
             st.error("Please provide both latitude and longitude.")
-            
     elif which_mode == 'Upload file':
         data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
@@ -205,59 +199,20 @@ elif main_nav == "Area Selection":
                 else:
                     geojson_data = gdf.to_json()
                     
-                    st.info("Fetching building data...")
+                    # Save map data to session state
                     coords = gdf.geometry.total_bounds
-                    geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
-                    
-                    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-                        .filter(ee.Filter.intersects('.geo', geom))
-                    
-                    download_url = buildings.getDownloadURL('geojson')
-                    response = requests.get(download_url)
-                    google_buildings = response.json()
-                    
-                    st.info("Fetching OSM data...")
-                    polygon = gdf.unary_union
-                    missing_layers = []
-                    try:
-                        osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
-                    except Exception as e:
-                        st.error(f"Error fetching OSM buildings data: {e}")
-                        osm_buildings = None
-                        missing_layers.append('buildings')
-
-                    try:
-                        osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
-                    except Exception as e:
-                        st.error(f"Error fetching OSM roads data: {e}")
-                        osm_roads = None
-                        missing_layers.append('roads')
-
-                    try:
-                        osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
-                    except Exception as e:
-                        st.error(f"Error fetching OSM points of interest data: {e}")
-                        osm_pois = None
-                        missing_layers.append('points of interest')
-
-                    st.info("Creating combined buildings layer...")
-                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
-                    
-                    st.info("Creating map...")
-                    gdf = gdf.to_crs(epsg=4326)
                     centroid = gdf.geometry.centroid.iloc[0]
 
-                    # Save map data to session state
                     st.session_state.latitude = centroid.y
                     st.session_state.longitude = centroid.x
                     st.session_state.geojson_data = geojson_data
-                    st.session_state.combined_buildings = combined_buildings
-                    st.session_state.osm_roads = osm_roads
-                    st.session_state.osm_pois = osm_pois
-                    st.session_state.missing_layers = missing_layers
-                    st.session_state.mode_selected = 'file'
-                    
-                    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
+                    st.session_state.combined_buildings = None
+                    st.session_state.osm_roads = None
+                    st.session_state.osm_pois = None
+                    st.session_state.missing_layers = []
+
+                    # Create a map showing the uploaded file's polygon area
+                    create_map(centroid.y, centroid.x, geojson_data)
                     st.success("Map created successfully!")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
@@ -267,35 +222,62 @@ elif main_nav == "Area Selection":
                 st.error(f"Error processing file: {e}")
 
 elif main_nav == "Data Collection":
-    if 'mode_selected' in st.session_state and st.session_state.mode_selected:
-        # Sub-navigation for Data Collection
+    if 'latitude' not in st.session_state or 'longitude' not in st.session_state:
+        st.error("Please select an area in the 'Area Selection' page first.")
+    else:
         data_collection_nav = st.sidebar.radio("Data Collection", ["Buildings", "Roads", "Points of Interest"], key="data_collection_nav")
+
+        latitude = st.session_state.latitude
+        longitude = st.session_state.longitude
+        polygon = gpd.GeoDataFrame(gpd.GeoSeries(gpd.box(st.session_state.longitude - 0.01, 
+                                                           st.session_state.latitude - 0.01, 
+                                                           st.session_state.longitude + 0.01, 
+                                                           st.session_state.latitude + 0.01, 
+                                                           crs='EPSG:4326')), columns=['geometry'])
 
         if data_collection_nav == "Buildings":
             st.write("Data Collection: Buildings")
-            if st.session_state.combined_buildings is not None:
-                st.write("Displaying buildings data...")
-                st.write(st.session_state.combined_buildings)
-            else:
-                st.write("No buildings data available. Please select or upload an area.")
+            st.info("Fetching building data...")
+            try:
+                geom = ee.Geometry.Rectangle([st.session_state.longitude - 0.01, 
+                                              st.session_state.latitude - 0.01, 
+                                              st.session_state.longitude + 0.01, 
+                                              st.session_state.latitude + 0.01])
+                
+                buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+                    .filter(ee.Filter.intersects('.geo', geom))
+                
+                download_url = buildings.getDownloadURL('geojson')
+                response = requests.get(download_url)
+                google_buildings = response.json()
+                
+                st.info("Fetching OSM data...")
+                try:
+                    osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
+                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+                    create_map(latitude, longitude, combined_buildings=combined_buildings)
+                except Exception as e:
+                    st.error(f"Error fetching OSM buildings data: {e}")
+            except Exception as e:
+                st.error(f"Error fetching building data: {e}")
 
         elif data_collection_nav == "Roads":
             st.write("Data Collection: Roads")
-            if st.session_state.osm_roads is not None:
-                st.write("Displaying roads data...")
-                st.write(st.session_state.osm_roads)
-            else:
-                st.write("No roads data available. Please select or upload an area.")
+            st.info("Fetching OSM roads data...")
+            try:
+                osm_roads = ox.features_from_polygon(polygon.unary_union, tags={'highway': True})
+                create_map(latitude, longitude, osm_roads=osm_roads)
+            except Exception as e:
+                st.error(f"Error fetching OSM roads data: {e}")
 
         elif data_collection_nav == "Points of Interest":
             st.write("Data Collection: Points of Interest")
-            if st.session_state.osm_pois is not None:
-                st.write("Displaying points of interest data...")
-                st.write(st.session_state.osm_pois)
-            else:
-                st.write("No points of interest data available. Please select or upload an area.")
-    else:
-        st.write("Please select an area first on the 'Area Selection' page.")
+            st.info("Fetching OSM points of interest data...")
+            try:
+                osm_pois = ox.features_from_polygon(polygon.unary_union, tags={'amenity': True})
+                create_map(latitude, longitude, osm_pois=osm_pois)
+            except Exception as e:
+                st.error(f"Error fetching OSM points of interest data: {e}")
 
 elif main_nav == "Data Analysis":
     st.write("Data Analysis page under construction")
@@ -316,7 +298,3 @@ st.sidebar.info(
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
     """
 )
-
-# Show saved map if available
-if 'map' in st.session_state:
-    st_folium(st.session_state.map, width=1450, height=800)
