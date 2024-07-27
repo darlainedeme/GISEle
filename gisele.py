@@ -10,6 +10,7 @@ from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 
 # Initialize Earth Engine
+@st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
@@ -77,36 +78,38 @@ elif page == "Area Selection":
         geolocator = Nominatim(user_agent="example app")
         address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa', key="address_input") 
 
-        try:
-            location = geolocator.geocode(address)
-            if location:
-                # Create map with dummy data as placeholder
-                create_map(location.latitude, location.longitude, None, None)
-            else:
-                st.error("Could not geocode the address.")
-        except Exception as e:
-            st.error(f"Error fetching location: {e}")
+        if address:
+            try:
+                with st.spinner('Fetching location...'):
+                    location = geolocator.geocode(address)
+                    if location:
+                        create_map(location.latitude, location.longitude, None, None)
+                    else:
+                        st.error("Could not geocode the address.")
+            except Exception as e:
+                st.error(f"Error fetching location: {e}")
     elif which_mode == 'By coordinates':  
         latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input") 
         longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input") 
         
-        try:
-            if latitude and longitude:
-                # Create map with dummy data as placeholder
-                create_map(float(latitude), float(longitude), None, None)
-            else:
-                st.error("Please provide both latitude and longitude.")
-        except Exception as e:
-            st.error(f"Error creating map: {e}")
+        if latitude and longitude:
+            try:
+                with st.spinner('Creating map...'):
+                    create_map(float(latitude), float(longitude), None, None)
+            except Exception as e:
+                st.error(f"Error creating map: {e}")
+        else:
+            st.error("Please provide both latitude and longitude.")
     elif which_mode == 'Upload file':
         data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
         if data:
             try:
+                st.info("Uploading file...")
                 gdf = uploaded_file_to_gdf(data)
                 geojson_data = gdf.to_json()
                 
-                # Fetch and add Google Buildings data
+                st.info("Fetching building data...")
                 coords = gdf.geometry.total_bounds
                 geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
                 
@@ -116,13 +119,11 @@ elif page == "Area Selection":
                 download_url = buildings.getDownloadURL('geojson')
                 response = requests.get(download_url)
                 buildings_data = response.json()
-                
-                if 'features' not in buildings_data or len(buildings_data['features']) == 0:
-                    st.error("No building data found for the selected area.")
-                else:
-                    # Create map with uploaded GeoJSON and Google Buildings data
-                    centroid = gdf.geometry.centroid.iloc[0]
-                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+
+                st.info("Creating map...")
+                centroid = gdf.geometry.centroid.iloc[0]
+                create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                st.success("Map created successfully!")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
