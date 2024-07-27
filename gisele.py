@@ -13,16 +13,15 @@ from shapely.geometry import mapping
 import pandas as pd
 
 # Initialize Earth Engine
-if 'ee_initialized' not in st.session_state:
-    def initialize_earth_engine():
-        json_data = st.secrets["json_data"]
-        json_object = json.loads(json_data, strict=False)
-        service_account = json_object['client_email']
-        credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
-        ee.Initialize(credentials)
-        st.session_state.ee_initialized = True  # Mark as initialized
+def initialize_earth_engine():
+    json_data = st.secrets["json_data"]
+    json_object = json.loads(json_data, strict=False)
+    service_account = json_object['client_email']
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+    ee.Initialize(credentials)
+    st.session_state.ee_initialized = True  # Mark as initialized
 
-    initialize_earth_engine()
+initialize_earth_engine()
 
 # Initialize the app
 st.set_page_config(layout="wide")
