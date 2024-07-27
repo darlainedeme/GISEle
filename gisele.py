@@ -105,7 +105,7 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         }).add_to(m)
 
     # Add drawing and fullscreen plugins
-    folium.plugins.Draw(export=True, filename='data.geojson', position='bottomright').add_to(m)
+    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
     folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
                               force_separate_button=False).add_to(m)
     folium.plugins.MeasureControl(position='bottomleft', primary_length_unit='meters', secondary_length_unit='miles',
