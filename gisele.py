@@ -26,13 +26,34 @@ def initialize_earth_engine():
     ee.Initialize(credentials)
 
 # Ensure Earth Engine is initialized only once
-@st.cache_resource
 if 'ee_initialized' not in st.session_state:
     initialize_earth_engine()
     st.session_state.ee_initialized = True
+
 # Define navigation
 page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
 
+if 'map_state' not in st.session_state:
+    st.session_state.map_state = {
+        "latitude": None,
+        "longitude": None,
+        "geojson_data": None,
+        "combined_buildings": None,
+        "osm_roads": None,
+        "osm_pois": None,
+        "missing_layers": []
+    }
+
+def update_map_state(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
+    st.session_state.map_state = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "geojson_data": geojson_data,
+        "combined_buildings": combined_buildings,
+        "osm_roads": osm_roads,
+        "osm_pois": osm_pois,
+        "missing_layers": missing_layers
+    }
 
 def create_combined_buildings_layer(osm_buildings, google_buildings):
     # Ensure both GeoDataFrames are in the same CRS
