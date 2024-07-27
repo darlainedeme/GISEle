@@ -30,7 +30,32 @@ initialize_earth_engine()
 
 def create_map(latitude, longitude, geojson_data, buildings_data):
     m = folium.Map(location=[latitude, longitude], zoom_start=12)
-    
+
+    # Add map tiles
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
     # Add GeoDataFrame to the map
     if geojson_data:
         folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
@@ -58,7 +83,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     folium.LayerControl().add_to(m)
 
     # Display the map
-    folium_static(m, width=800, height=600)
+    folium_static(m, width=1200, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
