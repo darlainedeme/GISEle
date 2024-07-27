@@ -38,7 +38,7 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
     add_osm_data(m, osm_roads, osm_pois)
     add_plugins(m)
     folium.LayerControl().add_to(m)
-    st_folium(m, width=1450, height=800)
+    st_data = st_folium(m, width=1450, height=800)
     if missing_layers:
         st.write("The following layers weren't possible to obtain for the selected area:")
         for layer in missing_layers:
@@ -214,6 +214,5 @@ st.sidebar.title("About")
 st.sidebar.info(
     """
     Web App URL: [https://gisele.streamlit.app/](https://gisele.streamlit.app/)
-    GitHub repository: [https://github.com/darlainedeme/GISEle](https://github.com/darlainedeme/GISEle)
     """
 )
