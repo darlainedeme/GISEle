@@ -28,7 +28,7 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 # Call to initialize Earth Engine
 initialize_earth_engine()
 
-def create_map(latitude, longitude, geojson_data, buildings_data):
+def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
 
     # Add map tiles
@@ -66,10 +66,10 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
             'fillColor': 'green',
             'color': 'green',
             'weight': 1,
-        }).add_to(m)
+        }, show=False).add_to(m)  # Default to not show
 
         # Add MarkerCluster for Google Buildings
-        marker_cluster = MarkerCluster(name='Google Buildings Clusters').add_to(m)
+        marker_cluster = MarkerCluster(name='Google Buildings Clusters', show=True).add_to(m)
         for feature in buildings_data['features']:
             geom = feature['geometry']
             if geom['type'] == 'Polygon':
@@ -80,6 +80,29 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
                 coords = geom['coordinates']
             if len(coords) >= 2:
                 folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
+                
+    # Add OSM buildings data to the map
+    if osm_buildings is not None:
+        folium.GeoJson(osm_buildings, name="OSM Buildings", style_function=lambda x: {
+            'fillColor': 'blue',
+            'color': 'blue',
+            'weight': 1,
+        }).add_to(m)
+        
+    # Add OSM roads data to the map
+    if osm_roads is not None:
+        folium.GeoJson(osm_roads, name="OSM Roads", style_function=lambda x: {
+            'color': 'orange',
+            'weight': 2,
+        }).add_to(m)
+
+    # Add OSM POIs data to the map
+    if osm_pois is not None:
+        folium.GeoJson(osm_pois, name="OSM POIs", style_function=lambda x: {
+            'fillColor': 'red',
+            'color': 'red',
+            'weight': 1,
+        }).add_to(m)
 
     # Add drawing and fullscreen plugins
     Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
@@ -89,7 +112,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     folium.LayerControl().add_to(m)
 
     # Display the map
-    folium_static(m, width=1400, height=800)  # Wider map
+    folium_static(m, width=1450, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
@@ -98,6 +121,22 @@ def uploaded_file_to_gdf(data):
 
     gdf = gpd.read_file(temp_filepath)
     return gdf
+
+def fetch_osm_data(bounds):
+    # Define the OSM data sources
+    tags = {'building': True, 'highway': True, 'amenity': True}
+    bbox = [bounds[1], bounds[0], bounds[3], bounds[2]]  # [south, west, north, east]
+    
+    # Fetch OSM buildings
+    osm_buildings = ox.geometries_from_bbox(*bbox, tags={'building': True})
+    
+    # Fetch OSM roads
+    osm_roads = ox.geometries_from_bbox(*bbox, tags={'highway': True})
+    
+    # Fetch OSM POIs
+    osm_pois = ox.geometries_from_bbox(*bbox, tags={'amenity': True})
+    
+    return osm_buildings, osm_roads, osm_pois
 
 if page == "Home":
     st.write("Welcome to Local GISEle")
@@ -155,10 +194,13 @@ elif page == "Area Selection":
                     download_url = buildings.getDownloadURL('geojson')
                     response = requests.get(download_url)
                     buildings_data = response.json()
+                    
+                    st.info("Fetching OSM data...")
+                    osm_buildings, osm_roads, osm_pois = fetch_osm_data(coords)
 
                     st.info("Creating map...")
                     centroid = gdf.geometry.centroid.iloc[0]
-                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                    create_map(centroid.y, centroid.x, geojson_data, buildings_data, osm_buildings, osm_roads, osm_pois)
                     st.success("Map created successfully!")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
