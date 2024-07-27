@@ -8,6 +8,7 @@ import tempfile
 import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
+import osmnx as ox
 
 # Initialize Earth Engine
 @st.cache_resource
