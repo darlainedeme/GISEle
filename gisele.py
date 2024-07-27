@@ -61,15 +61,17 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
     ).add_to(m)
 
     # Add the original area of interest
-    folium.GeoJson({
-        "type": "FeatureCollection",
-        "features": [geojson_data] if geojson_data else []
-    }, name="Original Area", style_function=lambda x: {
-        'fillColor': 'blue',
-        'color': 'blue',
-        'weight': 2,
-        'fillOpacity': 0.2,
-    }).add_to(m)
+    if geojson_data:
+        folium.GeoJson(
+            geojson_data,
+            name="Original Area",
+            style_function=lambda x: {
+                'fillColor': 'blue',
+                'color': 'blue',
+                'weight': 2,
+                'fillOpacity': 0.2,
+            }
+        ).add_to(m)
 
     # Add combined buildings data to the map
     if combined_buildings is not None:
@@ -170,8 +172,8 @@ elif main_nav == "Area Selection":
                 st.error(f"Error fetching location: {e}")
 
     elif which_mode == 'By coordinates':  
-        latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input") 
-        longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input") 
+        latitude = st.sidebar.text_input('Latitude:', value='45.5065', key="latitude_input") 
+        longitude = st.sidebar.text_input('Longitude:', value='9.1598', key="longitude_input") 
         
         if latitude and longitude:
             try:
@@ -183,7 +185,7 @@ elif main_nav == "Area Selection":
                     st.session_state.osm_roads = None
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
-                    # Create a map showing only the polygon area
+                    # Create a map showing the selected coordinates
                     create_map(float(latitude), float(longitude))
             except Exception as e:
                 st.error(f"Error creating map: {e}")
