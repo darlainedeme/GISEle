@@ -27,6 +27,7 @@ def initialize_earth_engine():
 
 # Ensure Earth Engine is initialized only once
 if 'ee_initialized' not in st.session_state:
+    @st.cache_resource
     initialize_earth_engine()
     st.session_state.ee_initialized = True
 # Define navigation
