@@ -115,7 +115,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings,
     folium.LayerControl().add_to(m)
 
     # Display the map
-    folium_static(m, width=1450, height=800)  # Wider map
+    folium_static(m, width=1420, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
