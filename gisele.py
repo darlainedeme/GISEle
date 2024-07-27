@@ -8,6 +8,8 @@ import tempfile
 import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
+import osmnx as ox
+from shapely.geometry import mapping
 
 # Initialize Earth Engine
 @st.cache_resource
@@ -28,7 +30,7 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 # Call to initialize Earth Engine
 initialize_earth_engine()
 
-def create_map(latitude, longitude, geojson_data, buildings_data):
+def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings, osm_roads, osm_pois):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
 
     # Add map tiles
@@ -60,13 +62,13 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
     if geojson_data:
         folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
-    # Add Google Buildings data to the map as a selectable layer
+    # Add Google Buildings data to the map as a selectable layer (disabled by default)
     if buildings_data:
         folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
             'fillColor': 'green',
             'color': 'green',
             'weight': 1,
-        }).add_to(m)
+        }, show=False).add_to(m)
 
         # Add MarkerCluster for Google Buildings
         marker_cluster = MarkerCluster(name='Google Buildings Clusters').add_to(m)
@@ -80,6 +82,30 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
                 coords = geom['coordinates']
             if len(coords) >= 2:
                 folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
+
+    # Add OSM Buildings data to the map
+    if osm_buildings is not None:
+        folium.GeoJson(osm_buildings.to_json(), name='OSM Buildings', style_function=lambda x: {
+            'fillColor': 'blue',
+            'color': 'blue',
+            'weight': 1,
+        }).add_to(m)
+
+    # Add OSM Roads data to the map
+    if osm_roads is not None:
+        folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
+            'fillColor': 'orange',
+            'color': 'orange',
+            'weight': 1,
+        }).add_to(m)
+
+    # Add OSM Points of Interest data to the map
+    if osm_pois is not None:
+        folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
+            'fillColor': 'red',
+            'color': 'red',
+            'weight': 1,
+        }).add_to(m)
 
     # Add drawing and fullscreen plugins
     Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
@@ -115,7 +141,7 @@ elif page == "Area Selection":
                 with st.spinner('Fetching location...'):
                     location = geolocator.geocode(address)
                     if location:
-                        create_map(location.latitude, location.longitude, None, None)
+                        create_map(location.latitude, location.longitude, None, None, None, None, None)
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
@@ -127,7 +153,7 @@ elif page == "Area Selection":
         if latitude and longitude:
             try:
                 with st.spinner('Creating map...'):
-                    create_map(float(latitude), float(longitude), None, None)
+                    create_map(float(latitude), float(longitude), None, None, None, None, None)
             except Exception as e:
                 st.error(f"Error creating map: {e}")
         else:
@@ -155,10 +181,31 @@ elif page == "Area Selection":
                     download_url = buildings.getDownloadURL('geojson')
                     response = requests.get(download_url)
                     buildings_data = response.json()
+                    
+                    st.info("Fetching OSM data...")
+                    polygon = gdf.unary_union
+                    try:
+                        osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
+                    except Exception as e:
+                        st.error(f"Error fetching OSM buildings data: {e}")
+                        osm_buildings = None
+
+                    try:
+                        osm_roads = ox.graph_from_polygon(polygon, network_type='all')
+                        osm_roads = ox.graph_to_gdfs(osm_roads, nodes=False, edges=True)[1]
+                    except Exception as e:
+                        st.error(f"Error fetching OSM roads data: {e}")
+                        osm_roads = None
+
+                    try:
+                        osm_pois = ox.geometries_from_polygon(polygon, tags={'amenity': True})
+                    except Exception as e:
+                        st.error(f"Error fetching OSM points of interest data: {e}")
+                        osm_pois = None
 
                     st.info("Creating map...")
                     centroid = gdf.geometry.centroid.iloc[0]
-                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                    create_map(centroid.y, centroid.x, geojson_data, buildings_data, osm_buildings, osm_roads, osm_pois)
                     st.success("Map created successfully!")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
