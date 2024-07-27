@@ -51,78 +51,79 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     return combined_buildings
 
 def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
-    if 'map' not in st.session_state or st.session_state.map is None:
-        m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
+    m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
 
-        # Add map tiles
-        folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
-        folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
-        folium.TileLayer(
-            tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
-            attr='Google',
-            name='Google Maps',
-            overlay=False,
-            control=True
-        ).add_to(m)
-        folium.TileLayer(
-            tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
-            attr='Google',
-            name='Google Hybrid',
-            overlay=False,
-            control=True
-        ).add_to(m)
-        folium.TileLayer(
-            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            attr='Esri',
-            name='Esri Satellite',
-            overlay=False,
-            control=True
-        ).add_to(m)
+    # Add map tiles
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
 
-        # Add GeoDataFrame to the map
-        if geojson_data:
-            folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+    # Add GeoDataFrame to the map
+    if geojson_data:
+        folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
-        # Add combined buildings data to the map
-        if combined_buildings is not None:
-            style_function = lambda x: {
-                'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
-                'color': 'green' if x['properties']['source'] == 'osm' else 'blue',
-                'weight': 1,
-            }
-            folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(m)
+    # Add combined buildings data to the map
+    if combined_buildings is not None:
+        style_function = lambda x: {
+            'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
+            'color': 'green' if x['properties']['source'] == 'osm' else 'blue',
+            'weight': 1,
+        }
+        folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(m)
 
-            # Add MarkerCluster for combined buildings
-            marker_cluster = MarkerCluster(name='Combined Buildings Clusters').add_to(m)
-            for _, row in combined_buildings.iterrows():
-                folium.Marker(location=[row.geometry.centroid.y, row.geometry.centroid.x]).add_to(marker_cluster)
+        # Add MarkerCluster for combined buildings
+        marker_cluster = MarkerCluster(name='Combined Buildings Clusters').add_to(m)
+        for _, row in combined_buildings.iterrows():
+            folium.Marker(location=[row.geometry.centroid.y, row.geometry.centroid.x]).add_to(marker_cluster)
 
-        # Add OSM Roads data to the map
-        if osm_roads is not None:
-            folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
-                'fillColor': 'orange',
-                'color': 'orange',
-                'weight': 1,
-            }).add_to(m)
+    # Add OSM Roads data to the map
+    if osm_roads is not None:
+        folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
+            'fillColor': 'orange',
+            'color': 'orange',
+            'weight': 1,
+        }).add_to(m)
 
-        # Add OSM Points of Interest data to the map
-        if osm_pois is not None:
-            folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
-                'fillColor': 'red',
-                'color': 'red',
-                'weight': 1,
-            }).add_to(m)
+    # Add OSM Points of Interest data to the map
+    if osm_pois is not None:
+        folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
+            'fillColor': 'red',
+            'color': 'red',
+            'weight': 1,
+        }).add_to(m)
 
-        # Add drawing and fullscreen plugins
-        Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
-        Fullscreen(position='topleft').add_to(m)
-        MeasureControl(position='bottomleft').add_to(m)
-        
-        folium.LayerControl().add_to(m)
+    # Add drawing and fullscreen plugins
+    Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
+    Fullscreen(position='topleft').add_to(m)
+    MeasureControl(position='bottomleft').add_to(m)
+    
+    folium.LayerControl().add_to(m)
 
-        st.session_state.map = m  # Save the map in the session state
+    # Save map to session state
+    st.session_state.map = m
 
-    st_folium(st.session_state.map, width=1450, height=800)  # Wider map
+    # Display the map
+    st_folium(m, width=1450, height=800)  # Wider map
 
     # Indicate missing layers
     if missing_layers:
@@ -154,6 +155,13 @@ elif page == "Area Selection":
                 with st.spinner('Fetching location...'):
                     location = geolocator.geocode(address)
                     if location:
+                        st.session_state.latitude = location.latitude
+                        st.session_state.longitude = location.longitude
+                        st.session_state.geojson_data = None
+                        st.session_state.combined_buildings = None
+                        st.session_state.osm_roads = None
+                        st.session_state.osm_pois = None
+                        st.session_state.missing_layers = []
                         create_map(location.latitude, location.longitude, None, None, None, None, [])
                     else:
                         st.error("Could not geocode the address.")
@@ -166,6 +174,13 @@ elif page == "Area Selection":
         if latitude and longitude:
             try:
                 with st.spinner('Creating map...'):
+                    st.session_state.latitude = float(latitude)
+                    st.session_state.longitude = float(longitude)
+                    st.session_state.geojson_data = None
+                    st.session_state.combined_buildings = None
+                    st.session_state.osm_roads = None
+                    st.session_state.osm_pois = None
+                    st.session_state.missing_layers = []
                     create_map(float(latitude), float(longitude), None, None, None, None, [])
             except Exception as e:
                 st.error(f"Error creating map: {e}")
@@ -225,6 +240,16 @@ elif page == "Area Selection":
                     st.info("Creating map...")
                     gdf = gdf.to_crs(epsg=4326)
                     centroid = gdf.geometry.centroid.iloc[0]
+
+                    # Save map data to session state
+                    st.session_state.latitude = centroid.y
+                    st.session_state.longitude = centroid.x
+                    st.session_state.geojson_data = geojson_data
+                    st.session_state.combined_buildings = combined_buildings
+                    st.session_state.osm_roads = osm_roads
+                    st.session_state.osm_pois = osm_pois
+                    st.session_state.missing_layers = missing_layers
+
                     create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
                     st.success("Map created successfully!")
             except KeyError as e:
@@ -235,6 +260,9 @@ elif page == "Area Selection":
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
     st.write("Analysis page under construction")
+
+if 'map' in st.session_state:
+    st_folium(st.session_state.map, width=1450, height=800)
 
 st.sidebar.title("About")
 st.sidebar.info(
