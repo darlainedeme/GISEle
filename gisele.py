@@ -10,6 +10,7 @@ from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
 from shapely.geometry import mapping, box
+import pandas as pd
 
 # Initialize Earth Engine
 @st.cache_resource
@@ -31,9 +32,9 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 initialize_earth_engine()
 
 @st.cache_data
-def fetch_buildings_data(geom):
+def fetch_buildings_data(_geom):
     buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-        .filter(ee.Filter.intersects('.geo', geom))
+        .filter(ee.Filter.intersects('.geo', _geom))
     download_url = buildings.getDownloadURL('geojson')
     response = requests.get(download_url)
     return response.json()
