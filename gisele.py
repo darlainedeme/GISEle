@@ -55,12 +55,7 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
 
     folium.LayerControl().add_to(m)
     st.session_state.map = m
-    st_folium(m, width=1450, height=800)
-    
-    if missing_layers:
-        st.write("The following layers weren't possible to obtain for the selected area:")
-        for layer in missing_layers:
-            st.write(f"- {layer}")
+    return m
 
 def add_map_tiles(m):
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -140,7 +135,8 @@ def handle_address_input():
                 location = geolocator.geocode(address)
                 if location:
                     update_session_state(location.latitude, location.longitude)
-                    create_map(location.latitude, location.longitude, None, None, None, None, [])
+                    if 'map' not in st.session_state:
+                        st.session_state.map = create_map(location.latitude, location.longitude, None, None, None, None, [])
                 else:
                     st.error("Could not geocode the address.")
         except Exception as e:
@@ -154,7 +150,8 @@ def handle_coordinates_input():
         try:
             with st.spinner('Creating map...'):
                 update_session_state(float(latitude), float(longitude))
-                create_map(float(latitude), float(longitude), None, None, None, None, [])
+                if 'map' not in st.session_state:
+                    st.session_state.map = create_map(float(latitude), float(longitude), None, None, None, None, [])
         except Exception as e:
             st.error(f"Error creating map: {e}")
     else:
@@ -202,7 +199,7 @@ def fetch_and_create_layers(gdf, geojson_data):
     centroid = gdf.geometry.centroid.iloc[0]
 
     update_session_state(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
-    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
+    st.session_state.map = create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
     st.success("Map created successfully!")
 
 def fetch_osm_data(polygon):
