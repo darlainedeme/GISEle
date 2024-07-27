@@ -12,6 +12,7 @@ import osmnx as ox
 from shapely.geometry import mapping
 import pandas as pd
 
+# Initialize Earth Engine
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
@@ -21,35 +22,27 @@ def initialize_earth_engine():
 
 initialize_earth_engine()
 
+# Initialize the app
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
+# Define navigation
 page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
 
-def create_combined_buildings_layer(osm_buildings, google_buildings):
-    osm_buildings = osm_buildings.to_crs(epsg=4326)
-    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
-
-    osm_buildings['source'] = 'osm'
-    google_buildings['source'] = 'google'
-    
-    osm_dissolved = osm_buildings.unary_union
-    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
-    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
-
-    return combined_buildings
-
-def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
+# Functions to create and manipulate map
+def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None, missing_layers=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
-
     add_map_tiles(m)
     add_geojson_data(m, geojson_data)
     add_combined_buildings(m, combined_buildings)
     add_osm_data(m, osm_roads, osm_pois)
     add_plugins(m)
-
     folium.LayerControl().add_to(m)
-    return m
+    st_folium(m, width=1450, height=800)
+    if missing_layers:
+        st.write("The following layers weren't possible to obtain for the selected area:")
+        for layer in missing_layers:
+            st.write(f"- {layer}")
 
 def add_map_tiles(m):
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -115,50 +108,29 @@ def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
         temp_file.write(data.getvalue())
         temp_filepath = temp_file.name
-
     gdf = gpd.read_file(temp_filepath)
     return gdf
 
 def handle_address_input():
     geolocator = Nominatim(user_agent="example app")
     address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa', key="address_input")
-
     if address:
         with st.spinner('Fetching location...'):
             location = geolocator.geocode(address)
             if location:
-                st.session_state.latitude = location.latitude
-                st.session_state.longitude = location.longitude
-                st.session_state.geojson_data = None
-                st.session_state.combined_buildings = None
-                st.session_state.osm_roads = None
-                st.session_state.osm_pois = None
-                st.session_state.missing_layers = []
-                st.session_state.map = create_map(location.latitude, location.longitude, None, None, None, None, [])
+                create_map(location.latitude, location.longitude)
 
 def handle_coordinates_input():
     latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input")
     longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input")
-
     if latitude and longitude:
-        st.session_state.latitude = float(latitude)
-        st.session_state.longitude = float(longitude)
-        st.session_state.geojson_data = None
-        st.session_state.combined_buildings = None
-        st.session_state.osm_roads = None
-        st.session_state.osm_pois = None
-        st.session_state.missing_layers = []
-        st.session_state.map = create_map(float(latitude), float(longitude), None, None, None, None, [])
+        create_map(float(latitude), float(longitude))
 
 def handle_file_upload():
     data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
-
     if data:
         gdf = uploaded_file_to_gdf(data)
-
-        if gdf.empty or gdf.is_empty.any():
-            st.error("Uploaded GeoJSON file is empty or contains null geometries.")
-        else:
+        if not gdf.empty and not gdf.is_empty.any():
             geojson_data = gdf.to_json()
             fetch_and_create_layers(gdf, geojson_data)
 
@@ -175,37 +147,29 @@ def fetch_and_create_layers(gdf, geojson_data):
     osm_buildings, osm_roads, osm_pois, missing_layers = fetch_osm_data(polygon)
 
     combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
-
     gdf = gdf.to_crs(epsg=4326)
     centroid = gdf.geometry.centroid.iloc[0]
 
-    st.session_state.latitude = centroid.y
-    st.session_state.longitude = centroid.x
-    st.session_state.geojson_data = geojson_data
-    st.session_state.combined_buildings = combined_buildings
-    st.session_state.osm_roads = osm_roads
-    st.session_state.osm_pois = osm_pois
-    st.session_state.missing_layers = missing_layers
-
-    st.session_state.map = create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
+    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
 
 def fetch_osm_data(polygon):
     missing_layers = []
-    osm_buildings, osm_roads, osm_pois = None, None, None
-
     try:
         osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
     except:
+        osm_buildings = None
         missing_layers.append('buildings')
 
     try:
         osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
     except:
+        osm_roads = None
         missing_layers.append('roads')
 
     try:
         osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
     except:
+        osm_pois = None
         missing_layers.append('points of interest')
 
     return osm_buildings, osm_roads, osm_pois, missing_layers
@@ -225,9 +189,6 @@ elif page == "Area Selection":
         handle_file_upload()
 elif page == "Analysis":
     st.write("Analysis page under construction")
-
-if 'map' in st.session_state:
-    st_folium(st.session_state.map, width=1450, height=800)
 
 st.sidebar.title("About")
 st.sidebar.info(
