@@ -41,28 +41,7 @@ GOOGLE_BUILDINGS_GEOJSON = os.path.join(RESULTS_DIR, "google_buildings.geojson")
 # Ensure results directory exists
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-@st.cache_data
-def create_combined_buildings_layer(osm_buildings, google_buildings):
-    # Ensure both GeoDataFrames are in the same CRS
-    osm_buildings = osm_buildings.to_crs(epsg=4326)
-    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
-
-    # Label sources
-    osm_buildings['source'] = 'osm'
-    google_buildings['source'] = 'google'
-
-    # Remove Google buildings that touch OSM buildings
-    osm_dissolved = osm_buildings.unary_union
-
-    # Filter Google buildings that do not intersect with OSM buildings
-    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
-
-    # Combine OSM buildings and filtered Google buildings
-    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
-
-    return combined_buildings
-
-@st.cache_data
+# Define functions
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
@@ -153,6 +132,26 @@ def uploaded_file_to_gdf(data):
 
     gdf = gpd.read_file(temp_filepath)
     return gdf
+
+def create_combined_buildings_layer(osm_buildings, google_buildings):
+    # Ensure both GeoDataFrames are in the same CRS
+    osm_buildings = osm_buildings.to_crs(epsg=4326)
+    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+
+    # Label sources
+    osm_buildings['source'] = 'osm'
+    google_buildings['source'] = 'google'
+
+    # Remove Google buildings that touch OSM buildings
+    osm_dissolved = osm_buildings.unary_union
+
+    # Filter Google buildings that do not intersect with OSM buildings
+    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
+
+    # Combine OSM buildings and filtered Google buildings
+    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
+
+    return combined_buildings
 
 # Main app logic
 if main_nav == "Home":
