@@ -275,7 +275,7 @@ elif main_nav == "Data Collection":
                         google_buildings_gdf['source'] = 'google'
 
                         combined_buildings = create_combined_buildings_layer(osm_buildings_gdf, google_buildings_gdf)
-                        combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
+                        # combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
                         st.info("Combined buildings data saved.")
                     except Exception as e:
                         st.error(f"Error fetching OSM buildings data: {e}")
