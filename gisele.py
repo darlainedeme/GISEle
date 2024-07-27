@@ -29,7 +29,7 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 # Call to initialize Earth Engine
 initialize_earth_engine()
 
-def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings=None, osm_roads=None, osm_pois=None):
+def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings, osm_roads, osm_pois):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
 
     # Add map tiles
@@ -61,16 +61,16 @@ def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings=
     if geojson_data:
         folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
-    # Add Google Buildings data to the map as a selectable layer
+    # Add Google Buildings data to the map as a selectable layer (disabled by default)
     if buildings_data:
         folium.GeoJson(buildings_data, name="Google Buildings", style_function=lambda x: {
             'fillColor': 'green',
             'color': 'green',
             'weight': 1,
-        }, show=False).add_to(m)  # Default to not show
+        }, show=False).add_to(m)
 
         # Add MarkerCluster for Google Buildings
-        marker_cluster = MarkerCluster(name='Google Buildings Clusters', show=True).add_to(m)
+        marker_cluster = MarkerCluster(name='Google Buildings Clusters').add_to(m)
         for feature in buildings_data['features']:
             geom = feature['geometry']
             if geom['type'] == 'Polygon':
@@ -81,25 +81,26 @@ def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings=
                 coords = geom['coordinates']
             if len(coords) >= 2:
                 folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
-                
-    # Add OSM buildings data to the map
+
+    # Add OSM Buildings data to the map
     if osm_buildings is not None:
-        folium.GeoJson(osm_buildings, name="OSM Buildings", style_function=lambda x: {
+        folium.GeoJson(osm_buildings.to_json(), name='OSM Buildings', style_function=lambda x: {
             'fillColor': 'blue',
             'color': 'blue',
             'weight': 1,
         }).add_to(m)
-        
-    # Add OSM roads data to the map
+
+    # Add OSM Roads data to the map
     if osm_roads is not None:
-        folium.GeoJson(osm_roads, name="OSM Roads", style_function=lambda x: {
+        folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
+            'fillColor': 'orange',
             'color': 'orange',
-            'weight': 2,
+            'weight': 1,
         }).add_to(m)
 
-    # Add OSM POIs data to the map
+    # Add OSM Points of Interest data to the map
     if osm_pois is not None:
-        folium.GeoJson(osm_pois, name="OSM POIs", style_function=lambda x: {
+        folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
             'fillColor': 'red',
             'color': 'red',
             'weight': 1,
@@ -123,22 +124,6 @@ def uploaded_file_to_gdf(data):
     gdf = gpd.read_file(temp_filepath)
     return gdf
 
-def fetch_osm_data(bounds):
-    # Define the OSM data sources
-    tags = {'building': True, 'highway': True, 'amenity': True}
-    bbox = [bounds[1], bounds[0], bounds[3], bounds[2]]  # [south, west, north, east]
-    
-    # Fetch OSM buildings
-    osm_buildings = ox.geometries_from_bbox(*bbox, tags={'building': True})
-    
-    # Fetch OSM roads
-    osm_roads = ox.geometries_from_bbox(*bbox, tags={'highway': True})
-    
-    # Fetch OSM POIs
-    osm_pois = ox.geometries_from_bbox(*bbox, tags={'amenity': True})
-    
-    return osm_buildings, osm_roads, osm_pois
-
 if page == "Home":
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
@@ -155,7 +140,7 @@ elif page == "Area Selection":
                 with st.spinner('Fetching location...'):
                     location = geolocator.geocode(address)
                     if location:
-                        create_map(location.latitude, location.longitude, None, None)
+                        create_map(location.latitude, location.longitude, None, None, None, None, None)
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
@@ -167,7 +152,7 @@ elif page == "Area Selection":
         if latitude and longitude:
             try:
                 with st.spinner('Creating map...'):
-                    create_map(float(latitude), float(longitude), None, None)
+                    create_map(float(latitude), float(longitude), None, None, None, None, None)
             except Exception as e:
                 st.error(f"Error creating map: {e}")
         else:
@@ -197,7 +182,11 @@ elif page == "Area Selection":
                     buildings_data = response.json()
                     
                     st.info("Fetching OSM data...")
-                    osm_buildings, osm_roads, osm_pois = fetch_osm_data(coords)
+                    polygon = gdf.unary_union
+                    osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
+                    osm_roads = ox.graph_from_polygon(polygon, network_type='all')
+                    osm_roads = ox.graph_to_gdfs(osm_roads, nodes=False, edges=True)[1]
+                    osm_pois = ox.geometries_from_polygon(polygon, tags={'amenity': True})
 
                     st.info("Creating map...")
                     centroid = gdf.geometry.centroid.iloc[0]
