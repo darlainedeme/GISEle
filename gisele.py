@@ -13,13 +13,11 @@ from shapely.geometry import mapping
 import pandas as pd
 
 # Initialize Earth Engine
-@st.cache_resource
-def initialize_earth_engine():
-    json_data = st.secrets["json_data"]
-    json_object = json.loads(json_data, strict=False)
-    service_account = json_object['client_email']
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
-    ee.Initialize(credentials)
+json_data = st.secrets["json_data"]
+json_object = json.loads(json_data, strict=False)
+service_account = json_object['client_email']
+credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+ee.Initialize(credentials)
 
 # Initialize the app
 st.set_page_config(layout="wide")
@@ -27,9 +25,6 @@ st.title("Local GISEle")
 
 # Define navigation
 page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
-
-# Call to initialize Earth Engine
-initialize_earth_engine()
 
 def create_combined_buildings_layer(osm_buildings, google_buildings):
     osm_buildings = osm_buildings.to_crs(epsg=4326)
