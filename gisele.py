@@ -215,7 +215,7 @@ elif main_nav == "Area Selection":
                     
                     if gdf.empty:
                         st.error("Uploaded file is empty or not valid GeoJSON.")
-                        return
+                        
 
                     centroid = gdf.geometry.unary_union.centroid
                     st.session_state.latitude = centroid.y
