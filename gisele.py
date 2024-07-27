@@ -70,10 +70,10 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         control=True
     ).add_to(m)
 
-    # Always add the original area of interest
-    if 'geojson_data' in st.session_state and st.session_state.geojson_data:
+    # Add the original area of interest
+    if geojson_data:
         folium.GeoJson(
-            st.session_state.geojson_data,
+            geojson_data,
             name="Original Area",
             style_function=lambda x: {
                 'fillColor': 'blue',
