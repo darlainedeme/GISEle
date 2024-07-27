@@ -31,29 +31,19 @@ page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], ke
 initialize_earth_engine()
 
 def create_combined_buildings_layer(osm_buildings, google_buildings):
+    # Ensure both GeoDataFrames are in the same CRS
     osm_buildings = osm_buildings.to_crs(epsg=4326)
-    google_buildings = google_buildings.to_crs(epsg=4326)
-    
-    # Buffer the OSM buildings slightly to ensure touching buildings are counted as overlapping
-    osm_buildings['geometry'] = osm_buildings.buffer(0.0001)
-    
-    # Find overlapping buildings
-    overlap_idx = google_buildings.sindex.query_bulk(osm_buildings.geometry, predicate='intersects')[1]
-    google_buildings_filtered = google_buildings.drop(google_buildings.index[overlap_idx])
-    
-    # Reset geometries after buffering
-    osm_buildings['geometry'] = osm_buildings.buffer(-0.0001)
-    
-    # Add source attribute
-    osm_buildings['source'] = 'OSM'
-    google_buildings_filtered['source'] = 'Google'
-    
-    # Combine datasets
-    combined_buildings = pd.concat([osm_buildings, google_buildings_filtered], ignore_index=True)
-    
+    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+
+    # Remove Google buildings that touch OSM buildings
+    osm_buildings['source'] = 'osm'
+    google_buildings['source'] = 'google'
+    combined_buildings = gpd.overlay(google_buildings, osm_buildings, how='difference')
+    combined_buildings = pd.concat([combined_buildings, osm_buildings])
+
     return combined_buildings
 
-def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois):
+def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
 
     # Add map tiles
@@ -85,21 +75,19 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     if geojson_data:
         folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
 
-    # Add combined buildings data to the map as a selectable layer
+    # Add combined buildings data to the map
     if combined_buildings is not None:
-        style_function = lambda feature: {
-            'fillColor': 'green' if feature['properties']['source'] == 'OSM' else 'blue',
-            'color': 'green' if feature['properties']['source'] == 'OSM' else 'blue',
+        style_function = lambda x: {
+            'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
+            'color': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'weight': 1,
         }
-        
-        folium.GeoJson(combined_buildings.to_json(), name="Combined Buildings", style_function=style_function).add_to(m)
+        folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(m)
 
-        # Add MarkerCluster for Combined Buildings
+        # Add MarkerCluster for combined buildings
         marker_cluster = MarkerCluster(name='Combined Buildings Clusters').add_to(m)
         for _, row in combined_buildings.iterrows():
-            centroid = row['geometry'].centroid
-            folium.Marker(location=[centroid.y, centroid.x]).add_to(marker_cluster)
+            folium.Marker(location=[row.geometry.centroid.y, row.geometry.centroid.x]).add_to(marker_cluster)
 
     # Add OSM Roads data to the map
     if osm_roads is not None:
@@ -127,6 +115,12 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     # Display the map
     st_folium(m, width=1450, height=800)  # Wider map
 
+    # Indicate missing layers
+    if missing_layers:
+        st.write("The following layers weren't possible to obtain for the selected area:")
+        for layer in missing_layers:
+            st.write(f"- {layer}")
+
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
         temp_file.write(data.getvalue())
@@ -151,7 +145,7 @@ elif page == "Area Selection":
                 with st.spinner('Fetching location...'):
                     location = geolocator.geocode(address)
                     if location:
-                        create_map(location.latitude, location.longitude, None, None, None, None)
+                        create_map(location.latitude, location.longitude, None, None, None, None, [])
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
@@ -163,7 +157,7 @@ elif page == "Area Selection":
         if latitude and longitude:
             try:
                 with st.spinner('Creating map...'):
-                    create_map(float(latitude), float(longitude), None, None, None, None)
+                    create_map(float(latitude), float(longitude), None, None, None, None, [])
             except Exception as e:
                 st.error(f"Error creating map: {e}")
         else:
@@ -190,36 +184,39 @@ elif page == "Area Selection":
                     
                     download_url = buildings.getDownloadURL('geojson')
                     response = requests.get(download_url)
-                    google_buildings_gdf = gpd.GeoDataFrame.from_features(response.json())
+                    google_buildings = response.json()
                     
                     st.info("Fetching OSM data...")
                     polygon = gdf.unary_union
+                    missing_layers = []
                     try:
                         osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
                     except Exception as e:
                         st.error(f"Error fetching OSM buildings data: {e}")
                         osm_buildings = None
+                        missing_layers.append('buildings')
 
                     try:
-                        osm_roads_graph = ox.graph_from_polygon(polygon, network_type='all_private', simplify=True)
-                        osm_roads = ox.graph_to_gdfs(osm_roads_graph, nodes=False, edges=True)[1]
+                        osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
                     except Exception as e:
                         st.error(f"Error fetching OSM roads data: {e}")
                         osm_roads = None
+                        missing_layers.append('roads')
 
                     try:
                         osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
                     except Exception as e:
                         st.error(f"Error fetching OSM points of interest data: {e}")
                         osm_pois = None
+                        missing_layers.append('points of interest')
 
                     st.info("Creating combined buildings layer...")
-                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_gdf)
+                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
                     
                     st.info("Creating map...")
                     gdf = gdf.to_crs(epsg=4326)
                     centroid = gdf.geometry.centroid.iloc[0]
-                    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois)
+                    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
                     st.success("Map created successfully!")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
