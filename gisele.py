@@ -189,7 +189,7 @@ elif page == "Area Selection":
         else:
             st.error("Please provide both latitude and longitude.")
 
-    elif which mode == 'Upload file':
+    elif which_mode == 'Upload file':
         data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
         if data:
