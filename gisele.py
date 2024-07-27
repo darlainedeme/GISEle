@@ -25,7 +25,7 @@ def initialize_earth_engine():
 st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
-# Define main navigation
+# Main navigation
 main_nav = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Data Collection", "Data Analysis"], key="main_nav")
 
 # Call to initialize Earth Engine
@@ -142,9 +142,11 @@ def uploaded_file_to_gdf(data):
 if main_nav == "Home":
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
+
 elif main_nav == "Area Selection":
+    # Mode selection for area
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
+    which_mode = st.sidebar.radio('Select mode', which_modes, index=2, key="mode_select")
 
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
@@ -162,11 +164,13 @@ elif main_nav == "Area Selection":
                         st.session_state.osm_roads = None
                         st.session_state.osm_pois = None
                         st.session_state.missing_layers = []
+                        st.session_state.mode_selected = 'address'
                         create_map(location.latitude, location.longitude, None, None, None, None, [])
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
                 st.error(f"Error fetching location: {e}")
+
     elif which_mode == 'By coordinates':  
         latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input") 
         longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input") 
@@ -181,11 +185,13 @@ elif main_nav == "Area Selection":
                     st.session_state.osm_roads = None
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
+                    st.session_state.mode_selected = 'coordinates'
                     create_map(float(latitude), float(longitude), None, None, None, None, [])
             except Exception as e:
                 st.error(f"Error creating map: {e}")
         else:
             st.error("Please provide both latitude and longitude.")
+            
     elif which_mode == 'Upload file':
         data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
@@ -249,7 +255,8 @@ elif main_nav == "Area Selection":
                     st.session_state.osm_roads = osm_roads
                     st.session_state.osm_pois = osm_pois
                     st.session_state.missing_layers = missing_layers
-
+                    st.session_state.mode_selected = 'file'
+                    
                     create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
                     st.success("Map created successfully!")
             except KeyError as e:
@@ -260,25 +267,40 @@ elif main_nav == "Area Selection":
                 st.error(f"Error processing file: {e}")
 
 elif main_nav == "Data Collection":
-    data_collection_nav = st.sidebar.radio("Data Collection", ["Buildings", "Roads", "Points of Interest"], key="data_collection_nav")
+    if 'mode_selected' in st.session_state and st.session_state.mode_selected:
+        # Sub-navigation for Data Collection
+        data_collection_nav = st.sidebar.radio("Data Collection", ["Buildings", "Roads", "Points of Interest"], key="data_collection_nav")
 
-    if data_collection_nav == "Buildings":
-        st.write("Data Collection: Buildings")
-        # Include your buildings data collection logic here
-    elif data_collection_nav == "Roads":
-        st.write("Data Collection: Roads")
-        # Include your roads data collection logic here
-    elif data_collection_nav == "Points of Interest":
-        st.write("Data Collection: Points of Interest")
-        # Include your points of interest data collection logic here
+        if data_collection_nav == "Buildings":
+            st.write("Data Collection: Buildings")
+            if st.session_state.combined_buildings is not None:
+                st.write("Displaying buildings data...")
+                st.write(st.session_state.combined_buildings)
+            else:
+                st.write("No buildings data available. Please select or upload an area.")
+
+        elif data_collection_nav == "Roads":
+            st.write("Data Collection: Roads")
+            if st.session_state.osm_roads is not None:
+                st.write("Displaying roads data...")
+                st.write(st.session_state.osm_roads)
+            else:
+                st.write("No roads data available. Please select or upload an area.")
+
+        elif data_collection_nav == "Points of Interest":
+            st.write("Data Collection: Points of Interest")
+            if st.session_state.osm_pois is not None:
+                st.write("Displaying points of interest data...")
+                st.write(st.session_state.osm_pois)
+            else:
+                st.write("No points of interest data available. Please select or upload an area.")
+    else:
+        st.write("Please select an area first on the 'Area Selection' page.")
 
 elif main_nav == "Data Analysis":
     st.write("Data Analysis page under construction")
 
-# Display the map if available
-if 'map' in st.session_state:
-    st_folium(st.session_state.map, width=1450, height=800)
-
+# Add About and Contact sections in the sidebar
 st.sidebar.title("About")
 st.sidebar.info(
     """
@@ -294,3 +316,7 @@ st.sidebar.info(
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
     """
 )
+
+# Show saved map if available
+if 'map' in st.session_state:
+    st_folium(st.session_state.map, width=1450, height=800)
