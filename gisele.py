@@ -1,15 +1,17 @@
-import json
-import geopandas as gpd
+import streamlit as st
 import folium
 from streamlit_folium import st_folium
-import pandas as pd
-import os
+import geopandas as gpd
+import json
 import requests
 import tempfile
 import ee
+from geopy.geocoders import Nominatim
+from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
 from shapely.geometry import mapping, box
-import streamlit as st
+import pandas as pd
+import os
 
 # Initialize Earth Engine
 @st.cache_resource
@@ -40,36 +42,6 @@ GOOGLE_BUILDINGS_GEOJSON = os.path.join(RESULTS_DIR, "google_buildings.geojson")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Define functions
-def validate_geojson(data):
-    try:
-        geojson = json.loads(data)
-        for feature in geojson.get('features', []):
-            if not feature.get('geometry'):
-                st.warning(f"Feature with ID {feature.get('id')} has missing geometry.")
-                continue
-            geometry_type = feature['geometry'].get('type')
-            coordinates = feature['geometry'].get('coordinates')
-            if geometry_type == 'Polygon' and not isinstance(coordinates, list):
-                st.warning(f"Feature with ID {feature.get('id')} has invalid coordinates.")
-                continue
-        return geojson
-    except Exception as e:
-        st.error(f"Error validating GeoJSON: {e}")
-        return None
-
-def uploaded_file_to_gdf(data):
-    geojson_data = validate_geojson(data.getvalue())
-    if geojson_data is None:
-        st.error("Invalid GeoJSON data.")
-        return None
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
-        json.dump(geojson_data, temp_file)
-        temp_filepath = temp_file.name
-
-    gdf = gpd.read_file(temp_filepath)
-    return gdf
-
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
@@ -153,6 +125,14 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
     # Display the map
     st_folium(m, width=1400, height=800)  # Wider map
 
+def uploaded_file_to_gdf(data):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
+        temp_file.write(data.getvalue())
+        temp_filepath = temp_file.name
+
+    gdf = gpd.read_file(temp_filepath)
+    return gdf
+
 def create_combined_buildings_layer(osm_buildings, google_buildings):
     # Ensure both GeoDataFrames are in the same CRS
     osm_buildings = osm_buildings.to_crs(epsg=4326)
@@ -206,19 +186,20 @@ elif main_nav == "Area Selection":
                 st.error(f"Error fetching location: {e}")
 
     elif which_mode == 'By coordinates':  
-        latitude = st.sidebar.text_input('Enter latitude:', value='-16.82', key="latitude_input")
-        longitude = st.sidebar.text_input('Enter longitude:', value='36.59', key="longitude_input")
-
+        latitude = st.sidebar.text_input('Latitude:', value='45.5065', key="latitude_input") 
+        longitude = st.sidebar.text_input('Longitude:', value='9.1598', key="longitude_input") 
+        
         if latitude and longitude:
             try:
-                st.session_state.latitude = float(latitude)
-                st.session_state.longitude = float(longitude)
-                st.session_state.geojson_data = None
-                st.session_state.combined_buildings = None
-                st.session_state.osm_roads = None
-                st.session_state.osm_pois = None
-                st.session_state.missing_layers = []
-                create_map(float(latitude), float(longitude))
+                with st.spinner('Creating map...'):
+                    st.session_state.latitude = float(latitude)
+                    st.session_state.longitude = float(longitude)
+                    st.session_state.geojson_data = None
+                    st.session_state.combined_buildings = None
+                    st.session_state.osm_roads = None
+                    st.session_state.osm_pois = None
+                    st.session_state.missing_layers = []
+                    create_map(float(latitude), float(longitude))
             except ValueError:
                 st.error("Invalid coordinates. Please enter valid latitude and longitude.")
             except Exception as e:
@@ -232,21 +213,18 @@ elif main_nav == "Area Selection":
                 gdf = uploaded_file_to_gdf(uploaded_file)
                 
                 # Get the centroid of the uploaded GeoJSON data
-                if gdf is not None:
-                    centroid = gdf.unary_union.centroid
-                    st.session_state.latitude = centroid.y
-                    st.session_state.longitude = centroid.x
-                    st.session_state.geojson_data = geojson_data
-                    st.session_state.combined_buildings = None
-                    st.session_state.osm_roads = None
-                    st.session_state.osm_pois = None
-                    st.session_state.missing_layers = []
+                centroid = gdf.unary_union.centroid
+                st.session_state.latitude = centroid.y
+                st.session_state.longitude = centroid.x
+                st.session_state.geojson_data = geojson_data
+                st.session_state.combined_buildings = None
+                st.session_state.osm_roads = None
+                st.session_state.osm_pois = None
+                st.session_state.missing_layers = []
 
-                    # Create a map showing the uploaded file's polygon area
-                    create_map(centroid.y, centroid.x, geojson_data)
-                    st.success("Map created successfully!")
-                else:
-                    st.error("Error processing file.")
+                # Create a map showing the uploaded file's polygon area
+                create_map(centroid.y, centroid.x, geojson_data)
+                st.success("Map created successfully!")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
             except IndexError as e:
