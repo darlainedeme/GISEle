@@ -49,12 +49,7 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     add_plugins(m)
 
     folium.LayerControl().add_to(m)
-    st_folium(m, width=1450, height=800)
-
-    if missing_layers:
-        st.write("The following layers weren't possible to obtain for the selected area:")
-        for layer in missing_layers:
-            st.write(f"- {layer}")
+    return m
 
 def add_map_tiles(m):
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -132,16 +127,28 @@ def handle_address_input():
         with st.spinner('Fetching location...'):
             location = geolocator.geocode(address)
             if location:
-                create_map(location.latitude, location.longitude, None, None, None, None, [])
-            else:
-                st.error("Could not geocode the address.")
+                st.session_state.latitude = location.latitude
+                st.session_state.longitude = location.longitude
+                st.session_state.geojson_data = None
+                st.session_state.combined_buildings = None
+                st.session_state.osm_roads = None
+                st.session_state.osm_pois = None
+                st.session_state.missing_layers = []
+                st.session_state.map = create_map(location.latitude, location.longitude, None, None, None, None, [])
 
 def handle_coordinates_input():
     latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input")
     longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input")
 
     if latitude and longitude:
-        create_map(float(latitude), float(longitude), None, None, None, None, [])
+        st.session_state.latitude = float(latitude)
+        st.session_state.longitude = float(longitude)
+        st.session_state.geojson_data = None
+        st.session_state.combined_buildings = None
+        st.session_state.osm_roads = None
+        st.session_state.osm_pois = None
+        st.session_state.missing_layers = []
+        st.session_state.map = create_map(float(latitude), float(longitude), None, None, None, None, [])
 
 def handle_file_upload():
     data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
@@ -172,7 +179,15 @@ def fetch_and_create_layers(gdf, geojson_data):
     gdf = gdf.to_crs(epsg=4326)
     centroid = gdf.geometry.centroid.iloc[0]
 
-    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
+    st.session_state.latitude = centroid.y
+    st.session_state.longitude = centroid.x
+    st.session_state.geojson_data = geojson_data
+    st.session_state.combined_buildings = combined_buildings
+    st.session_state.osm_roads = osm_roads
+    st.session_state.osm_pois = osm_pois
+    st.session_state.missing_layers = missing_layers
+
+    st.session_state.map = create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
 
 def fetch_osm_data(polygon):
     missing_layers = []
@@ -210,6 +225,9 @@ elif page == "Area Selection":
         handle_file_upload()
 elif page == "Analysis":
     st.write("Analysis page under construction")
+
+if 'map' in st.session_state:
+    st_folium(st.session_state.map, width=1450, height=800)
 
 st.sidebar.title("About")
 st.sidebar.info(
