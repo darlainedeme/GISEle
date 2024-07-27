@@ -52,6 +52,9 @@ def fetch_osm_pois(polygon):
     return ox.features_from_polygon(polygon, tags={'amenity': True})
 
 def create_combined_buildings_layer(osm_buildings, google_buildings):
+    if osm_buildings is None or google_buildings is None:
+        raise ValueError("One of the building layers is None")
+    
     # Ensure both GeoDataFrames are in the same CRS
     osm_buildings = osm_buildings.to_crs(epsg=4326)
     google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
@@ -233,6 +236,8 @@ elif page == "Area Selection":
                     centroid = gdf.geometry.centroid.iloc[0]
                     create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
                     st.success("Map created successfully!")
+            except ValueError as e:
+                st.error(f"Error processing file: {e}")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
             except IndexError as e:
