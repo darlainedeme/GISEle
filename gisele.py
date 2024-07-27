@@ -9,7 +9,7 @@ import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
-from shapely.geometry import mapping, shape
+from shapely.geometry import mapping, Polygon
 import pandas as pd
 
 # Initialize Earth Engine
@@ -234,7 +234,8 @@ elif page == "Data Gathering":
             google_buildings = response.json()
             
             st.info("Fetching OSM data...")
-            polygon = shape({'type': 'Polygon', 'coordinates': [[geom.coordinates().getInfo()]]})
+            polygon_coords = geom.bounds().getInfo()['coordinates'][0]
+            polygon = Polygon(polygon_coords)
             missing_layers = []
             try:
                 osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
