@@ -189,7 +189,7 @@ elif page == "Area Selection":
         else:
             st.error("Please provide both latitude and longitude.")
 
-    elif which_mode == 'Upload file':
+    elif which mode == 'Upload file':
         data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
         if data:
@@ -225,6 +225,7 @@ elif page == "Data Gathering":
         try:
             st.info("Fetching building data...")
             geom = ee.Geometry.Point([st.session_state.longitude, st.session_state.latitude]).buffer(1000)
+            selected_polygon = Polygon(geom.bounds().getInfo()['coordinates'][0])
 
             buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
                 .filter(ee.Filter.intersects('.geo', geom))
@@ -232,34 +233,37 @@ elif page == "Data Gathering":
             download_url = buildings.getDownloadURL('geojson')
             response = requests.get(download_url)
             google_buildings = response.json()
+            google_buildings_gdf = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+            google_buildings_gdf = google_buildings_gdf.clip(selected_polygon)
             
             st.info("Fetching OSM data...")
-            polygon_coords = geom.bounds().getInfo()['coordinates'][0]
-            polygon = Polygon(polygon_coords)
             missing_layers = []
             try:
-                osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
+                osm_buildings = ox.geometries_from_polygon(selected_polygon, tags={'building': True})
+                osm_buildings = osm_buildings.clip(selected_polygon)
             except Exception as e:
                 st.error(f"Error fetching OSM buildings data: {e}")
                 osm_buildings = gpd.GeoDataFrame()
                 missing_layers.append('buildings')
 
             try:
-                osm_roads = ox.geometries_from_polygon(polygon, tags={'highway': True})
+                osm_roads = ox.geometries_from_polygon(selected_polygon, tags={'highway': True})
+                osm_roads = osm_roads.clip(selected_polygon)
             except Exception as e:
                 st.error(f"Error fetching OSM roads data: {e}")
                 osm_roads = gpd.GeoDataFrame()
                 missing_layers.append('roads')
 
             try:
-                osm_pois = ox.geometries_from_polygon(polygon, tags={'amenity': True})
+                osm_pois = ox.geometries_from_polygon(selected_polygon, tags={'amenity': True})
+                osm_pois = osm_pois.clip(selected_polygon)
             except Exception as e:
                 st.error(f"Error fetching OSM points of interest data: {e}")
                 osm_pois = gpd.GeoDataFrame()
                 missing_layers.append('points of interest')
 
             st.info("Creating combined buildings layer...")
-            combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+            combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_gdf)
             
             st.info("Creating map...")
             create_map(st.session_state.latitude, st.session_state.longitude, st.session_state.geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
