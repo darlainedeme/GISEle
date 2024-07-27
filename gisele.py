@@ -9,7 +9,7 @@ import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
-from shapely.geometry import mapping, Polygon
+from shapely.geometry import Polygon
 import pandas as pd
 
 # Initialize Earth Engine
@@ -104,7 +104,7 @@ def create_map(latitude, longitude, geojson_data, combined_buildings=None, osm_r
             folium.Marker(location=[row.geometry.centroid.y, row.geometry.centroid.x]).add_to(marker_cluster)
 
     # Add OSM Roads data to the map
-    if osm_roads is not None:
+    if osm_roads is not None and not osm_roads.empty:
         folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
             'fillColor': 'orange',
             'color': 'orange',
@@ -112,7 +112,7 @@ def create_map(latitude, longitude, geojson_data, combined_buildings=None, osm_r
         }).add_to(m)
 
     # Add OSM Points of Interest data to the map
-    if osm_pois is not None:
+    if osm_pois is not None and not osm_pois.empty:
         folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
             'fillColor': 'red',
             'color': 'red',
@@ -155,7 +155,7 @@ elif page == "Area Selection":
     st.write("Define the area of interest using one of the methods below:")
 
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
+    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select_area")
 
     if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
@@ -279,19 +279,3 @@ elif page == "Analysis":
 
 if 'map' in st.session_state:
     st_folium(st.session_state.map, width=1450, height=800)
-
-st.sidebar.title("About")
-st.sidebar.info(
-    """
-    Web App URL: [https://gisele.streamlit.app/](https://gisele.streamlit.app/)
-    GitHub repository: [https://github.com/darlainedeme/GISEle](https://github.com/darlainedeme/GISEle)
-    """
-)
-
-st.sidebar.title("Contact")
-st.sidebar.info(
-    """
-    Darlain Edeme: [http://www.e4g.polimi.it/](http://www.e4g.polimi.it/)
-    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
-    """
-)
