@@ -39,8 +39,14 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     # Remove Google buildings that touch OSM buildings
     osm_buildings['source'] = 'osm'
     google_buildings['source'] = 'google'
-    combined_buildings = gpd.overlay(google_buildings, osm_buildings, how='difference')
-    combined_buildings = pd.concat([combined_buildings, osm_buildings])
+    
+    osm_dissolved = osm_buildings.unary_union
+
+    # Filter Google buildings that do not intersect with OSM buildings
+    filtered_google = gdf_google[~gdf_google.intersects(osm_dissolved)]
+
+    # Combine OSM buildings and filtered Google buildings
+    combined_buildings = gpd.GeoDataFrame(pd.concat([gdf_osm, filtered_google], ignore_index=True)   
 
     return combined_buildings
 
