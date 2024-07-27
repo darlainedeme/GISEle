@@ -232,9 +232,17 @@ elif page == "Data Gathering":
             
             download_url = buildings.getDownloadURL('geojson')
             response = requests.get(download_url)
-            google_buildings = response.json()
-            google_buildings_gdf = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
-            google_buildings_gdf = google_buildings_gdf.clip(selected_polygon)
+            if response.status_code == 200:
+                google_buildings = response.json()
+                if 'features' in google_buildings:
+                    google_buildings_gdf = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+                    google_buildings_gdf = google_buildings_gdf.clip(selected_polygon)
+                else:
+                    st.error("No features found in Google Buildings data.")
+                    google_buildings_gdf = gpd.GeoDataFrame()
+            else:
+                st.error(f"Error fetching Google Buildings data: {response.status_code}")
+                google_buildings_gdf = gpd.GeoDataFrame()
             
             st.info("Fetching OSM data...")
             missing_layers = []
