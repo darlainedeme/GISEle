@@ -9,7 +9,7 @@ import ee
 from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
-from shapely.geometry import mapping
+from shapely.geometry import mapping, shape
 import pandas as pd
 
 # Initialize Earth Engine
@@ -234,27 +234,27 @@ elif page == "Data Gathering":
             google_buildings = response.json()
             
             st.info("Fetching OSM data...")
-            polygon = geom.getInfo()['coordinates']
+            polygon = shape({'type': 'Polygon', 'coordinates': [[geom.coordinates().getInfo()]]})
             missing_layers = []
             try:
-                osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
+                osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
             except Exception as e:
                 st.error(f"Error fetching OSM buildings data: {e}")
-                osm_buildings = None
+                osm_buildings = gpd.GeoDataFrame()
                 missing_layers.append('buildings')
 
             try:
-                osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
+                osm_roads = ox.geometries_from_polygon(polygon, tags={'highway': True})
             except Exception as e:
                 st.error(f"Error fetching OSM roads data: {e}")
-                osm_roads = None
+                osm_roads = gpd.GeoDataFrame()
                 missing_layers.append('roads')
 
             try:
-                osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
+                osm_pois = ox.geometries_from_polygon(polygon, tags={'amenity': True})
             except Exception as e:
                 st.error(f"Error fetching OSM points of interest data: {e}")
-                osm_pois = None
+                osm_pois = gpd.GeoDataFrame()
                 missing_layers.append('points of interest')
 
             st.info("Creating combined buildings layer...")
