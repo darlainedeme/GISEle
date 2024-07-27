@@ -68,10 +68,30 @@ def add_map_tiles(m):
         overlay=False,
         control=True
     ).add_to(m)
+    folium.TileLayer(
+        tiles='https://ecn.t3.tiles.virtualearth.net/tiles/a{q}.jpeg?g=1',
+        attr='Bing',
+        name='Bing Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
 
 def add_geojson_data(m, geojson_data):
     if geojson_data:
         folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+
+def create_combined_buildings_layer(osm_buildings, google_buildings):
+    osm_buildings = osm_buildings.to_crs(epsg=4326)
+    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+
+    osm_buildings['source'] = 'osm'
+    google_buildings['source'] = 'google'
+    
+    osm_dissolved = osm_buildings.unary_union
+    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
+    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
+
+    return combined_buildings
 
 def add_combined_buildings(m, combined_buildings):
     if combined_buildings is not None:
@@ -179,7 +199,7 @@ if page == "Home":
     st.write("Use the sidebar to navigate to different sections of the app.")
 elif page == "Area Selection":
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
+    which_mode = st.sidebar.selectbox('Select mode', which modes, index=2, key="mode_select")
 
     if which_mode == 'By address':
         handle_address_input()
@@ -195,13 +215,5 @@ st.sidebar.info(
     """
     Web App URL: [https://gisele.streamlit.app/](https://gisele.streamlit.app/)
     GitHub repository: [https://github.com/darlainedeme/GISEle](https://github.com/darlainedeme/GISEle)
-    """
-)
-
-st.sidebar.title("Contact")
-st.sidebar.info(
-    """
-    Darlain Edeme: [http://www.e4g.polimi.it/](http://www.e4g.polimi.it/)
-    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
     """
 )
