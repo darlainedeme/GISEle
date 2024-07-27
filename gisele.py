@@ -60,18 +60,26 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         control=True
     ).add_to(m)
 
-    # Add GeoDataFrame to the map
-    if geojson_data:
-        folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+    # Add the original area of interest
+    folium.GeoJson({
+        "type": "FeatureCollection",
+        "features": [geojson_data] if geojson_data else []
+    }, name="Original Area", style_function=lambda x: {
+        'fillColor': 'blue',
+        'color': 'blue',
+        'weight': 2,
+        'fillOpacity': 0.2,
+    }).add_to(m)
 
     # Add combined buildings data to the map
     if combined_buildings is not None:
+        combined_buildings_layer = folium.FeatureGroup(name="Combined Buildings").add_to(m)
         style_function = lambda x: {
             'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'color': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'weight': 1,
         }
-        folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(m)
+        folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(combined_buildings_layer)
 
         # Add MarkerCluster for combined buildings
         marker_cluster = MarkerCluster(name='Combined Buildings Clusters').add_to(m)
@@ -95,17 +103,13 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         }).add_to(m)
 
     # Add drawing and fullscreen plugins
-    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=True,
-                        edit_options=True).add_to(m)
+    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
     folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
                               force_separate_button=False).add_to(m)
     folium.plugins.MeasureControl(position='bottomleft', primary_length_unit='meters', secondary_length_unit='miles',
                                   primary_area_unit='sqmeters', secondary_area_unit='acres').add_to(m)
     folium.LayerControl().add_to(m)
     
-    # Save map to session state
-    st.session_state.map = m
-
     # Display the map
     st_folium(m, width=1400, height=800)  # Wider map
 
