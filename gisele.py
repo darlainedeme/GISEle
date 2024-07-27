@@ -47,7 +47,8 @@ def create_map(latitude, longitude, geojson_data, buildings_data):
         marker_cluster = MarkerCluster(name='Google Buildings Clusters').add_to(m)
         for feature in buildings_data['features']:
             coords = feature['geometry']['coordinates']
-            folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
+            if len(coords) >= 2:
+                folium.Marker(location=[coords[1], coords[0]]).add_to(marker_cluster)
 
     # Add drawing and fullscreen plugins
     Draw(export=True, filename='data.geojson', position='topleft').add_to(m)
@@ -107,23 +108,31 @@ elif page == "Area Selection":
             try:
                 st.info("Uploading file...")
                 gdf = uploaded_file_to_gdf(data)
-                geojson_data = gdf.to_json()
-                
-                st.info("Fetching building data...")
-                coords = gdf.geometry.total_bounds
-                geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
-                
-                buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-                    .filter(ee.Filter.intersects('.geo', geom))
-                
-                download_url = buildings.getDownloadURL('geojson')
-                response = requests.get(download_url)
-                buildings_data = response.json()
 
-                st.info("Creating map...")
-                centroid = gdf.geometry.centroid.iloc[0]
-                create_map(centroid.y, centroid.x, geojson_data, buildings_data)
-                st.success("Map created successfully!")
+                if gdf.empty or gdf.is_empty.any():
+                    st.error("Uploaded GeoJSON file is empty or contains null geometries.")
+                else:
+                    geojson_data = gdf.to_json()
+                    
+                    st.info("Fetching building data...")
+                    coords = gdf.geometry.total_bounds
+                    geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
+                    
+                    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+                        .filter(ee.Filter.intersects('.geo', geom))
+                    
+                    download_url = buildings.getDownloadURL('geojson')
+                    response = requests.get(download_url)
+                    buildings_data = response.json()
+
+                    st.info("Creating map...")
+                    centroid = gdf.geometry.centroid.iloc[0]
+                    create_map(centroid.y, centroid.x, geojson_data, buildings_data)
+                    st.success("Map created successfully!")
+            except KeyError as e:
+                st.error(f"Error processing file: {e}")
+            except IndexError as e:
+                st.error(f"Error processing file: {e}")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 elif page == "Analysis":
