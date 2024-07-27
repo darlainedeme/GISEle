@@ -259,6 +259,7 @@ elif main_nav == "Data Collection":
                     google_buildings['source'] = 'google'
     
                     combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+                    st.DataFrame(combined_buildings)
                     create_map(latitude, longitude, combined_buildings=combined_buildings)
                 except Exception as e:
                     st.error(f"Error fetching OSM buildings data: {e}")
