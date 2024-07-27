@@ -32,6 +32,15 @@ main_nav = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Data Colle
 # Initialize Earth Engine
 initialize_earth_engine()
 
+# Define file paths
+RESULTS_DIR = "results"
+BUILDINGS_GEOJSON = os.path.join(RESULTS_DIR, "combined_buildings.geojson")
+OSM_BUILDINGS_GEOJSON = os.path.join(RESULTS_DIR, "osm_buildings.geojson")
+GOOGLE_BUILDINGS_GEOJSON = os.path.join(RESULTS_DIR, "google_buildings.geojson")
+
+# Ensure results directory exists
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
 # Define functions
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
@@ -129,6 +138,10 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     osm_buildings = osm_buildings.to_crs(epsg=4326)
     google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
 
+    # Label sources
+    osm_buildings['source'] = 'osm'
+    google_buildings['source'] = 'google'
+
     # Remove Google buildings that touch OSM buildings
     osm_dissolved = osm_buildings.unary_union
 
@@ -139,22 +152,6 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
 
     return combined_buildings
-
-def save_combined_buildings_to_file(combined_buildings):
-    file_path = "results/combined_buildings.geojson"
-    combined_buildings.to_file(file_path, driver='GeoJSON')
-    st.success("Combined buildings saved successfully!")
-
-def load_combined_buildings_from_file():
-    file_path = "results/combined_buildings.geojson"
-    if os.path.exists(file_path):
-        return gpd.read_file(file_path)
-    else:
-        return None
-
-# Create results folder if it doesn't exist
-if not os.path.exists("results"):
-    os.makedirs("results")
 
 # Main app logic
 if main_nav == "Home":
@@ -202,18 +199,20 @@ elif main_nav == "Area Selection":
                     st.session_state.osm_roads = None
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
-                    # Create a map showing the selected coordinates
                     create_map(float(latitude), float(longitude))
+            except ValueError:
+                st.error("Invalid coordinates. Please enter valid latitude and longitude.")
             except Exception as e:
                 st.error(f"Error creating map: {e}")
 
     elif which_mode == 'Upload file':
-        uploaded_file = st.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_upload")
-
-        if uploaded_file is not None:
+        uploaded_file = st.file_uploader("Upload a GeoJSON file", type="geojson", key="upload_file")
+        if uploaded_file:
             try:
-                geojson_data = json.load(uploaded_file)
-                gdf = gpd.GeoDataFrame.from_features(geojson_data['features'])
+                geojson_data = uploaded_file.read()
+                gdf = uploaded_file_to_gdf(uploaded_file)
+                
+                # Get the centroid of the uploaded GeoJSON data
                 centroid = gdf.unary_union.centroid
                 st.session_state.latitude = centroid.y
                 st.session_state.longitude = centroid.x
@@ -222,6 +221,7 @@ elif main_nav == "Area Selection":
                 st.session_state.osm_roads = None
                 st.session_state.osm_pois = None
                 st.session_state.missing_layers = []
+
                 # Create a map showing the uploaded file's polygon area
                 create_map(centroid.y, centroid.x, geojson_data)
                 st.success("Map created successfully!")
@@ -247,12 +247,11 @@ elif main_nav == "Data Collection":
 
         if data_collection_nav == "Buildings":
             st.write("Data Collection: Buildings")
-            st.info("Fetching building data...")
-            combined_buildings = load_combined_buildings_from_file()
-            
-            if combined_buildings is None:
+            if not os.path.exists(BUILDINGS_GEOJSON):
+                st.info("Fetching building data...")
                 try:
                     geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude + 0.01, latitude + 0.01])
+                    
                     buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
                         .filter(ee.Filter.intersects('.geo', geom))
                     
@@ -263,16 +262,18 @@ elif main_nav == "Data Collection":
                     st.info("Fetching OSM data...")
                     try:
                         osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
-                        osm_buildings['source'] = 'osm'
-                        google_buildings['source'] = 'google'
-                        combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
-                        save_combined_buildings_to_file(combined_buildings)
+                        combined_buildings = create_combined_buildings_layer(
+                            gpd.GeoDataFrame.from_features(osm_buildings),
+                            gpd.GeoDataFrame.from_features(google_buildings["features"])
+                        )
+                        combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
                         create_map(latitude, longitude, combined_buildings=combined_buildings)
                     except Exception as e:
                         st.error(f"Error fetching OSM buildings data: {e}")
                 except Exception as e:
                     st.error(f"Error fetching building data: {e}")
             else:
+                combined_buildings = gpd.read_file(BUILDINGS_GEOJSON)
                 create_map(latitude, longitude, combined_buildings=combined_buildings)
 
         elif data_collection_nav == "Roads":
