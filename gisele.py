@@ -234,6 +234,7 @@ elif page == "Data Gathering":
             response = requests.get(download_url)
             if response.status_code == 200:
                 google_buildings = response.json()
+                st.write(f"Google Buildings Response: {google_buildings}")  # Debugging line
                 if 'features' in google_buildings:
                     google_buildings_gdf = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
                     google_buildings_gdf = google_buildings_gdf.clip(selected_polygon)
