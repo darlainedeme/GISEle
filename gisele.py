@@ -95,8 +95,8 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
         }).add_to(m)
 
     # Add drawing and fullscreen plugins
-    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
-                        edit_options=None).add_to(m)
+    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=True,
+                        edit_options=True).add_to(m)
     folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
                               force_separate_button=False).add_to(m)
     folium.plugins.MeasureControl(position='bottomleft', primary_length_unit='meters', secondary_length_unit='miles',
@@ -107,7 +107,7 @@ def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, 
     st.session_state.map = m
 
     # Display the map
-    st_folium(m, width=800, height=800)  # Wider map
+    st_folium(m, width=1400, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
