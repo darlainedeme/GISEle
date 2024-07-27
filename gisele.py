@@ -14,7 +14,6 @@ import pandas as pd
 import os
 
 # Initialize Earth Engine
-@st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
     json_object = json.loads(json_data, strict=False)
@@ -62,9 +61,8 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
 
     return combined_buildings
 
-@st.cache_data
-def create_map(_latitude, _longitude, _geojson_data=None, _combined_buildings=None, _osm_roads=None, _osm_pois=None):
-    m = folium.Map(location=[_latitude, _longitude], zoom_start=15)
+def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
+    m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -92,9 +90,9 @@ def create_map(_latitude, _longitude, _geojson_data=None, _combined_buildings=No
     ).add_to(m)
 
     # Add the original area of interest
-    if _geojson_data:
+    if geojson_data:
         folium.GeoJson(
-            _geojson_data,
+            geojson_data,
             name="Original Area",
             style_function=lambda x: {
                 'fillColor': 'blue',
@@ -105,31 +103,31 @@ def create_map(_latitude, _longitude, _geojson_data=None, _combined_buildings=No
         ).add_to(m)
 
     # Add combined buildings data to the map
-    if _combined_buildings is not None:
+    if combined_buildings is not None:
         combined_buildings_layer = folium.FeatureGroup(name="Combined Buildings").add_to(m)
         style_function = lambda x: {
             'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'color': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'weight': 1,
         }
-        folium.GeoJson(_combined_buildings, name="Combined Buildings", style_function=style_function).add_to(combined_buildings_layer)
+        folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(combined_buildings_layer)
 
         # Add MarkerCluster for combined buildings
         marker_cluster = MarkerCluster(name='Combined Buildings Clusters').add_to(m)
-        for _, row in _combined_buildings.iterrows():
+        for _, row in combined_buildings.iterrows():
             folium.Marker(location=[row.geometry.centroid.y, row.geometry.centroid.x]).add_to(marker_cluster)
 
     # Add OSM Roads data to the map
-    if _osm_roads is not None:
-        folium.GeoJson(_osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
+    if osm_roads is not None:
+        folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
             'fillColor': 'orange',
             'color': 'orange',
             'weight': 1,
         }).add_to(m)
 
     # Add OSM Points of Interest data to the map
-    if _osm_pois is not None:
-        folium.GeoJson(_osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
+    if osm_pois is not None:
+        folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
             'fillColor': 'red',
             'color': 'red',
             'weight': 1,
@@ -251,76 +249,4 @@ elif main_nav == "Data Collection":
             if not os.path.exists(BUILDINGS_GEOJSON):
                 st.info("Fetching building data...")
                 try:
-                    geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude + 0.01, latitude + 0.01])
-                    
-                    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-                        .filter(ee.Filter.intersects('.geo', geom))
-                    
-                    download_url = buildings.getDownloadURL('geojson')
-                    response = requests.get(download_url)
-                    google_buildings = response.json()
-                    
-                    st.info("Fetching OSM data...")
-                    try:
-                        osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
-                        combined_buildings = create_combined_buildings_layer(
-                            gpd.GeoDataFrame.from_features(osm_buildings),
-                            gpd.GeoDataFrame.from_features(google_buildings["features"])
-                        )
-                        combined_buildings.to_file(BUILDINGS_GEOJSON, driver='GeoJSON')
-                        create_map(latitude, longitude, combined_buildings=combined_buildings)
-                    except Exception as e:
-                        st.error(f"Error fetching OSM buildings data: {e}")
-                except Exception as e:
-                    st.error(f"Error fetching building data: {e}")
-            else:
-                combined_buildings = gpd.read_file(BUILDINGS_GEOJSON)
-                create_map(latitude, longitude, _combined_buildings=combined_buildings)
-
-        elif data_collection_nav == "Roads":
-            st.write("Data Collection: Roads")
-            if not os.path.exists(OSM_BUILDINGS_GEOJSON):
-                st.info("Fetching OSM roads data...")
-                try:
-                    osm_roads = ox.features_from_polygon(polygon.unary_union, tags={'highway': True})
-                    osm_roads.to_file(OSM_BUILDINGS_GEOJSON, driver='GeoJSON')
-                    create_map(latitude, longitude, _osm_roads=osm_roads)
-                except Exception as e:
-                    st.error(f"Error fetching OSM roads data: {e}")
-            else:
-                osm_roads = gpd.read_file(OSM_BUILDINGS_GEOJSON)
-                create_map(latitude, longitude, _osm_roads=osm_roads)
-
-        elif data_collection_nav == "Points of Interest":
-            st.write("Data Collection: Points of Interest")
-            if not os.path.exists(OSM_BUILDINGS_GEOJSON):
-                st.info("Fetching OSM points of interest data...")
-                try:
-                    osm_pois = ox.features_from_polygon(polygon.unary_union, tags={'amenity': True})
-                    osm_pois.to_file(OSM_BUILDINGS_GEOJSON, driver='GeoJSON')
-                    create_map(latitude, longitude, _osm_pois=osm_pois)
-                except Exception as e:
-                    st.error(f"Error fetching OSM points of interest data: {e}")
-            else:
-                osm_pois = gpd.read_file(OSM_BUILDINGS_GEOJSON)
-                create_map(latitude, longitude, _osm_pois=osm_pois)
-
-elif main_nav == "Data Analysis":
-    st.write("Data Analysis page under construction")
-
-# Add About and Contact sections in the sidebar
-st.sidebar.title("About")
-st.sidebar.info(
-    """
-    Web App URL: [https://gisele.streamlit.app/](https://gisele.streamlit.app/)
-    GitHub repository: [https://github.com/darlainedeme/GISEle](https://github.com/darlainedeme/GISEle)
-    """
-)
-
-st.sidebar.title("Contact")
-st.sidebar.info(
-    """
-    Darlain Edeme: [http://www.e4g.polimi.it/](http://www.e4g.polimi.it/)
-    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme)
-    """
-)
+                    geom = ee.Geometry.Rectangle([longitude - 0.01, latitude - 0.01, longitude +
