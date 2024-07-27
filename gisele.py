@@ -254,7 +254,9 @@ elif main_nav == "Data Collection":
                 st.info("Fetching OSM data...")
                 try:
                     osm_buildings = ox.features_from_polygon(polygon.unary_union, tags={'building': True})
+                    st.write('a')
                     combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+                    st.write('b')
                     create_map(latitude, longitude, combined_buildings=combined_buildings)
                 except Exception as e:
                     st.error(f"Error fetching OSM buildings data: {e}")
