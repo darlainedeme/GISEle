@@ -10,6 +10,7 @@ from geopy.geocoders import Nominatim
 from folium.plugins import Draw, Fullscreen, MeasureControl, MarkerCluster
 import osmnx as ox
 from shapely.geometry import mapping
+import pandas as pd
 
 # Initialize Earth Engine
 @st.cache_resource
