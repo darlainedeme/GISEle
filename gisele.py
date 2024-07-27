@@ -46,7 +46,7 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
 
     # Combine OSM buildings and filtered Google buildings
-    combined_buildings = gpd.GeoDataFrame(pd.concat([gdf_osm, filtered_google], ignore_index=True))  
+    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))  
 
     return combined_buildings
 
