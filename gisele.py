@@ -1,6 +1,6 @@
 import streamlit as st
 import folium
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 import geopandas as gpd
 import json
 import requests
@@ -115,7 +115,7 @@ def create_map(latitude, longitude, geojson_data, buildings_data, osm_buildings,
     folium.LayerControl().add_to(m)
 
     # Display the map
-    folium_static(m, width=1200, height=800)  # Wider map
+    st_folium(m, width=1450, height=800)  # Wider map
 
 def uploaded_file_to_gdf(data):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".geojson") as temp_file:
@@ -183,27 +183,28 @@ elif page == "Area Selection":
                     buildings_data = response.json()
                     
                     st.info("Fetching OSM data...")
-                    polygon = gdf.unary_union
+                    polygon = gdf.union_all()
                     try:
-                        osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
+                        osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
                     except Exception as e:
                         st.error(f"Error fetching OSM buildings data: {e}")
                         osm_buildings = None
 
                     try:
-                        osm_roads = ox.graph_from_polygon(polygon, network_type='all')
-                        osm_roads = ox.graph_to_gdfs(osm_roads, nodes=False, edges=True)[1]
+                        osm_roads_graph = ox.graph_from_polygon(polygon, network_type='all')
+                        osm_roads = ox.graph_to_gdfs(osm_roads_graph, nodes=False, edges=True)[1]
                     except Exception as e:
                         st.error(f"Error fetching OSM roads data: {e}")
                         osm_roads = None
 
                     try:
-                        osm_pois = ox.geometries_from_polygon(polygon, tags={'amenity': True})
+                        osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
                     except Exception as e:
                         st.error(f"Error fetching OSM points of interest data: {e}")
                         osm_pois = None
 
                     st.info("Creating map...")
+                    gdf = gdf.to_crs(epsg=4326)
                     centroid = gdf.geometry.centroid.iloc[0]
                     create_map(centroid.y, centroid.x, geojson_data, buildings_data, osm_buildings, osm_roads, osm_pois)
                     st.success("Map created successfully!")
