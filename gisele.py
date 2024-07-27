@@ -13,13 +13,17 @@ from shapely.geometry import mapping
 import pandas as pd
 
 # Initialize Earth Engine
-@st.cache_resource
-def initialize_earth_engine():
-    json_data = st.secrets["json_data"]
-    json_object = json.loads(json_data, strict=False)
-    service_account = json_object['client_email']
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
-    ee.Initialize(credentials)
+if 'ee_initialized' not in st.session_state:
+    @st.cache_resource
+    def initialize_earth_engine():
+        json_data = st.secrets["json_data"]
+        json_object = json.loads(json_data, strict=False)
+        service_account = json_object['client_email']
+        credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+        ee.Initialize(credentials)
+        st.session_state.ee_initialized = True  # Mark as initialized
+
+    initialize_earth_engine()
 
 # Initialize the app
 st.set_page_config(layout="wide")
@@ -51,7 +55,7 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
     return combined_buildings
 
 def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
-    m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
+    m = folium.Map(location=[latitude, longitude], zoom_start=15, control_scale=True)  # Increased zoom level and control scale
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
