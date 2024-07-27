@@ -199,7 +199,7 @@ if page == "Home":
     st.write("Use the sidebar to navigate to different sections of the app.")
 elif page == "Area Selection":
     which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which modes, index=2, key="mode_select")
+    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
 
     if which_mode == 'By address':
         handle_address_input()
