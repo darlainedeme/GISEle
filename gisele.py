@@ -26,7 +26,7 @@ st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
 # Define navigation
-page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Analysis"], key="main_nav")
+page = st.sidebar.radio("Navigation", ["Home", "Area Selection", "Data Gathering", "Analysis"], key="main_nav")
 
 # Call to initialize Earth Engine
 initialize_earth_engine()
@@ -50,8 +50,8 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
 
     return combined_buildings
 
-def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
-    m = folium.Map(location=[latitude, longitude], zoom_start=15)  # Increased zoom level
+def create_map(latitude, longitude, geojson_data, combined_buildings=None, osm_roads=None, osm_pois=None, missing_layers=None):
+    m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -78,9 +78,9 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
         control=True
     ).add_to(m)
     folium.TileLayer(
-        tiles='https://ecn.t3.tiles.virtualearth.net/tiles/a{q}.jpeg?g=1',
+        tiles='https://dev.virtualearth.net/REST/V1/Imagery/Map/AerialWithLabels/{z}/{y}/{x}?mapSize=500,500&key=BingMapsAPIKey',
         attr='Bing',
-        name='Bing Maps Satellite',
+        name='Bing Maps',
         overlay=False,
         control=True
     ).add_to(m)
@@ -130,7 +130,7 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     st.session_state.map = m
 
     # Display the map
-    st_folium(m, width=1450, height=800)  # Wider map
+    st_folium(m, width=1450, height=800)
 
     # Indicate missing layers
     if missing_layers:
@@ -149,9 +149,10 @@ def uploaded_file_to_gdf(data):
 if page == "Home":
     st.write("Welcome to Local GISEle")
     st.write("Use the sidebar to navigate to different sections of the app.")
+
 elif page == "Area Selection":
-    st.write("### Select Area for Analysis")
-    st.write("Use one of the following methods to define the area:")
+    st.write("### Area Selection")
+    st.write("Define the area of interest using one of the methods below:")
 
     which_modes = ['By address', 'By coordinates', 'Upload file']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
@@ -167,16 +168,12 @@ elif page == "Area Selection":
                     if location:
                         st.session_state.latitude = location.latitude
                         st.session_state.longitude = location.longitude
-                        st.session_state.geojson_data = None
-                        st.session_state.combined_buildings = None
-                        st.session_state.osm_roads = None
-                        st.session_state.osm_pois = None
-                        st.session_state.missing_layers = []
-                        create_map(location.latitude, location.longitude, None, None, None, None, [])
+                        create_map(location.latitude, location.longitude, None)
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
                 st.error(f"Error fetching location: {e}")
+
     elif which_mode == 'By coordinates':  
         latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input") 
         longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input") 
@@ -186,66 +183,58 @@ elif page == "Area Selection":
                 with st.spinner('Creating map...'):
                     st.session_state.latitude = float(latitude)
                     st.session_state.longitude = float(longitude)
-                    st.session_state.geojson_data = None
-                    st.session_state.combined_buildings = None
-                    st.session_state.osm_roads = None
-                    st.session_state.osm_pois = None
-                    st.session_state.missing_layers = []
-                    create_map(float(latitude), float(longitude), None, None, None, None, [])
+                    create_map(float(latitude), float(longitude), None)
             except Exception as e:
                 st.error(f"Error creating map: {e}")
         else:
             st.error("Please provide both latitude and longitude.")
+
     elif which_mode == 'Upload file':
         data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
         if data:
             try:
-                st.info("Uploading file...")
                 gdf = uploaded_file_to_gdf(data)
-
                 if gdf.empty or gdf.is_empty.any():
                     st.error("Uploaded GeoJSON file is empty or contains null geometries.")
                 else:
                     geojson_data = gdf.to_json()
+                    centroid = gdf.geometry.centroid.iloc[0]
+
+                    # Save map data to session state
+                    st.session_state.latitude = centroid.y
+                    st.session_state.longitude = centroid.x
                     st.session_state.geojson_data = geojson_data
 
-                    st.info("File uploaded successfully!")
-                    st.write("### Uploaded Polygon")
-                    st.write(gdf)
-
-                    st.write("Proceed to the Analysis page to extract data and visualize the map.")
-            except KeyError as e:
-                st.error(f"Error processing file: {e}")
-            except IndexError as e:
-                st.error(f"Error processing file: {e}")
+                    create_map(centroid.y, centroid.x, geojson_data)
+                    st.success("Area selected successfully!")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 
-elif page == "Analysis":
-    if 'geojson_data' not in st.session_state or st.session_state.geojson_data is None:
-        st.error("Please upload a GeoJSON file or select an area in the 'Area Selection' page.")
+    if 'latitude' in st.session_state and 'longitude' in st.session_state:
+        st.write("### Selected Area")
+        create_map(st.session_state.latitude, st.session_state.longitude, st.session_state.get('geojson_data', None))
+        st.write("Proceed to the Data Gathering page to extract data for the selected area.")
+
+elif page == "Data Gathering":
+    st.write("### Data Gathering")
+
+    if 'latitude' not in st.session_state or 'longitude' not in st.session_state:
+        st.error("Please select an area in the Area Selection page first.")
     else:
-        geojson_data = st.session_state.geojson_data
-        gdf = gpd.read_file(json.loads(geojson_data))
-
-        st.write("### Analysis")
-        st.write("Extracting data and creating the map...")
-
         try:
             st.info("Fetching building data...")
-            coords = gdf.geometry.total_bounds
-            geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
+            geom = ee.Geometry.Point([st.session_state.longitude, st.session_state.latitude]).buffer(1000)
 
             buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
                 .filter(ee.Filter.intersects('.geo', geom))
-
+            
             download_url = buildings.getDownloadURL('geojson')
             response = requests.get(download_url)
             google_buildings = response.json()
-
+            
             st.info("Fetching OSM data...")
-            polygon = gdf.unary_union
+            polygon = geom.getInfo()['coordinates']
             missing_layers = []
             try:
                 osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
@@ -270,23 +259,22 @@ elif page == "Analysis":
 
             st.info("Creating combined buildings layer...")
             combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
-
+            
             st.info("Creating map...")
-            gdf = gdf.to_crs(epsg=4326)
-            centroid = gdf.geometry.centroid.iloc[0]
+            create_map(st.session_state.latitude, st.session_state.longitude, st.session_state.geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
+            st.success("Data gathered and map updated successfully!")
 
-            # Save map data to session state
-            st.session_state.latitude = centroid.y
-            st.session_state.longitude = centroid.x
+            # Save data to session state
             st.session_state.combined_buildings = combined_buildings
             st.session_state.osm_roads = osm_roads
             st.session_state.osm_pois = osm_pois
             st.session_state.missing_layers = missing_layers
 
-            create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
-            st.success("Map created successfully!")
         except Exception as e:
-            st.error(f"Error during analysis: {e}")
+            st.error(f"Error gathering data: {e}")
+
+elif page == "Analysis":
+    st.write("Analysis page under construction")
 
 if 'map' in st.session_state:
     st_folium(st.session_state.map, width=1450, height=800)
