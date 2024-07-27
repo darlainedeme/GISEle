@@ -191,8 +191,8 @@ elif page == "Area Selection":
                         osm_buildings = None
 
                     try:
-                        osm_roads = ox.graph_from_polygon(polygon, tags={'highway': True})
-                        osm_roads = ox.graph_to_gdfs(osm_roads, nodes=False, edges=True)[1]
+                        osm_roads = ox.geometries_from_polygon(polygon, tags={'highway': True})
+                        # osm_roads = ox.graph_to_gdfs(osm_roads, nodes=False, edges=True)[1]
                     except Exception as e:
                         st.error(f"Error fetching OSM roads data: {e}")
                         osm_roads = None
