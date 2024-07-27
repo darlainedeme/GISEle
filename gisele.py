@@ -74,8 +74,9 @@ def create_combined_buildings_layer(osm_buildings, google_buildings):
 
     return combined_buildings
 
-def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers):
-    m = folium.Map(location=[latitude, longitude], zoom_start=15, control_scale=True)  # Increased zoom level and control scale
+def create_map():
+    state = st.session_state.map_state
+    m = folium.Map(location=[state["latitude"], state["longitude"]], zoom_start=15)  # Increased zoom level
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -103,34 +104,34 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     ).add_to(m)
 
     # Add GeoDataFrame to the map
-    if geojson_data:
-        folium.GeoJson(geojson_data, name="Uploaded GeoJSON").add_to(m)
+    if state["geojson_data"]:
+        folium.GeoJson(state["geojson_data"], name="Uploaded GeoJSON").add_to(m)
 
     # Add combined buildings data to the map
-    if combined_buildings is not None:
+    if state["combined_buildings"] is not None:
         style_function = lambda x: {
             'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'color': 'green' if x['properties']['source'] == 'osm' else 'blue',
             'weight': 1,
         }
-        folium.GeoJson(combined_buildings, name="Combined Buildings", style_function=style_function).add_to(m)
+        folium.GeoJson(state["combined_buildings"], name="Combined Buildings", style_function=style_function).add_to(m)
 
         # Add MarkerCluster for combined buildings
         marker_cluster = MarkerCluster(name='Combined Buildings Clusters').add_to(m)
-        for _, row in combined_buildings.iterrows():
+        for _, row in state["combined_buildings"].iterrows():
             folium.Marker(location=[row.geometry.centroid.y, row.geometry.centroid.x]).add_to(marker_cluster)
 
     # Add OSM Roads data to the map
-    if osm_roads is not None:
-        folium.GeoJson(osm_roads.to_json(), name='OSM Roads', style_function=lambda x: {
+    if state["osm_roads"] is not None:
+        folium.GeoJson(state["osm_roads"].to_json(), name='OSM Roads', style_function=lambda x: {
             'fillColor': 'orange',
             'color': 'orange',
             'weight': 1,
         }).add_to(m)
 
     # Add OSM Points of Interest data to the map
-    if osm_pois is not None:
-        folium.GeoJson(osm_pois.to_json(), name='OSM Points of Interest', style_function=lambda x: {
+    if state["osm_pois"] is not None:
+        folium.GeoJson(state["osm_pois"].to_json(), name='OSM Points of Interest', style_function=lambda x: {
             'fillColor': 'red',
             'color': 'red',
             'weight': 1,
@@ -147,9 +148,9 @@ def create_map(latitude, longitude, geojson_data, combined_buildings, osm_roads,
     st_folium(m, width=1450, height=800)  # Wider map
 
     # Indicate missing layers
-    if missing_layers:
+    if state["missing_layers"]:
         st.write("The following layers weren't possible to obtain for the selected area:")
-        for layer in missing_layers:
+        for layer in state["missing_layers"]:
             st.write(f"- {layer}")
 
 def uploaded_file_to_gdf(data):
@@ -166,95 +167,98 @@ if page == "Home":
 elif page == "Area Selection":
     which_modes = ['By address', 'By coordinates', 'Upload file']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2, key="mode_select")
+if which_mode == 'By address':  
+    geolocator = Nominatim(user_agent="example app")
+    address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa', key="address_input") 
 
-    if which_mode == 'By address':  
-        geolocator = Nominatim(user_agent="example app")
-        address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa', key="address_input") 
-
-        if address:
-            try:
-                with st.spinner('Fetching location...'):
-                    location = geolocator.geocode(address)
-                    if location:
-                        create_map(location.latitude, location.longitude, None, None, None, None, [])
-                    else:
-                        st.error("Could not geocode the address.")
-            except Exception as e:
-                st.error(f"Error fetching location: {e}")
-    elif which_mode == 'By coordinates':  
-        latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input") 
-        longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input") 
-        
-        if latitude and longitude:
-            try:
-                with st.spinner('Creating map...'):
-                    create_map(float(latitude), float(longitude), None, None, None, None, [])
-            except Exception as e:
-                st.error(f"Error creating map: {e}")
-        else:
-            st.error("Please provide both latitude and longitude.")
-    elif which_mode == 'Upload file':
-        data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
-
-        if data:
-            try:
-                st.info("Uploading file...")
-                gdf = uploaded_file_to_gdf(data)
-
-                if gdf.empty or gdf.is_empty.any():
-                    st.error("Uploaded GeoJSON file is empty or contains null geometries.")
+    if address:
+        try:
+            with st.spinner('Fetching location...'):
+                location = geolocator.geocode(address)
+                if location:
+                    update_map_state(location.latitude, location.longitude, None, None, None, None, [])
+                    create_map()
                 else:
-                    geojson_data = gdf.to_json()
-                    
-                    st.info("Fetching building data...")
-                    coords = gdf.geometry.total_bounds
-                    geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
-                    
-                    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-                        .filter(ee.Filter.intersects('.geo', geom))
-                    
-                    download_url = buildings.getDownloadURL('geojson')
-                    response = requests.get(download_url)
-                    google_buildings = response.json()
-                    
-                    st.info("Fetching OSM data...")
-                    polygon = gdf.unary_union
-                    missing_layers = []
-                    try:
-                        osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
-                    except Exception as e:
-                        st.error(f"Error fetching OSM buildings data: {e}")
-                        osm_buildings = None
-                        missing_layers.append('buildings')
+                    st.error("Could not geocode the address.")
+        except Exception as e:
+            st.error(f"Error fetching location: {e}")
+elif which_mode == 'By coordinates':  
+    latitude = st.sidebar.text_input('Latitude:', value=45.5065, key="latitude_input") 
+    longitude = st.sidebar.text_input('Longitude:', value=9.1598, key="longitude_input") 
+    
+    if latitude and longitude:
+        try:
+            with st.spinner('Creating map...'):
+                update_map_state(float(latitude), float(longitude), None, None, None, None, [])
+                create_map()
+        except Exception as e:
+            st.error(f"Error creating map: {e}")
+    else:
+        st.error("Please provide both latitude and longitude.")
+elif which_mode == 'Upload file':
+    data = st.sidebar.file_uploader("Upload a GeoJSON file", type=["geojson"], key="file_uploader")
 
-                    try:
-                        osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
-                    except Exception as e:
-                        st.error(f"Error fetching OSM roads data: {e}")
-                        osm_roads = None
-                        missing_layers.append('roads')
+    if data:
+        try:
+            st.info("Uploading file...")
+            gdf = uploaded_file_to_gdf(data)
 
-                    try:
-                        osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
-                    except Exception as e:
-                        st.error(f"Error fetching OSM points of interest data: {e}")
-                        osm_pois = None
-                        missing_layers.append('points of interest')
+            if gdf.empty or gdf.is_empty.any():
+                st.error("Uploaded GeoJSON file is empty or contains null geometries.")
+            else:
+                geojson_data = gdf.to_json()
+                
+                st.info("Fetching building data...")
+                coords = gdf.geometry.total_bounds
+                geom = ee.Geometry.Rectangle([coords[0], coords[1], coords[2], coords[3]])
+                
+                buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+                    .filter(ee.Filter.intersects('.geo', geom))
+                
+                download_url = buildings.getDownloadURL('geojson')
+                response = requests.get(download_url)
+                google_buildings = response.json()
+                
+                st.info("Fetching OSM data...")
+                polygon = gdf.unary_union
+                missing_layers = []
+                try:
+                    osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
+                except Exception as e:
+                    st.error(f"Error fetching OSM buildings data: {e}")
+                    osm_buildings = None
+                    missing_layers.append('buildings')
 
-                    st.info("Creating combined buildings layer...")
-                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
-                    
-                    st.info("Creating map...")
-                    gdf = gdf.to_crs(epsg=4326)
-                    centroid = gdf.geometry.centroid.iloc[0]
-                    create_map(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
-                    st.success("Map created successfully!")
-            except KeyError as e:
-                st.error(f"Error processing file: {e}")
-            except IndexError as e:
-                st.error(f"Error processing file: {e}")
-            except Exception as e:
-                st.error(f"Error processing file: {e}")
+                try:
+                    osm_roads = ox.features_from_polygon(polygon, tags={'highway': True})
+                except Exception as e:
+                    st.error(f"Error fetching OSM roads data: {e}")
+                    osm_roads = None
+                    missing_layers.append('roads')
+
+                try:
+                    osm_pois = ox.features_from_polygon(polygon, tags={'amenity': True})
+                except Exception as e:
+                    st.error(f"Error fetching OSM points of interest data: {e}")
+                    osm_pois = None
+                    missing_layers.append('points of interest')
+
+                st.info("Creating combined buildings layer...")
+                combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+                
+                st.info("Creating map...")
+                gdf = gdf.to_crs(epsg=4326)
+                centroid = gdf.geometry.centroid.iloc[0]
+                update_map_state(centroid.y, centroid.x, geojson_data, combined_buildings, osm_roads, osm_pois, missing_layers)
+                create_map()
+                st.success("Map created successfully!")
+        except KeyError as e:
+            st.error(f"Error processing file: {e}")
+        except IndexError as e:
+            st.error(f"Error processing file: {e}")
+        except Exception as e:
+            st.error(f"Error processing file: {e}")
+
 elif page == "Analysis":
     st.write("Analysis page under construction")
 
