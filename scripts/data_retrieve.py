@@ -26,21 +26,30 @@ def clear_output_directories():
 import rasterio
 from rasterio.mask import mask
 
+import rasterio
+from rasterio.mask import mask
+
 def download_elevation_data(polygon, file_path):
     try:
+        st.write("Initializing Earth Engine Geometry...")
         geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
         bbox = geom.bounds().getInfo()  # Get bounding box
         bbox_geom = ee.Geometry.Rectangle(bbox)
+        st.write(f"Bounding Box: {bbox}")
 
+        st.write("Creating elevation image...")
         elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox_geom)
 
+        st.write("Generating download URL...")
         url = elevation.getDownloadURL({
             'scale': 30,  # Adjust scale as needed
             'crs': 'EPSG:4326',
             'region': bbox_geom.toGeoJSONString(),
             'name': 'elevation'
         })
+        st.write(f"Download URL: {url}")
 
+        st.write("Downloading elevation data...")
         response = requests.get(url, stream=True)
         if response.status_code == 200:
             temp_tif_path = file_path.replace('.tif', '_temp.tif')
@@ -49,7 +58,7 @@ def download_elevation_data(polygon, file_path):
                     f.write(chunk)
             st.write("Elevation data downloaded.")
 
-            # Mask the downloaded raster
+            st.write("Masking the downloaded raster...")
             with rasterio.open(temp_tif_path) as src:
                 out_image, out_transform = mask(src, [geom], crop=True)
                 out_meta = src.meta.copy()
@@ -62,10 +71,10 @@ def download_elevation_data(polygon, file_path):
                     dest.write(out_image)
 
             os.remove(temp_tif_path)  # Clean up temporary file
-            st.write("Elevation data masked.")
+            st.write("Elevation data masked and saved.")
             return file_path
         else:
-            st.write("Failed to download elevation data.")
+            st.write(f"Failed to download elevation data. Status code: {response.status_code}")
             return None
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
