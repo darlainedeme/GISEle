@@ -20,6 +20,43 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
+def download_elevation_data(polygon, file_path):
+    try:
+        geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
+        elevation = ee.Image('NASA/NASADEM_HGT/001').select('elevation').clip(geom)
+        
+        # Determine min and max elevation for scaling
+        min_max = elevation.reduceRegion(
+            reducer=ee.Reducer.minMax(), 
+            geometry=geom, 
+            scale=30,  # Adjust scale as needed
+            bestEffort=True, 
+            maxPixels=1e4
+        ).getInfo()
+        elevation_min = min_max['elevation_min']
+        elevation_max = min_max['elevation_max']
+        
+        url = elevation.getDownloadURL({
+            'scale': 30,  # Adjust scale as needed
+            'crs': 'EPSG:4326',
+            'region': geom.toGeoJSONString(),
+            'name': 'elevation'
+        })
+
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            with open(file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    f.write(chunk)
+            st.write("Elevation data downloaded.")
+            return file_path
+        else:
+            st.write("No elevation data found in the selected area.")
+            return None
+    except Exception as e:
+        st.error(f"Error downloading elevation data: {e}")
+        return None
+
 def download_osm_data(polygon, tags, file_path):
     try:
         data = ox.features_from_polygon(polygon, tags)
@@ -111,11 +148,13 @@ def show():
         "Airports",
         "Ports",
         "Power Lines",
-        "Transformers and Substations"
+        "Transformers and Substations",
+        "Elevation"
     ]
 
+
     # Multiselect box for datasets
-    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets)
+    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets[-1])
 
     if st.button("Retrieve Data"):
         st.write("Downloading data...")
@@ -240,6 +279,14 @@ def show():
                 status_text.text("Downloading OSM transformers and substations data...")
                 substations_path = download_osm_data(buffer_polygon, {'power': ['transformer', 'substation']}, substations_file)
                 progress.progress(0.9)
+                
+            if "Elevation" in selected_datasets:
+                status_text.text("Downloading elevation data...")
+                elevation_file = 'data/output/elevation/elevation.tif'
+                os.makedirs('data/output/elevation', exist_ok=True)
+                elevation_path = download_elevation_data(polygon, elevation_file)
+                progress.progress(0.95)
+
 
             # Collect all file paths that exist
             zip_files = [
