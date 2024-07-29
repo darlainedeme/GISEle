@@ -50,11 +50,9 @@ def download_and_clip_elevation(polygon, dem_path, clipped_dem_path):
         # Save clipped raster
         clipped_raster.rio.to_raster(absolute_clipped_dem_path)
         
-        dem_clipped = rio.open(absolute_clipped_dem_path)
-        show(dem_clipped)
-        
         st.write("Elevation data downloaded and clipped to the selected area.")
         return absolute_clipped_dem_path
+        
     except Exception as e:
         st.error(f"Error downloading and clipping elevation data: {e}")
         return None
