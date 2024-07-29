@@ -5,6 +5,7 @@ import geopandas as gpd
 import json
 from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
 import zipfile
+import os
 
 def download_osm_data(polygon, tags, file_path):
     data = ox.geometries_from_polygon(polygon, tags)
