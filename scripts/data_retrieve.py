@@ -98,8 +98,8 @@ def show():
     gdf = gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
     projected_gdf = gdf.to_crs(epsg=3857)
     buffer_polygon = projected_gdf.geometry.buffer(200000)  # 200 km buffer
-    buffer_polygon = gpd.GeoDataFrame(buffer_polygon)
-    buffer_polygon = buffer_polygon.to_crs(epsg=4326)  # Reproject back to geographic CRS
+    buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_gdf.crs)
+    buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
 
     # Initialize Earth Engine
     initialize_earth_engine()
