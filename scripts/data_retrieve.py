@@ -8,6 +8,8 @@ from scripts.utils import initialize_earth_engine, create_combined_buildings_lay
 import zipfile
 import os
 import shutil
+import rasterio
+from rasterio.mask import mask
 
 def clear_output_directories():
     output_dirs = [
@@ -20,15 +22,19 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
+
 def download_elevation_data(polygon, file_path):
     try:
         geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
-        elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(geom)
-        
+        bbox = geom.bounds().getInfo()  # Get bounding box
+        bbox_geom = ee.Geometry.Rectangle(bbox)
+
+        elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox_geom)
+
         url = elevation.getDownloadURL({
             'scale': 30,  # Adjust scale as needed
             'crs': 'EPSG:4326',
-            'region': geom.toGeoJSONString(),
+            'region': bbox_geom.toGeoJSONString(),
             'name': 'elevation'
         })
 
@@ -38,6 +44,20 @@ def download_elevation_data(polygon, file_path):
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
             st.write("Elevation data downloaded.")
+
+            # Mask the downloaded raster
+            with rasterio.open(file_path) as src:
+                out_image, out_transform = mask(src, [geom], crop=True)
+                out_meta = src.meta.copy()
+                out_meta.update({"driver": "GTiff",
+                                 "height": out_image.shape[1],
+                                 "width": out_image.shape[2],
+                                 "transform": out_transform})
+
+                with rasterio.open(file_path, "w", **out_meta) as dest:
+                    dest.write(out_image)
+            
+            st.write("Elevation data masked.")
             return file_path
         else:
             st.write("No elevation data found in the selected area.")
@@ -45,6 +65,7 @@ def download_elevation_data(polygon, file_path):
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
+
 
 
 def download_osm_data(polygon, tags, file_path):
