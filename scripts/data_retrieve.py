@@ -7,6 +7,18 @@ import ee
 from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
 import zipfile
 import os
+import shutil
+
+def clear_output_directories():
+    output_dirs = [
+        'data/output/buildings', 'data/output/roads', 'data/output/poi',
+        'data/output/water_bodies', 'data/output/cities', 'data/output/airports',
+        'data/output/ports', 'data/output/power_lines', 'data/output/substations'
+    ]
+    for dir_path in output_dirs:
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
 
 def download_osm_data(polygon, tags, file_path):
     try:
@@ -87,9 +99,11 @@ def zip_results(files, zip_file_path):
             zipf.write(file_path, os.path.basename(file_path))
 
 def show():
-    st.title("Data Retrieve")
     st.write("Downloading data...")
 
+    # Clear previous results
+    clear_output_directories()
+    
     # Load the selected area
     with open('data/input/selected_area.geojson') as f:
         selected_area = json.load(f)
