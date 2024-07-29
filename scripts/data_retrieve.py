@@ -99,140 +99,168 @@ def zip_results(files, zip_file_path):
             zipf.write(file_path, os.path.basename(file_path))
 
 def show():
-    st.write("Downloading data...")
+    st.title("Data Retrieve")
 
-    # Clear previous results
-    clear_output_directories()
-    
-    # Load the selected area
-    with open('data/input/selected_area.geojson') as f:
-        selected_area = json.load(f)
+    # Define datasets
+    datasets = [
+        "Buildings",
+        "Roads",
+        "Points of Interest",
+        "Water Bodies",
+        "Major Cities",
+        "Airports",
+        "Ports",
+        "Power Lines",
+        "Transformers and Substations"
+    ]
 
-    gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
-    polygon = gdf.geometry.union_all()
+    # Multiselect box for datasets
+    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets)
 
-    polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
-    polygon_gdf = polygon_gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
-    projected_polygon = polygon_gdf.to_crs(epsg=3857)
-    buffer_polygon = projected_polygon.geometry.buffer(1)  # 200 km buffer
-    buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
-    buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
-    
-    buffer_polygon = buffer_gdf.geometry.union_all()
+    if st.button("Retrieve Data"):
+        st.write("Downloading data...")
+
+        # Clear previous results
+        clear_output_directories()
         
-    # Initialize Earth Engine
-    initialize_earth_engine()
+        # Load the selected area
+        with open('data/input/selected_area.geojson') as f:
+            selected_area = json.load(f)
 
-    # Define file paths
-    osm_buildings_file = 'data/output/buildings/osm_buildings.geojson'
-    google_buildings_file = 'data/output/buildings/google_buildings.geojson'
-    combined_buildings_file = 'data/output/buildings/combined_buildings.geojson'
-    roads_file = 'data/output/roads/osm_roads.geojson'
-    pois_file = 'data/output/poi/osm_pois.geojson'
-    water_bodies_file = 'data/output/water_bodies/osm_water_bodies.geojson'
-    cities_file = 'data/output/cities/osm_cities.geojson'
-    airports_file = 'data/output/airports/osm_airports.geojson'
-    ports_file = 'data/output/ports/osm_ports.geojson'
-    power_lines_file = 'data/output/power_lines/osm_power_lines.geojson'
-    substations_file = 'data/output/substations/osm_substations.geojson'
+        gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
+        polygon = gdf.geometry.union_all()
 
-    os.makedirs('data/output/buildings', exist_ok=True)
-    os.makedirs('data/output/roads', exist_ok=True)
-    os.makedirs('data/output/poi', exist_ok=True)
-    os.makedirs('data/output/water_bodies', exist_ok=True)
-    os.makedirs('data/output/cities', exist_ok=True)
-    os.makedirs('data/output/airports', exist_ok=True)
-    os.makedirs('data/output/ports', exist_ok=True)
-    os.makedirs('data/output/power_lines', exist_ok=True)
-    os.makedirs('data/output/substations', exist_ok=True)
+        polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
+        polygon_gdf = polygon_gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
+        projected_polygon = polygon_gdf.to_crs(epsg=3857)
+        buffer_polygon = projected_polygon.geometry.buffer(200000)  # 200 km buffer
+        buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
+        buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
+        
+        buffer_polygon = buffer_gdf.geometry.union_all()
+            
+        # Initialize Earth Engine
+        initialize_earth_engine()
 
-    # Download data
-    progress = st.progress(0)
-    status_text = st.empty()
+        # Define file paths
+        osm_buildings_file = 'data/output/buildings/osm_buildings.geojson'
+        google_buildings_file = 'data/output/buildings/google_buildings.geojson'
+        combined_buildings_file = 'data/output/buildings/combined_buildings.geojson'
+        roads_file = 'data/output/roads/osm_roads.geojson'
+        pois_file = 'data/output/poi/osm_pois.geojson'
+        water_bodies_file = 'data/output/water_bodies/osm_water_bodies.geojson'
+        cities_file = 'data/output/cities/osm_cities.geojson'
+        airports_file = 'data/output/airports/osm_airports.geojson'
+        ports_file = 'data/output/ports/osm_ports.geojson'
+        power_lines_file = 'data/output/power_lines/osm_power_lines.geojson'
+        substations_file = 'data/output/substations/osm_substations.geojson'
 
-    try:
-        # Download buildings data
-        status_text.text("Downloading OSM buildings data...")
-        osm_buildings_path = download_osm_data(polygon, {'building': True}, osm_buildings_file)
-        progress.progress(0.1)
+        os.makedirs('data/output/buildings', exist_ok=True)
+        os.makedirs('data/output/roads', exist_ok=True)
+        os.makedirs('data/output/poi', exist_ok=True)
+        os.makedirs('data/output/water_bodies', exist_ok=True)
+        os.makedirs('data/output/cities', exist_ok=True)
+        os.makedirs('data/output/airports', exist_ok=True)
+        os.makedirs('data/output/ports', exist_ok=True)
+        os.makedirs('data/output/power_lines', exist_ok=True)
+        os.makedirs('data/output/substations', exist_ok=True)
 
-        status_text.text("Downloading Google buildings data...")
-        google_buildings_path = download_google_buildings(polygon, google_buildings_file)
-        progress.progress(0.2)
+        # Download data
+        progress = st.progress(0)
+        status_text = st.empty()
 
-        # Combine OSM and Google buildings data
-        if osm_buildings_path and google_buildings_path:
-            status_text.text("Combining buildings data...")
-            with open(google_buildings_path) as f:
-                google_buildings_geojson = json.load(f)
-            osm_buildings = gpd.read_file(osm_buildings_path)
-            combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
-            combined_buildings.to_file(combined_buildings_file, driver='GeoJSON')
-            st.write(f"{len(combined_buildings)} buildings in the combined dataset")
-        else:
-            st.write("Skipping buildings combination due to missing data.")
-        progress.progress(0.3)
+        try:
+            # Download buildings data
+            if "Buildings" in selected_datasets:
+                status_text.text("Downloading OSM buildings data...")
+                osm_buildings_path = download_osm_data(polygon, {'building': True}, osm_buildings_file)
+                progress.progress(0.1)
 
-        # Download roads data
-        status_text.text("Downloading OSM roads data...")
-        roads_path = download_osm_data(buffer_polygon, {'highway': ['motorway', 'trunk', 'tertiary', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'tertiary_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
-        progress.progress(0.4)
+                status_text.text("Downloading Google buildings data...")
+                google_buildings_path = download_google_buildings(polygon, google_buildings_file)
+                progress.progress(0.2)
 
-        # Download points of interest data
-        status_text.text("Downloading OSM points of interest data...")
-        pois_path = download_osm_data(polygon, {'amenity': True}, pois_file)
-        progress.progress(0.5)
+                # Combine OSM and Google buildings data
+                if osm_buildings_path and google_buildings_path:
+                    status_text.text("Combining buildings data...")
+                    with open(google_buildings_path) as f:
+                        google_buildings_geojson = json.load(f)
+                    osm_buildings = gpd.read_file(osm_buildings_path)
+                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
+                    combined_buildings.to_file(combined_buildings_file, driver='GeoJSON')
+                    st.write(f"{len(combined_buildings)} buildings in the combined dataset")
+                else:
+                    st.write("Skipping buildings combination due to missing data.")
+                progress.progress(0.3)
 
-        # Download water bodies data
-        status_text.text("Downloading OSM water bodies data...")
-        water_bodies_path = download_osm_data(polygon, {'natural': 'water'}, water_bodies_file)
-        progress.progress(0.6)
+            # Download roads data
+            if "Roads" in selected_datasets:
+                status_text.text("Downloading OSM roads data...")
+                roads_path = download_osm_data(buffer_polygon, {'highway': ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
+                progress.progress(0.4)
 
-        # Download major cities data
-        status_text.text("Downloading OSM major cities data...")
-        cities_path = download_osm_data(buffer_polygon, {'place': 'city'}, cities_file)
-        progress.progress(0.7)
+            # Download points of interest data
+            if "Points of Interest" in selected_datasets:
+                status_text.text("Downloading OSM points of interest data...")
+                pois_path = download_osm_data(polygon, {'amenity': True}, pois_file)
+                progress.progress(0.5)
 
-        # Download airports data
-        status_text.text("Downloading OSM airports data...")
-        airports_path = download_osm_data(buffer_polygon, {'aeroway': 'aerodrome'}, airports_file)
-        progress.progress(0.75)
+            # Download water bodies data
+            if "Water Bodies" in selected_datasets:
+                status_text.text("Downloading OSM water bodies data...")
+                water_bodies_path = download_osm_data(polygon, {'natural': 'water'}, water_bodies_file)
+                progress.progress(0.6)
 
-        # Download ports data
-        status_text.text("Downloading OSM ports data...")
-        ports_path = download_osm_data(buffer_polygon, {'amenity': 'port'}, ports_file)
-        progress.progress(0.8)
+            # Download major cities data
+            if "Major Cities" in selected_datasets:
+                status_text.text("Downloading OSM major cities data...")
+                cities_path = download_osm_data(buffer_polygon, {'place': 'city'}, cities_file)
+                progress.progress(0.7)
 
-        # Download power lines data
-        status_text.text("Downloading OSM power lines data...")
-        power_lines_path = download_osm_data(buffer_polygon, {'power': 'line'}, power_lines_file)
-        progress.progress(0.85)
+            # Download airports data
+            if "Airports" in selected_datasets:
+                status_text.text("Downloading OSM airports data...")
+                airports_path = download_osm_data(buffer_polygon, {'aeroway': 'aerodrome'}, airports_file)
+                progress.progress(0.75)
 
-        # Download transformers and substations data
-        status_text.text("Downloading OSM transformers and substations data...")
-        substations_path = download_osm_data(buffer_polygon, {'power': ['transformer', 'substation']}, substations_file)
-        progress.progress(0.9)
+            # Download ports data
+            if "Ports" in selected_datasets:
+                status_text.text("Downloading OSM ports data...")
+                ports_path = download_osm_data(buffer_polygon, {'amenity': 'port'}, ports_file)
+                progress.progress(0.8)
 
-        # Collect all file paths that exist
-        zip_files = [
-            file_path for file_path in [
-                osm_buildings_file, google_buildings_file, combined_buildings_file, 
-                roads_file, pois_file, water_bodies_file, cities_file,
-                airports_file, ports_file, power_lines_file, substations_file
-            ] if file_path and os.path.exists(file_path)
-        ]
+            # Download power lines data
+            if "Power Lines" in selected_datasets:
+                status_text.text("Downloading OSM power lines data...")
+                power_lines_path = download_osm_data(buffer_polygon, {'power': 'line'}, power_lines_file)
+                progress.progress(0.85)
 
-        # Zip all results
-        status_text.text("Zipping results...")
-        zip_results(zip_files, 'data/output/results.zip')
-        progress.progress(1.0)
+            # Download transformers and substations data
+            if "Transformers and Substations" in selected_datasets:
+                status_text.text("Downloading OSM transformers and substations data...")
+                substations_path = download_osm_data(buffer_polygon, {'power': ['transformer', 'substation']}, substations_file)
+                progress.progress(0.9)
 
-        st.success("Data download complete. You can now proceed to the next section.")
-        with open('data/output/results.zip', 'rb') as f:
-            st.download_button('Download All Results', f, file_name='results.zip')
+            # Collect all file paths that exist
+            zip_files = [
+                file_path for file_path in [
+                    osm_buildings_file, google_buildings_file, combined_buildings_file, 
+                    roads_file, pois_file, water_bodies_file, cities_file,
+                    airports_file, ports_file, power_lines_file, substations_file
+                ] if file_path and os.path.exists(file_path)
+            ]
 
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+            # Zip all results
+            status_text.text("Zipping results...")
+            zip_results(zip_files, 'data/output/results.zip')
+            progress.progress(1.0)
+
+            st.success("Data download complete. You can now proceed to the next section.")
+            with open('data/output/results.zip', 'rb') as f:
+                st.download_button('Download All Results', f, file_name='results.zip')
+
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 # Display the data retrieve page
 if __name__ == "__main__":
