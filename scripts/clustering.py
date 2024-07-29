@@ -34,9 +34,34 @@ def save_convex_hulls(gdf):
 def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
     m = folium.Map(location=[combined_buildings.geometry.centroid.y.mean(), combined_buildings.geometry.centroid.x.mean()], zoom_start=15)
 
+    # Add map tiles
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
     # Add combined buildings as points
     for idx, row in combined_buildings.iterrows():
-        folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color='black').add_to(m)
+        folium.CircleMarker(location=[row.geometry.centroid.y, row.geometry.centroid.x], radius=2, color='black').add_to(m)
 
     # Add clustered points
     if clustered_gdf is not None:
@@ -45,7 +70,7 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
             cluster_points = clustered_gdf[clustered_gdf['cluster'] == cluster_id]
             color = cluster_colors(cluster_id)
             for idx, row in cluster_points.iterrows():
-                folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color=f'#{int(color[0]*255):02x}{int(color[1]*255):02x}{int(color[2]*255):02x}').add_to(m)
+                folium.CircleMarker(location=[row.geometry.centroid.y, row.geometry.centroid.x], radius=2, color=f'#{int(color[0]*255):02x}{int(color[1]*255):02x}{int(color[2]*255):02x}').add_to(m)
 
     # Add convex hulls
     if hulls_gdf is not None:
