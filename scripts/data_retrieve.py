@@ -39,7 +39,7 @@ def download_google_buildings(polygon, file_path):
 
 def download_dem(polygon, file_path):
     geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
-    dem = ee.Image('USGS/SRTMGL1_003').clip(geom)
+    dem = ee.Image('CGIAR/SRTM90_V4').clip(geom)
     dem_url = dem.getDownloadURL({
         'scale': 30,
         'crs': 'EPSG:4326',
