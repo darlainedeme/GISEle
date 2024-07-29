@@ -87,6 +87,7 @@ def zip_results(files, zip_file_path):
             zipf.write(file_path, os.path.basename(file_path))
 
 def show():
+    st.title("Data Retrieve")
     st.write("Downloading data...")
 
     # Load the selected area
