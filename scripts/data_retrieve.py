@@ -24,37 +24,27 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
-def download_and_clip_elevation(polygon, dem_path, clipped_dem_path):
+def download_elevation_data(polygon, dem_path):
     try:
         # Ensure output directories exist
         os.makedirs(os.path.dirname(dem_path), exist_ok=True)
-        os.makedirs(os.path.dirname(clipped_dem_path), exist_ok=True)
         
-        # Extract DEM based on bounds
+        # Extract DEM based on polygon bounds
         bounds_combined = polygon.bounds
         west_c, south_c, east_c, north_c = bounds_combined
         
         # Ensure absolute paths
         absolute_dem_path = os.path.abspath(dem_path)
-        absolute_clipped_dem_path = os.path.abspath(clipped_dem_path)
         
-        elevation.clip(bounds=bounds_combined, output=absolute_dem_path, product='SRTM1')
+        # Clip the DEM based on bounds
+        elevation.clip(bounds=(west_c, south_c, east_c, north_c), output=absolute_dem_path, product='SRTM1')
         dem = rio.open(absolute_dem_path)
         show(dem)
         
-        # Clip DEM based on the polygon
-        raster = riox.open_rasterio(absolute_dem_path)
-        # Use shapely polygon in clip method of rioxarray object to clip raster
-        clipped_raster = raster.rio.clip([polygon])
-        
-        # Save clipped raster
-        clipped_raster.rio.to_raster(absolute_clipped_dem_path)
-        
-        st.write("Elevation data downloaded and clipped to the selected area.")
-        return absolute_clipped_dem_path
-        
+        st.write("Elevation data downloaded.")
+        return absolute_dem_path
     except Exception as e:
-        st.error(f"Error downloading and clipping elevation data: {e}")
+        st.error(f"Error downloading elevation data: {e}")
         return None
         
 def clip_raster_to_polygon(raster_path, polygon, output_path):
@@ -299,14 +289,12 @@ def show():
             if "Elevation" in selected_datasets:
                 status_text.text("Downloading elevation data...")
                 elevation_file = 'data/output/elevation/image_original.tif'
-                clipped_elevation_file = 'data/output/elevation/image_clipped.tif'
                 os.makedirs('data/output/elevation', exist_ok=True)
-                elevation_path = download_and_clip_elevation(polygon, elevation_file, clipped_elevation_file)
+                elevation_path = download_elevation_data(polygon, elevation_file)
 
                 if elevation_path:
-                    st.write("Elevation data clipped to the selected area.")
+                    st.write("Elevation data downloaded to the selected area.")
                 progress.progress(0.95)
-
 
 
             # Collect all file paths that exist
