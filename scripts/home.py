@@ -1,8 +1,6 @@
 import streamlit as st
 
 def show():
-    st.title("Local GISEle")
-    
     st.markdown("""
     # Welcome to Local GISEle
     
