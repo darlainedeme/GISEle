@@ -24,7 +24,7 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
-def download_and_clip_elevation(polygon, dem_path, clipped_dem_path):
+def download_elevation_data(polygon, dem_path, clipped_dem_path):
     try:
         # Ensure output directories exist
         os.makedirs(os.path.dirname(dem_path), exist_ok=True)
