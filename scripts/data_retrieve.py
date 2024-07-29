@@ -3,17 +3,17 @@ import osmnx as ox
 import requests
 import geopandas as gpd
 import json
+import ee
 from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
 import zipfile
 import os
-import ee
 
 def download_osm_data(polygon, tags, file_path):
-    data = ox.geometries_from_polygon(polygon, tags)
+    data = ox.features_from_polygon(polygon, tags)
     data.to_file(file_path, driver='GeoJSON')
 
 def download_google_buildings(polygon, file_path):
-    geom = ee.Geometry.Polygon(polygon.exterior.coords)
+    geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
     buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
         .filter(ee.Filter.intersects('.geo', geom))
     
@@ -38,7 +38,7 @@ def show():
         selected_area = json.load(f)
     
     gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
-    polygon = gdf.unary_union
+    polygon = gdf.geometry.union_all()
 
     # Initialize Earth Engine
     initialize_earth_engine()
@@ -59,7 +59,7 @@ def show():
     try:
         # Download buildings data
         status_text.text("Downloading OSM buildings data...")
-        osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
+        osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
         osm_buildings.to_file(buildings_file, driver='GeoJSON')
         progress.progress(0.3)
 
