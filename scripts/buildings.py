@@ -2,11 +2,12 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
+import pandas as pd
 import json
 import os
 from shapely.geometry import Polygon
 from folium.plugins import Draw, Fullscreen, MeasureControl
-import pandas as pd
+import pandas as pd 
 
 # Define paths
 COMBINED_BUILDINGS_FILE = 'data/output/buildings/combined_buildings.geojson'
@@ -102,20 +103,22 @@ def show():
     # Load combined buildings
     combined_buildings = load_combined_buildings()
 
+    # Display map with combined buildings
+    m = create_buildings_map(combined_buildings)
+    st_folium(m, width=1400, height=800)
+
     # Upload geojson file
     uploaded_file = st.file_uploader("Upload GeoJSON file", type="geojson")
-    if uploaded_file:
+    if uploaded_file and st.button("Upload Your Polygons"):
         user_polygons_gdf = gpd.read_file(uploaded_file)
         user_polygons_gdf['source'] = 'user'
         combined_buildings = gpd.GeoDataFrame(pd.concat([combined_buildings, user_polygons_gdf], ignore_index=True))
         save_combined_buildings(combined_buildings)
         st.success("Uploaded polygons added to the map and combined buildings updated.")
-    else:
-        user_polygons_gdf = None
-
-    # Display map with combined buildings
-    m = create_buildings_map(combined_buildings, user_polygons_gdf)
-    st_folium(m, width=1400, height=800)
+        
+        # Update map with user polygons
+        m = create_buildings_map(combined_buildings, user_polygons_gdf)
+        st_folium(m, width=1400, height=800)
 
     # Option to download the updated combined buildings
     combined_buildings_geojson = combined_buildings.to_json()
