@@ -12,6 +12,7 @@ import elevation
 import rasterio as rio
 import rioxarray as riox
 from rasterio.plot import show
+import requests
 
 def clear_output_directories():
     output_dirs = [
