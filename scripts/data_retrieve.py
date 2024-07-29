@@ -94,13 +94,17 @@ def show():
     with open('data/input/selected_area.geojson') as f:
         selected_area = json.load(f)
 
-    polygon = gpd.GeoDataFrame.from_features(selected_area["features"])
-    polygon = polygon.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
-    projected_polygon = polygon.to_crs(epsg=3857)
+    gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
+    polygon = gdf.geometry.union_all()
+
+    polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
+    polygon_gdf = polygon_gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
+    projected_polygon = polygon_gdf.to_crs(epsg=3857)
     buffer_polygon = projected_polygon.geometry.buffer(200000)  # 200 km buffer
     buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
     buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
-
+    
+    
     # Initialize Earth Engine
     initialize_earth_engine()
 
