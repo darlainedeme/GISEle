@@ -24,7 +24,7 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
-def download_elevation_data(polygon, dem_path, clipped_dem_path):
+def download_and_clip_elevation(polygon, dem_path, clipped_dem_path):
     try:
         # Ensure output directories exist
         os.makedirs(os.path.dirname(dem_path), exist_ok=True)
@@ -295,15 +295,15 @@ def show():
                              
             if "Elevation" in selected_datasets:
                 status_text.text("Downloading elevation data...")
-                elevation_file = 'data/output/elevation/elevation.tif'
+                elevation_file = 'data/output/elevation/image_original.tif'
+                clipped_elevation_file = 'data/output/elevation/image_clipped.tif'
                 os.makedirs('data/output/elevation', exist_ok=True)
-                elevation_path = download_elevation_data(polygon, elevation_file)
-                progress.progress(0.95)
+                elevation_path = download_and_clip_elevation(polygon, elevation_file, clipped_elevation_file)
 
                 if elevation_path:
-                    clip_raster_to_polygon(elevation_path, polygon, clipped_elevation_file)
                     st.write("Elevation data clipped to the selected area.")
                 progress.progress(0.95)
+
 
 
             # Collect all file paths that exist
