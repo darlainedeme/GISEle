@@ -1,7 +1,8 @@
 import streamlit as st
+st.set_page_config(layout="wide")
+
 from scripts import home, area_selection, data_retrieve, buildings, clustering, data_visualization, costs, summary_analysis, demand_estimation, minigrid_sizing, grid, results
 
-st.set_page_config(layout="wide")
 st.title("Local GISEle")
 
 # Define navigation
