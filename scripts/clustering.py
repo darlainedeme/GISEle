@@ -101,6 +101,12 @@ def show():
     eps = st.number_input("EPS (meters)", min_value=1, value=100)
     min_samples = st.number_input("Min Samples", min_value=1, value=5)
 
+    # Initialize session state for clustering results
+    if 'clustered_gdf' not in st.session_state:
+        st.session_state.clustered_gdf = None
+    if 'hulls_gdf' not in st.session_state:
+        st.session_state.hulls_gdf = None
+
     # Cluster button
     if st.button("Cluster"):
         coords = building_centroids.geometry.apply(lambda geom: (geom.x, geom.y)).tolist()
@@ -122,23 +128,25 @@ def show():
                 hulls.append({'cluster': cluster_id, 'geometry': hull})
 
         hulls_gdf = gpd.GeoDataFrame(hulls, crs=building_centroids.crs)
+        
+        # Store results in session state
+        st.session_state.clustered_gdf = building_centroids
+        st.session_state.hulls_gdf = hulls_gdf
+
         save_clustered_points(building_centroids)
         save_convex_hulls(hulls_gdf)
 
-        # Update map with clusters and convex hulls
-        m = create_clustering_map(building_centroids, hulls_gdf)
-        st_folium(m, width=1400, height=800)
+        st.success("Clustering completed. You can now review the results.")
 
     # Confirm button to save clusters and hulls
     if st.button("Confirm Clusters and Save"):
-        save_clustered_points(building_centroids)
-        save_convex_hulls(hulls_gdf)
+        save_clustered_points(st.session_state.clustered_gdf)
+        save_convex_hulls(st.session_state.hulls_gdf)
         st.success("Clusters and convex hulls saved successfully!")
 
-    # Display initial map
-    else:
-        m = create_clustering_map()
-        st_folium(m, width=1400, height=800)
+    # Display map
+    m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.hulls_gdf)
+    st_folium(m, width=1400, height=800)
 
 if __name__ == "__main__":
     show()
