@@ -161,7 +161,7 @@ def show():
 
         # Download roads data
         status_text.text("Downloading OSM roads data...")
-        roads_path = download_osm_data(`, {'highway': ['motorway', 'trunk', 'tertiary', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'tertiary_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
+        roads_path = download_osm_data(buffer_polygon, {'highway': ['motorway', 'trunk', 'tertiary', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'tertiary_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
         progress.progress(0.4)
 
         # Download points of interest data
