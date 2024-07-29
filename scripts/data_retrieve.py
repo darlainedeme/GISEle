@@ -96,7 +96,10 @@ def show():
 
     gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
     polygon = gdf.geometry.union_all()
-    buffer_polygon = polygon.buffer(200000)  # 200 km buffer
+    # Ensure the polygon is in a projected CRS
+    projected_polygon = polygon.to_crs(epsg=3857)
+    buffer_polygon = projected_polygon.buffer(200000)  # 200 km buffer
+    buffer_polygon = buffer_polygon.to_crs(epsg=4326)  # Reproject back to geographic CRS
 
     # Initialize Earth Engine
     initialize_earth_engine()
