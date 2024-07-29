@@ -181,8 +181,12 @@ def show():
 
         st.success("Data download complete. You can now proceed to the next section.")
         with open('data/output/results.zip', 'rb') as f:
-            st.download_button('Download All Results', f, file_name='res
+            st.download_button('Download All Results', f, file_name='results.zip')
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
 # Display the data retrieve page
 if __name__ == "__main__":
     show()
+
