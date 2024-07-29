@@ -6,6 +6,7 @@ import json
 import os
 from shapely.geometry import Polygon
 from folium.plugins import Draw, Fullscreen, MeasureControl
+import pandas as pd
 
 # Define paths
 COMBINED_BUILDINGS_FILE = 'data/output/buildings/combined_buildings.geojson'
