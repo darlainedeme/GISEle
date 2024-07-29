@@ -23,18 +23,7 @@ def clear_output_directories():
 def download_elevation_data(polygon, file_path):
     try:
         geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
-        elevation = ee.Image('NASA/NASADEM_HGT/001').select('elevation').clip(geom)
-        
-        # Determine min and max elevation for scaling
-        min_max = elevation.reduceRegion(
-            reducer=ee.Reducer.minMax(), 
-            geometry=geom, 
-            scale=30,  # Adjust scale as needed
-            bestEffort=True, 
-            maxPixels=1e4
-        ).getInfo()
-        elevation_min = min_max['elevation_min']
-        elevation_max = min_max['elevation_max']
+        elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(geom)
         
         url = elevation.getDownloadURL({
             'scale': 30,  # Adjust scale as needed
@@ -56,6 +45,7 @@ def download_elevation_data(polygon, file_path):
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
+
 
 def download_osm_data(polygon, tags, file_path):
     try:
