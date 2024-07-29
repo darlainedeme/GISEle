@@ -1,6 +1,7 @@
 import streamlit as st
 from geopy.geocoders import Nominatim
 from scripts.utils import create_map, uploaded_file_to_gdf, initialize_earth_engine
+import json
 
 # Initialize Earth Engine
 initialize_earth_engine()
