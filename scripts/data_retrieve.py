@@ -287,7 +287,7 @@ def show():
                 progress.progress(0.9)
                              
             if "Elevation" in selected_datasets:
-                status_text.text("Downloading elevation data...")
+                status_text.text("Downloading elevation data..")
                 elevation_file = 'data/output/elevation/image_original.tif'
                 os.makedirs('data/output/elevation', exist_ok=True)
                 elevation_path = download_elevation_data(polygon, elevation_file)
