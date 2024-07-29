@@ -22,7 +22,6 @@ def download_osm_data(polygon, tags, file_path):
     elif 'amenity' in tags:
         st.write(f"{len(data)} points of interest identified")
 
-
 def download_google_buildings(polygon, file_path):
     geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
     buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
@@ -32,7 +31,7 @@ def download_google_buildings(polygon, file_path):
     response = requests.get(download_url)
     with open(file_path, 'w') as f:
         json.dump(response.json(), f)
-    # Print overview
+    
     google_buildings = gpd.read_file(file_path)
     st.write(f"{len(google_buildings)} Google buildings identified")
 
@@ -88,6 +87,7 @@ def show():
             google_buildings_geojson = json.load(f)
         combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
         combined_buildings.to_file(buildings_file, driver='GeoJSON')
+        st.write(f"{len(combined_buildings)} buildings in the combined dataset")
         progress.progress(0.7)
 
         # Download roads data
@@ -106,7 +106,8 @@ def show():
         progress.progress(1.0)
 
         st.success("Data download complete. You can now proceed to the next section.")
-        st.download_button('Download All Results', 'data/output/results.zip')
+        with open('data/output/results.zip', 'rb') as f:
+            st.download_button('Download All Results', f, file_name='results.zip')
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
@@ -115,10 +116,3 @@ def show():
 if __name__ == "__main__":
     show()
 
-# Display the data retrieve page
-if __name__ == "__main__":
-    show()
-
-# Display the data retrieve page
-if __name__ == "__main__":
-    show()
