@@ -98,8 +98,6 @@ def create_buildings_map(combined_buildings, user_polygons=None):
     return m
 
 def show():
-    st.title("Buildings Selection and Visualization")
-
     # Load combined buildings
     combined_buildings = load_combined_buildings()
 
