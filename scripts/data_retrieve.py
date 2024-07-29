@@ -35,7 +35,7 @@ def download_elevation_data(polygon, file_path):
         elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox)
 
         # Define the task to export the image to Google Drive
-        task = ee.batch.Export.image.toDrive(
+        task = ee.batch.Export.image(
             image=elevation,
             region=bbox,
             description='elevation_export',
