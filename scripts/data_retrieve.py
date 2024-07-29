@@ -33,23 +33,28 @@ def download_and_clip_elevation(polygon, dem_path, clipped_dem_path):
         # Extract DEM based on bounds
         bounds_combined = polygon.bounds
         west_c, south_c, east_c, north_c = bounds_combined
-        elevation.clip(bounds=bounds_combined, output=dem_path, product='SRTM1')
-        dem = rio.open(dem_path)
+        
+        # Ensure absolute paths
+        absolute_dem_path = os.path.abspath(dem_path)
+        absolute_clipped_dem_path = os.path.abspath(clipped_dem_path)
+        
+        elevation.clip(bounds=bounds_combined, output=absolute_dem_path, product='SRTM1')
+        dem = rio.open(absolute_dem_path)
         show(dem)
         
         # Clip DEM based on the polygon
-        raster = riox.open_rasterio(dem_path)
+        raster = riox.open_rasterio(absolute_dem_path)
         # Use shapely polygon in clip method of rioxarray object to clip raster
         clipped_raster = raster.rio.clip([polygon])
         
         # Save clipped raster
-        clipped_raster.rio.to_raster(clipped_dem_path)
+        clipped_raster.rio.to_raster(absolute_clipped_dem_path)
         
-        dem_clipped = rio.open(clipped_dem_path)
+        dem_clipped = rio.open(absolute_clipped_dem_path)
         show(dem_clipped)
         
         st.write("Elevation data downloaded and clipped to the selected area.")
-        return clipped_dem_path
+        return absolute_clipped_dem_path
     except Exception as e:
         st.error(f"Error downloading and clipping elevation data: {e}")
         return None
