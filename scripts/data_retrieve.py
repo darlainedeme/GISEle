@@ -7,6 +7,8 @@ import ee
 from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
 import zipfile
 import os 
+import rasterio
+from rasterio.io import MemoryFile
 
 def download_osm_data(polygon, tags, file_path):
     try:
@@ -77,14 +79,16 @@ def download_dem(polygon, file_path):
             st.write("No DEM data available for the selected area.")
             return None
 
-        with open(file_path, 'wb') as f:
-            f.write(response.content)
+        with MemoryFile(response.content) as memfile:
+            with memfile.open() as dataset:
+                with rasterio.open(file_path, 'w', **dataset.profile) as dst:
+                    dst.write(dataset.read())
+        
         st.write("Digital Elevation Model (DEM) downloaded")
         return file_path
     except Exception as e:
         st.error(f"Error downloading DEM data: {e}")
         return None
-
 
 def zip_results(files, zip_file_path):
     with zipfile.ZipFile(zip_file_path, 'w') as zipf:
