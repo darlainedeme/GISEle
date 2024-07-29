@@ -3,18 +3,6 @@ from geopy.geocoders import Nominatim
 from scripts.utils import create_map, uploaded_file_to_gdf
 import json
 import os
-import shutil
-
-def clear_output_directories():
-    output_dirs = [
-        'data/output/buildings', 'data/output/roads', 'data/output/poi',
-        'data/output/water_bodies', 'data/output/cities', 'data/output/airports',
-        'data/output/ports', 'data/output/power_lines', 'data/output/substations'
-    ]
-    for dir_path in output_dirs:
-        if os.path.exists(dir_path):
-            shutil.rmtree(dir_path)
-        os.makedirs(dir_path, exist_ok=True)
 
 def save_geojson(data, filename):
     with open(filename, 'w') as f:
