@@ -22,64 +22,58 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
-
-import rasterio
-from rasterio.mask import mask
-
-import rasterio
-from rasterio.mask import mask
-
 def download_elevation_data(polygon, file_path):
     try:
-        st.write("Initializing Earth Engine Geometry...")
-        geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
-        bbox = geom.bounds().getInfo()  # Get bounding box
-        bbox_geom = ee.Geometry.Rectangle(bbox)
-        st.write(f"Bounding Box: {bbox}")
+        # Initialize Earth Engine
+        ee.Initialize()
 
-        st.write("Creating elevation image...")
-        elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox_geom)
+        # Define the bounding box of the polygon
+        bounds = polygon.bounds
+        bbox = ee.Geometry.Rectangle([bounds.minx, bounds.miny, bounds.maxx, bounds.maxy])
 
-        st.write("Generating download URL...")
-        url = elevation.getDownloadURL({
-            'scale': 30,  # Adjust scale as needed
-            'crs': 'EPSG:4326',
-            'region': bbox_geom.toGeoJSONString(),
-            'name': 'elevation'
-        })
-        st.write(f"Download URL: {url}")
+        # Create the elevation image
+        elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox)
 
-        st.write("Downloading elevation data...")
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            temp_tif_path = file_path.replace('.tif', '_temp.tif')
-            with open(temp_tif_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=1024):
-                    f.write(chunk)
-            st.write("Elevation data downloaded.")
+        # Define the task to export the image to Google Drive
+        task = ee.batch.Export.image.toDrive(
+            image=elevation,
+            region=bbox,
+            description='elevation_export',
+            folder='earth_engine_exports',
+            scale=30,
+            crs='EPSG:4326',
+            maxPixels=1e13,
+            fileFormat='GeoTIFF'
+        )
+        task.start()
 
-            st.write("Masking the downloaded raster...")
-            with rasterio.open(temp_tif_path) as src:
-                out_image, out_transform = mask(src, [geom], crop=True)
-                out_meta = src.meta.copy()
-                out_meta.update({"driver": "GTiff",
-                                 "height": out_image.shape[1],
-                                 "width": out_image.shape[2],
-                                 "transform": out_transform})
+        # Wait for the task to complete
+        while task.active():
+            st.write('Waiting for Earth Engine task to complete...')
+            task.status().get('state')
 
-                with rasterio.open(file_path, "w", **out_meta) as dest:
-                    dest.write(out_image)
+        # Download the file from Google Drive (this part needs to be handled by the user manually or via Google Drive API)
 
-            os.remove(temp_tif_path)  # Clean up temporary file
-            st.write("Elevation data masked and saved.")
-            return file_path
-        else:
-            st.write(f"Failed to download elevation data. Status code: {response.status_code}")
-            return None
+        st.write("Elevation data exported to Google Drive. Please download it from your Drive folder.")
+        return file_path
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
 
+def clip_raster_to_polygon(raster_path, polygon, output_path):
+    with rasterio.open(raster_path) as src:
+        out_image, out_transform = mask(src, [polygon], crop=True)
+        out_meta = src.meta.copy()
+
+        out_meta.update({
+            "driver": "GTiff",
+            "height": out_image.shape[1],
+            "width": out_image.shape[2],
+            "transform": out_transform
+        })
+
+        with rasterio.open(output_path, "w", **out_meta) as dest:
+            dest.write(out_image)
 
 
 def download_osm_data(polygon, tags, file_path):
@@ -312,6 +306,10 @@ def show():
                 elevation_path = download_elevation_data(polygon, elevation_file)
                 progress.progress(0.95)
 
+                if elevation_path:
+                    clip_raster_to_polygon(elevation_path, polygon, clipped_elevation_file)
+                    st.write("Elevation data clipped to the selected area.")
+                progress.progress(0.95)
 
 
             # Collect all file paths that exist
