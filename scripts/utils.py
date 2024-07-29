@@ -17,7 +17,7 @@ def initialize_earth_engine():
     credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
     ee.Initialize(credentials)
 
-@st.cache_resource
+
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
