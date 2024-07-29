@@ -80,59 +80,58 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
 
     return m
 
-# Load combined buildings
-combined_buildings = load_combined_buildings()
-combined_buildings = combined_buildings.to_crs(epsg=3857)  # Reproject to meters
+def show():
+    # Load combined buildings
+    global combined_buildings
+    combined_buildings = load_combined_buildings()
+    combined_buildings = combined_buildings.to_crs(epsg=3857)  # Reproject to meters
 
-# Get building centroids
-building_centroids = combined_buildings.copy()
-building_centroids['geometry'] = building_centroids['geometry'].centroid
+    # Get building centroids
+    building_centroids = combined_buildings.copy()
+    building_centroids['geometry'] = building_centroids['geometry'].centroid
 
-# Streamlit UI
-st.title("Building Clustering")
+    # DBSCAN parameters
+    eps = st.number_input("EPS (meters)", min_value=1, value=100)
+    min_samples = st.number_input("Min Samples", min_value=1, value=5)
 
-# DBSCAN parameters
-eps = st.number_input("EPS (meters)", min_value=1, value=100)
-min_samples = st.number_input("Min Samples", min_value=1, value=5)
+    # Cluster button
+    if st.button("Cluster"):
+        coords = building_centroids.geometry.apply(lambda geom: (geom.x, geom.y)).tolist()
+        db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
+        labels = db.labels_
+        building_centroids['cluster'] = labels
 
-# Cluster button
-if st.button("Cluster"):
-    coords = building_centroids.geometry.apply(lambda geom: (geom.x, geom.y)).tolist()
-    db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
-    labels = db.labels_
-    building_centroids['cluster'] = labels
+        # Print table with cluster id and number of points
+        cluster_summary = building_centroids['cluster'].value_counts().reset_index()
+        cluster_summary.columns = ['Cluster ID', 'Number of Points']
+        st.write(cluster_summary)
 
-    # Print table with cluster id and number of points
-    cluster_summary = building_centroids['cluster'].value_counts().reset_index()
-    cluster_summary.columns = ['Cluster ID', 'Number of Points']
-    st.write(cluster_summary)
+        # Create convex hulls
+        hulls = []
+        for cluster_id in cluster_summary['Cluster ID']:
+            if cluster_id != -1:
+                cluster_points = building_centroids[building_centroids['cluster'] == cluster_id]
+                hull = MultiPoint(cluster_points.geometry.tolist()).convex_hull
+                hulls.append({'cluster': cluster_id, 'geometry': hull})
 
-    # Create convex hulls
-    hulls = []
-    for cluster_id in cluster_summary['Cluster ID']:
-        if cluster_id != -1:
-            cluster_points = building_centroids[building_centroids['cluster'] == cluster_id]
-            hull = MultiPoint(cluster_points.geometry.tolist()).convex_hull
-            hulls.append({'cluster': cluster_id, 'geometry': hull})
+        hulls_gdf = gpd.GeoDataFrame(hulls, crs=building_centroids.crs)
+        save_clustered_points(building_centroids)
+        save_convex_hulls(hulls_gdf)
 
-    hulls_gdf = gpd.GeoDataFrame(hulls, crs=building_centroids.crs)
-    save_clustered_points(building_centroids)
-    save_convex_hulls(hulls_gdf)
+        # Update map with clusters and convex hulls
+        m = create_clustering_map(building_centroids, hulls_gdf)
+        st_folium(m, width=1400, height=800)
 
-    # Update map with clusters and convex hulls
-    m = create_clustering_map(building_centroids, hulls_gdf)
-    st_folium(m, width=1400, height=800)
+    # Confirm button to save clusters and hulls
+    if st.button("Confirm Clusters and Save"):
+        save_clustered_points(building_centroids)
+        save_convex_hulls(hulls_gdf)
+        st.success("Clusters and convex hulls saved successfully!")
 
-# Confirm button to save clusters and hulls
-if st.button("Confirm Clusters and Save"):
-    save_clustered_points(building_centroids)
-    save_convex_hulls(hulls_gdf)
-    st.success("Clusters and convex hulls saved successfully!")
-
-# Display initial map
-else:
-    m = create_clustering_map()
-    st_folium(m, width=1400, height=800)
+    # Display initial map
+    else:
+        m = create_clustering_map()
+        st_folium(m, width=1400, height=800)
 
 if __name__ == "__main__":
     show()
