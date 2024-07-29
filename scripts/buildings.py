@@ -25,6 +25,31 @@ def save_combined_buildings(gdf):
 def create_buildings_map(combined_buildings, user_polygons=None):
     m = folium.Map(location=[combined_buildings.geometry.centroid.y.mean(), combined_buildings.geometry.centroid.x.mean()], zoom_start=15)
 
+    # Add map tiles
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
     # Add combined buildings layer
     style_function = lambda x: {
         'fillColor': 'green' if x['properties']['source'] == 'osm' else 'blue',
@@ -81,7 +106,7 @@ def show():
     if uploaded_file:
         user_polygons_gdf = gpd.read_file(uploaded_file)
         user_polygons_gdf['source'] = 'user'
-        combined_buildings = combined_buildings.append(user_polygons_gdf, ignore_index=True)
+        combined_buildings = gpd.GeoDataFrame(pd.concat([combined_buildings, user_polygons_gdf], ignore_index=True))
         save_combined_buildings(combined_buildings)
         st.success("Uploaded polygons added to the map and combined buildings updated.")
     else:
@@ -92,7 +117,8 @@ def show():
     st_folium(m, width=1400, height=800)
 
     # Option to download the updated combined buildings
-    st.download_button("Download Combined Buildings", data=gpd.GeoDataFrame.to_file(combined_buildings, driver="GeoJSON"), file_name="combined_buildings.geojson", mime="application/json")
+    combined_buildings_geojson = combined_buildings.to_json()
+    st.download_button("Download Combined Buildings", data=combined_buildings_geojson, file_name="combined_buildings.geojson", mime="application/json")
 
 if __name__ == "__main__":
     show()
