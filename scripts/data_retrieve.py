@@ -29,7 +29,7 @@ def download_elevation_data(polygon, file_path):
 
         # Define the bounding box of the polygon
         bounds = polygon.bounds
-        bbox = ee.Geometry.Rectangle([bounds.minx, bounds.miny, bounds.maxx, bounds.maxy])
+        bbox = ee.Geometry.Rectangle([bounds[0], bounds[1], bounds[2], bounds[3]])
 
         # Create the elevation image
         elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox)
@@ -53,13 +53,12 @@ def download_elevation_data(polygon, file_path):
             task.status().get('state')
 
         # Download the file from Google Drive (this part needs to be handled by the user manually or via Google Drive API)
-
         st.write("Elevation data exported to Google Drive. Please download it from your Drive folder.")
         return file_path
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
-
+        
 def clip_raster_to_polygon(raster_path, polygon, output_path):
     with rasterio.open(raster_path) as src:
         out_image, out_transform = mask(src, [polygon], crop=True)
