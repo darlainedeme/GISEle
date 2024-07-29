@@ -42,6 +42,7 @@ def zip_results(directory, zip_file_path):
                            os.path.relpath(os.path.join(root, file), directory))
 
 def show():
+    st.title("Data Retrieve")
     st.write("Downloading data...")
 
     # Load the selected area
@@ -81,8 +82,9 @@ def show():
 
         # Combine OSM and Google buildings data
         status_text.text("Combining buildings data...")
-        google_buildings = gpd.read_file('data/output/buildings/google_buildings.geojson')
-        combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+        with open('data/output/buildings/google_buildings.geojson') as f:
+            google_buildings_geojson = json.load(f)
+        combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
         combined_buildings.to_file(buildings_file, driver='GeoJSON')
         progress.progress(0.7)
 

@@ -109,10 +109,10 @@ def uploaded_file_to_gdf(data):
     gdf = gpd.read_file(temp_filepath)
     return gdf
 
-def create_combined_buildings_layer(osm_buildings, google_buildings):
+def create_combined_buildings_layer(osm_buildings, google_buildings_geojson):
     # Ensure both GeoDataFrames are in the same CRS
     osm_buildings = osm_buildings.to_crs(epsg=4326)
-    google_buildings = gpd.GeoDataFrame.from_features(google_buildings["features"]).set_crs(epsg=4326)
+    google_buildings = gpd.GeoDataFrame.from_features(google_buildings_geojson["features"]).set_crs(epsg=4326)
 
     # Label sources
     osm_buildings['source'] = 'osm'
