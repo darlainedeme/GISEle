@@ -19,8 +19,15 @@ def download_google_buildings(polygon, file_path):
     
     download_url = buildings.getDownloadURL('geojson')
     response = requests.get(download_url)
+    data = response.json()
+    
+    # Ensure data contains 'features' key
+    if 'features' not in data:
+        data['features'] = []
+    
     with open(file_path, 'w') as f:
-        json.dump(response.json(), f)
+        json.dump(data, f)
+
 
 def zip_results(directory, zip_file_path):
     with zipfile.ZipFile(zip_file_path, 'w') as zipf:
