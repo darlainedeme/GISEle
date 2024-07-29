@@ -13,12 +13,12 @@ def download_osm_data(polygon, tags, file_path):
     data.to_file(file_path, driver='GeoJSON')
     # Print overview
     if 'building' in tags:
-        print(f"{len(data)} buildings identified")
+        st.write(f"{len(data)} buildings identified")
     elif 'highway' in tags:
         total_km = sum(data.length) / 1000
-        print(f"{total_km:.2f} km of roads identified")
+        st.write(f"{total_km:.2f} km of roads identified")
     elif 'amenity' in tags:
-        print(f"{len(data)} points of interest identified")
+        st.write(f"{len(data)} points of interest identified")
 
 def download_google_buildings(polygon, file_path):
     geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
@@ -31,7 +31,7 @@ def download_google_buildings(polygon, file_path):
         json.dump(response.json(), f)
     # Print overview
     google_buildings = gpd.read_file(file_path)
-    print(f"{len(google_buildings)} Google buildings identified")
+    st.write(f"{len(google_buildings)} Google buildings identified")
 
 
 def zip_results(directory, zip_file_path):
