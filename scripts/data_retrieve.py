@@ -41,6 +41,9 @@ def download_elevation_data(polygon, dem_path):
         dem = rio.open(absolute_dem_path)
         show(dem)
         
+        # Clean up temporary files
+        elevation.clean()
+        
         st.write("Elevation data downloaded.")
         return absolute_dem_path
     except Exception as e:
@@ -287,7 +290,7 @@ def show():
                 progress.progress(0.9)
                              
             if "Elevation" in selected_datasets:
-                status_text.text("Downloading elevation data..")
+                status_text.text("Downloading elevation data...")
                 elevation_file = 'data/output/elevation/image_original.tif'
                 os.makedirs('data/output/elevation', exist_ok=True)
                 elevation_path = download_elevation_data(polygon, elevation_file)
