@@ -35,7 +35,8 @@ def show():
     with open('data/input/selected_area.geojson') as f:
         selected_area = json.load(f)
     
-    polygon = gpd.GeoDataFrame.from_features([selected_area]).unary_union
+    gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
+    polygon = gdf.unary_union
 
     # Initialize Earth Engine
     initialize_earth_engine()
