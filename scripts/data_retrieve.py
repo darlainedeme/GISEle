@@ -114,7 +114,7 @@ def show():
     polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
     polygon_gdf = polygon_gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
     projected_polygon = polygon_gdf.to_crs(epsg=3857)
-    buffer_polygon = projected_polygon.geometry.buffer(50000)  # 200 km buffer
+    buffer_polygon = projected_polygon.geometry.buffer(1)  # 200 km buffer
     buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
     buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
     
