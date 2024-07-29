@@ -3,7 +3,7 @@ import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point, MultiPoint
+from shapely.geometry import MultiPoint
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 import os
@@ -63,7 +63,7 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
     # Add combined buildings as points
     combined_buildings_4326 = combined_buildings.to_crs(epsg=4326)
     for idx, row in combined_buildings_4326.iterrows():
-        folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color='black').add_to(m)
+        folium.CircleMarker(location=[row.geometry.centroid.y, row.geometry.centroid.x], radius=2, color='black').add_to(m)
 
     # Add clustered points
     if clustered_gdf is not None:
