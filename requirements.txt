@@ -16,3 +16,4 @@ rasterio
 pystac
 scikit-learn
 matplotlib
+elevation
