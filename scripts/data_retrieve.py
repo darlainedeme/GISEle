@@ -159,7 +159,7 @@ def show():
 
         # Download roads data
         status_text.text("Downloading OSM roads data...")
-        roads_path = download_osm_data(buffer_polygon, {'highway': ['motorway', 'trunk', 'tertiary', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'tertiary_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
+        roads_path = download_osm_data(polygon, {'highway': ['motorway', 'trunk', 'tertiary', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'tertiary_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
         progress.progress(0.4)
 
         # Download points of interest data
@@ -174,27 +174,27 @@ def show():
 
         # Download major cities data
         status_text.text("Downloading OSM major cities data...")
-        cities_path = download_osm_data(buffer_polygon, {'place': 'city'}, cities_file)
+        cities_path = download_osm_data(polygon, {'place': 'city'}, cities_file)
         progress.progress(0.7)
 
         # Download airports data
         status_text.text("Downloading OSM airports data...")
-        airports_path = download_osm_data(buffer_polygon, {'aeroway': 'aerodrome'}, airports_file)
+        airports_path = download_osm_data(polygon, {'aeroway': 'aerodrome'}, airports_file)
         progress.progress(0.75)
 
         # Download ports data
         status_text.text("Downloading OSM ports data...")
-        ports_path = download_osm_data(buffer_polygon, {'amenity': 'port'}, ports_file)
+        ports_path = download_osm_data(polygon, {'amenity': 'port'}, ports_file)
         progress.progress(0.8)
 
         # Download power lines data
         status_text.text("Downloading OSM power lines data...")
-        power_lines_path = download_osm_data(buffer_polygon, {'power': 'line'}, power_lines_file)
+        power_lines_path = download_osm_data(polygon, {'power': 'line'}, power_lines_file)
         progress.progress(0.85)
 
         # Download transformers and substations data
         status_text.text("Downloading OSM transformers and substations data...")
-        substations_path = download_osm_data(buffer_polygon, {'power': ['transformer', 'substation']}, substations_file)
+        substations_path = download_osm_data(polygon, {'power': ['transformer', 'substation']}, substations_file)
         progress.progress(0.9)
 
         # Collect all file paths that exist
