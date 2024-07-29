@@ -8,8 +8,10 @@ from scripts.utils import initialize_earth_engine, create_combined_buildings_lay
 import zipfile
 import os
 import shutil
-import rasterio
-from rasterio.mask import mask
+import elevation
+import rasterio as rio
+import rioxarray as riox
+from rasterio.plot import show
 
 def clear_output_directories():
     output_dirs = [
@@ -22,36 +24,34 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
-def download_elevation_data(polygon, file_path):
+def download_and_clip_elevation(polygon, dem_path, clipped_dem_path):
     try:
-        # Initialize Earth Engine
-        ee.Initialize()
-
-        # Define the bounding box of the polygon
-        bounds = polygon.bounds
-        bbox = ee.Geometry.BBox(bounds[0], bounds[1], bounds[2], bounds[3])
-
-        # Create the elevation image
-        elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox)
-
-        # Get the download URL for the elevation data
-        url = elevation.getDownloadURL({
-            'region': bbox,
-            'scale': 30,
-            'format': 'GEO_TIFF'
-        })
-
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(file_path, 'wb') as fd:
-                fd.write(response.content)
-            st.write("Elevation data downloaded.")
-            return file_path
-        else:
-            st.write("No elevation data found in the selected area.")
-            return None
+        # Ensure output directories exist
+        os.makedirs(os.path.dirname(dem_path), exist_ok=True)
+        os.makedirs(os.path.dirname(clipped_dem_path), exist_ok=True)
+        
+        # Extract DEM based on bounds
+        bounds_combined = polygon.bounds
+        west_c, south_c, east_c, north_c = bounds_combined
+        elevation.clip(bounds=bounds_combined, output=dem_path, product='SRTM1')
+        dem = rio.open(dem_path)
+        show(dem)
+        
+        # Clip DEM based on the polygon
+        raster = riox.open_rasterio(dem_path)
+        # Use shapely polygon in clip method of rioxarray object to clip raster
+        clipped_raster = raster.rio.clip([polygon])
+        
+        # Save clipped raster
+        clipped_raster.rio.to_raster(clipped_dem_path)
+        
+        dem_clipped = rio.open(clipped_dem_path)
+        show(dem_clipped)
+        
+        st.write("Elevation data downloaded and clipped to the selected area.")
+        return clipped_dem_path
     except Exception as e:
-        st.error(f"Error downloading elevation data: {e}")
+        st.error(f"Error downloading and clipping elevation data: {e}")
         return None
         
 def clip_raster_to_polygon(raster_path, polygon, output_path):
