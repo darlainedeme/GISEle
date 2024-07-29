@@ -144,41 +144,41 @@ def show():
             except Exception as e:
                 st.error(f"Error processing file: {e}")
 
-    elif which_mode == 'Examples':
-        examples = load_example_files()
-        if 'example_file' not in st.session_state:
-            st.session_state.example_file = examples[0] if examples else None
+elif which_mode == 'Examples':
+    examples = load_example_files()
+    if 'example_file' not in st.session_state:
+        st.session_state.example_file = examples[0] if examples else None
 
-        example_file = st.sidebar.selectbox('Select example', examples, index=examples.index(st.session_state.example_file) if st.session_state.example_file in examples else 0, key='example_select')
+    example_file = st.sidebar.selectbox('Select example', examples, index=examples.index(st.session_state.example_file) if st.session_state.example_file in examples else 0, key='example_select')
 
-        if example_file and example_file != st.session_state.example_file:
-            st.session_state.example_file = example_file
-            st.experimental_rerun()
+    if example_file and example_file != st.session_state.example_file:
+        st.session_state.example_file = example_file
+        st.experimental_set_query_params(example_file=example_file)
 
-        if example_file:
-            try:
-                with st.spinner('Loading example...'):
-                    example_path = f'data/examples/{example_file}.geojson'
-                    with open(example_path) as f:
-                        geojson_data = json.load(f)
-                    gdf = gpd.read_file(example_path)
-                    
-                    if gdf.empty:
-                        st.error("Example file is empty or not valid GeoJSON.")
+    if st.session_state.example_file:
+        try:
+            with st.spinner('Loading example...'):
+                example_path = f'data/examples/{st.session_state.example_file}.geojson'
+                with open(example_path) as f:
+                    geojson_data = json.load(f)
+                gdf = gpd.read_file(example_path)
 
-                    centroid = gdf.geometry.unary_union.centroid
-                    st.session_state.latitude = centroid.y
-                    st.session_state.longitude = centroid.x
-                    st.session_state.geojson_data = geojson_data
+                if gdf.empty:
+                    st.error("Example file is empty or not valid GeoJSON.")
 
-                    create_map(centroid.y, centroid.x, geojson_data)
-                    st.success("Example loaded successfully!")
-            except KeyError as e:
-                st.error(f"Error loading example: {e}")
-            except IndexError as e:
-                st.error(f"Error loading example: {e}")
-            except Exception as e:
-                st.error(f"Error loading example: {e}")
+                centroid = gdf.geometry.unary_union.centroid
+                st.session_state.latitude = centroid.y
+                st.session_state.longitude = centroid.x
+                st.session_state.geojson_data = geojson_data
+
+                create_map(centroid.y, centroid.x, geojson_data)
+                st.success("Example loaded successfully!")
+        except KeyError as e:
+            st.error(f"Error loading example: {e}")
+        except IndexError as e:
+            st.error(f"Error loading example: {e}")
+        except Exception as e:
+            st.error(f"Error loading example: {e}")
 
 # Display the area selection page
 if __name__ == "__main__":
