@@ -13,14 +13,14 @@ def download_osm_data(polygon, tags, file_path):
     data.to_file(file_path, driver='GeoJSON')
 
     if 'building' in tags:
-        print(f"{len(data)} buildings identified")
+        st.write(f"{len(data)} buildings identified")
     elif 'highway' in tags:
         if data.crs.is_geographic:
             data = data.to_crs(epsg=3857)  # Reproject to a projected CRS for accurate length calculation
         total_km = data.geometry.length.sum() / 1000
-        print(f"{total_km:.2f} km of roads identified")
+        st.write(f"{total_km:.2f} km of roads identified")
     elif 'amenity' in tags:
-        print(f"{len(data)} points of interest identified")
+        st.write(f"{len(data)} points of interest identified")
 
 
 def download_google_buildings(polygon, file_path):
@@ -75,7 +75,7 @@ def show():
         status_text.text("Downloading OSM buildings data...")
         osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
         osm_buildings.to_file(buildings_file, driver='GeoJSON')
-        print(f"{len(osm_buildings)} buildings identified")
+        st.write(f"{len(osm_buildings)} buildings identified")
         progress.progress(0.3)
 
         status_text.text("Downloading Google buildings data...")
