@@ -6,7 +6,6 @@ import json
 import ee
 from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
 import zipfile
-import os
 
 def download_osm_data(polygon, tags, file_path):
     try:
@@ -96,15 +95,8 @@ def show():
 
     gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
     polygon = gdf.geometry.union_all()
+    buffer_polygon = polygon.buffer(200000)  # 200 km buffer
 
-    polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
-    polygon_gdf = polygon_gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
-    projected_polygon = polygon_gdf.to_crs(epsg=3857)
-    buffer_polygon = projected_polygon.geometry.buffer(200000)  # 200 km buffer
-    buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
-    buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
-    
-    
     # Initialize Earth Engine
     initialize_earth_engine()
 
