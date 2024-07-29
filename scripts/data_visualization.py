@@ -57,7 +57,6 @@ def create_map(data_gdf=None, draw_enabled=False):
     return m
 
 def show():
-    st.title("Data Visualization and Enhancement")
 
     sections = {
         "Out of the Study Area": ["Major Cities", "Main Roads", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
