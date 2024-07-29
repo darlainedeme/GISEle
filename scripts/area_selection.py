@@ -3,6 +3,7 @@ from geopy.geocoders import Nominatim
 from scripts.utils import create_map, uploaded_file_to_gdf
 import json
 import os
+import geopandas as gpd
 
 def save_geojson(data, filename):
     with open(filename, 'w') as f:
