@@ -1,113 +1,97 @@
 import streamlit as st
-from geopy.geocoders import Nominatim
-from scripts.utils import create_map, uploaded_file_to_gdf
+import osmnx as ox
+import requests
+import geopandas as gpd
 import json
-import os
+from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
+import zipfile
 
-def save_geojson(data, filename):
-    with open(filename, 'w') as f:
-        json.dump(data, f)
+def download_osm_data(polygon, tags, file_path):
+    data = ox.geometries_from_polygon(polygon, tags)
+    data.to_file(file_path, driver='GeoJSON')
+
+def download_google_buildings(polygon, file_path):
+    geom = ee.Geometry.Polygon(polygon.exterior.coords)
+    buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
+        .filter(ee.Filter.intersects('.geo', geom))
+    
+    download_url = buildings.getDownloadURL('geojson')
+    response = requests.get(download_url)
+    with open(file_path, 'w') as f:
+        json.dump(response.json(), f)
+
+def zip_results(directory, zip_file_path):
+    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+        for root, _, files in os.walk(directory):
+            for file in files:
+                zipf.write(os.path.join(root, file),
+                           os.path.relpath(os.path.join(root, file), directory))
 
 def show():
-    st.title("Area Selection")
-    which_modes = ['By address', 'By coordinates', 'Upload file']
-    which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
+    st.title("Data Retrieve")
+    st.write("Downloading data...")
 
-    if which_mode == 'By address':  
-        geolocator = Nominatim(user_agent="example app")
-        address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa') 
+    # Load the selected area
+    with open('data/input/selected_area.geojson') as f:
+        selected_area = json.load(f)
+    
+    polygon = gpd.GeoDataFrame.from_features([selected_area]).unary_union
 
-        if address:
-            try:
-                with st.spinner('Fetching location...'):
-                    location = geolocator.geocode(address)
-                    if location:
-                        st.session_state.latitude = location.latitude
-                        st.session_state.longitude = location.longitude
-                        st.session_state.geojson_data = None
-                        st.session_state.combined_buildings = None
-                        st.session_state.osm_roads = None
-                        st.session_state.osm_pois = None
-                        st.session_state.missing_layers = []
-                        
-                        # Save selected location as GeoJSON
-                        selected_area = {
-                            "type": "Point",
-                            "coordinates": [location.longitude, location.latitude]
-                        }
-                        os.makedirs('data/input', exist_ok=True)
-                        save_geojson(selected_area, 'data/input/selected_area.geojson')
+    # Initialize Earth Engine
+    initialize_earth_engine()
 
-                        create_map(location.latitude, location.longitude)
-                    else:
-                        st.error("Could not geocode the address.")
-            except Exception as e:
-                st.error(f"Error fetching location: {e}")
+    # Define file paths
+    buildings_file = 'data/output/buildings/combined_buildings.geojson'
+    roads_file = 'data/output/roads/osm_roads.geojson'
+    pois_file = 'data/output/poi/osm_pois.geojson'
 
-    elif which_mode == 'By coordinates':  
-        latitude = st.sidebar.text_input('Latitude:', value='45.5065') 
-        longitude = st.sidebar.text_input('Longitude:', value='9.1598') 
-        
-        if latitude and longitude:
-            try:
-                with st.spinner('Creating map...'):
-                    lat = float(latitude)
-                    lon = float(longitude)
-                    st.session_state.latitude = lat
-                    st.session_state.longitude = lon
-                    st.session_state.geojson_data = None
-                    st.session_state.combined_buildings = None
-                    st.session_state.osm_roads = None
-                    st.session_state.osm_pois = None
-                    st.session_state.missing_layers = []
+    os.makedirs('data/output/buildings', exist_ok=True)
+    os.makedirs('data/output/roads', exist_ok=True)
+    os.makedirs('data/output/poi', exist_ok=True)
 
-                    # Save selected location as GeoJSON
-                    selected_area = {
-                        "type": "Point",
-                        "coordinates": [lon, lat]
-                    }
-                    os.makedirs('data/input', exist_ok=True)
-                    save_geojson(selected_area, 'data/input/selected_area.geojson')
+    # Download data
+    progress = st.progress(0)
+    status_text = st.empty()
 
-                    create_map(lat, lon)
-            except Exception as e:
-                st.error(f"Error with coordinates: {e}")
+    try:
+        # Download buildings data
+        status_text.text("Downloading OSM buildings data...")
+        osm_buildings = ox.geometries_from_polygon(polygon, tags={'building': True})
+        osm_buildings.to_file(buildings_file, driver='GeoJSON')
+        progress.progress(0.3)
 
-    elif which_mode == 'Upload file':  
-        uploaded_file = st.file_uploader("Upload GeoJSON file", type="geojson")
+        status_text.text("Downloading Google buildings data...")
+        download_google_buildings(polygon, 'data/output/buildings/google_buildings.geojson')
+        progress.progress(0.6)
 
-        if uploaded_file:
-            try:
-                with st.spinner('Processing file...'):
-                    geojson_data = json.load(uploaded_file)
-                    gdf = uploaded_file_to_gdf(uploaded_file)
-                    
-                    if gdf.empty:
-                        st.error("Uploaded file is empty or not valid GeoJSON.")
-                    
-                    centroid = gdf.geometry.unary_union.centroid
-                    st.session_state.latitude = centroid.y
-                    st.session_state.longitude = centroid.x
-                    st.session_state.geojson_data = geojson_data
-                    st.session_state.combined_buildings = None
-                    st.session_state.osm_roads = None
-                    st.session_state.osm_pois = None
-                    st.session_state.missing_layers = []
+        # Combine OSM and Google buildings data
+        status_text.text("Combining buildings data...")
+        google_buildings = gpd.read_file('data/output/buildings/google_buildings.geojson')
+        combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings)
+        combined_buildings.to_file(buildings_file, driver='GeoJSON')
+        progress.progress(0.7)
 
-                    # Save the uploaded GeoJSON to a file
-                    os.makedirs('data/input', exist_ok=True)
-                    with open('data/input/selected_area.geojson', 'w') as f:
-                        json.dump(geojson_data, f)
+        # Download roads data
+        status_text.text("Downloading OSM roads data...")
+        download_osm_data(polygon, {'highway': True}, roads_file)
+        progress.progress(0.8)
 
-                    create_map(centroid.y, centroid.x, geojson_data)
-                    st.success("Map created successfully!")
-            except KeyError as e:
-                st.error(f"Error processing file: {e}")
-            except IndexError as e:
-                st.error(f"Error processing file: {e}")
-            except Exception as e:
-                st.error(f"Error processing file: {e}")
+        # Download points of interest data
+        status_text.text("Downloading OSM points of interest data...")
+        download_osm_data(polygon, {'amenity': True}, pois_file)
+        progress.progress(0.9)
 
-# Display the area selection page
+        # Zip all results
+        status_text.text("Zipping results...")
+        zip_results('data/output', 'data/output/results.zip')
+        progress.progress(1.0)
+
+        st.success("Data download complete. You can now proceed to the next section.")
+        st.download_button('Download All Results', 'data/output/results.zip')
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
+# Display the data retrieve page
 if __name__ == "__main__":
     show()
