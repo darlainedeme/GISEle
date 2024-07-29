@@ -146,10 +146,14 @@ def show():
 
     elif which_mode == 'Examples':
         examples = load_example_files()
+        if 'example_file' not in st.session_state:
+            st.session_state.example_file = examples[0] if examples else None
+
         example_file = st.sidebar.selectbox('Select example', examples, index=examples.index(st.session_state.example_file) if st.session_state.example_file in examples else 0, key='example_select')
 
-        if example_file != st.session_state.example_file:
+        if example_file and example_file != st.session_state.example_file:
             st.session_state.example_file = example_file
+            st.experimental_rerun()
 
         if example_file:
             try:
