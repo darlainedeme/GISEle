@@ -3,6 +3,18 @@ from streamlit_folium import st_folium
 import geopandas as gpd
 import json
 import tempfile
+import ee
+from folium.plugins import MarkerCluster
+import streamlit as st
+
+# Initialize Earth Engine
+@st.cache_resource
+def initialize_earth_engine():
+    json_data = st.secrets["json_data"]
+    json_object = json.loads(json_data, strict=False)
+    service_account = json_object['client_email']
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+    ee.Initialize(credentials)
 
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
