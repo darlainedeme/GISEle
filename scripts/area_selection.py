@@ -9,7 +9,6 @@ def save_geojson(data, filename):
         json.dump(data, f)
 
 def show():
-    st.title("Area Selection")
     which_modes = ['By address', 'By coordinates', 'Upload file']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
