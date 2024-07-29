@@ -32,7 +32,8 @@ def save_convex_hulls(gdf):
 
 # Create clustering map
 def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
-    m = folium.Map(location=[combined_buildings.geometry.centroid.y.mean(), combined_buildings.geometry.centroid.x.mean()], zoom_start=15)
+    m = folium.Map(location=[combined_buildings.to_crs(epsg=4326).geometry.centroid.y.mean(), 
+                             combined_buildings.to_crs(epsg=4326).geometry.centroid.x.mean()], zoom_start=15)
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -60,21 +61,24 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
     ).add_to(m)
 
     # Add combined buildings as points
-    for idx, row in combined_buildings.iterrows():
-        folium.CircleMarker(location=[row.geometry.centroid.y, row.geometry.centroid.x], radius=2, color='black').add_to(m)
+    combined_buildings_4326 = combined_buildings.to_crs(epsg=4326)
+    for idx, row in combined_buildings_4326.iterrows():
+        folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color='black').add_to(m)
 
     # Add clustered points
     if clustered_gdf is not None:
-        cluster_colors = plt.cm.get_cmap('tab20', clustered_gdf['cluster'].max() + 1)
-        for cluster_id in clustered_gdf['cluster'].unique():
-            cluster_points = clustered_gdf[clustered_gdf['cluster'] == cluster_id]
+        clustered_gdf_4326 = clustered_gdf.to_crs(epsg=4326)
+        cluster_colors = plt.cm.get_cmap('tab20', clustered_gdf_4326['cluster'].max() + 1)
+        for cluster_id in clustered_gdf_4326['cluster'].unique():
+            cluster_points = clustered_gdf_4326[clustered_gdf_4326['cluster'] == cluster_id]
             color = cluster_colors(cluster_id)
             for idx, row in cluster_points.iterrows():
-                folium.CircleMarker(location=[row.geometry.centroid.y, row.geometry.centroid.x], radius=2, color=f'#{int(color[0]*255):02x}{int(color[1]*255):02x}{int(color[2]*255):02x}').add_to(m)
+                folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color=f'#{int(color[0]*255):02x}{int(color[1]*255):02x}{int(color[2]*255):02x}').add_to(m)
 
     # Add convex hulls
     if hulls_gdf is not None:
-        for idx, row in hulls_gdf.iterrows():
+        hulls_gdf_4326 = hulls_gdf.to_crs(epsg=4326)
+        for idx, row in hulls_gdf_4326.iterrows():
             color = cluster_colors(row['cluster'])
             folium.GeoJson(row.geometry, style_function=lambda x, color=color: {'color': f'#{int(color[0]*255):02x}{int(color[1]*255):02x}{int(color[2]*255):02x}', 'fillOpacity': 0.1}).add_to(m)
 
@@ -89,6 +93,9 @@ def show():
     # Get building centroids
     building_centroids = combined_buildings.copy()
     building_centroids['geometry'] = building_centroids['geometry'].centroid
+
+    # Streamlit UI
+    st.title("Building Clustering")
 
     # DBSCAN parameters
     eps = st.number_input("EPS (meters)", min_value=1, value=100)
