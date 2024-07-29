@@ -29,32 +29,27 @@ def download_elevation_data(polygon, file_path):
 
         # Define the bounding box of the polygon
         bounds = polygon.bounds
-        bbox = ee.Geometry.Rectangle([bounds[0], bounds[1], bounds[2], bounds[3]])
+        bbox = ee.Geometry.BBox(bounds[0], bounds[1], bounds[2], bounds[3])
 
         # Create the elevation image
         elevation = ee.Image('CGIAR/SRTM90_V4').select('elevation').clip(bbox)
 
-        # Define the task to export the image to Google Drive
-        task = ee.batch.Export.image(
-            image=elevation,
-            region=bbox,
-            description='elevation_export',
-            folder='earth_engine_exports',
-            scale=30,
-            crs='EPSG:4326',
-            maxPixels=1e13,
-            fileFormat='GeoTIFF'
-        )
-        task.start()
+        # Get the download URL for the elevation data
+        url = elevation.getDownloadURL({
+            'region': bbox,
+            'scale': 30,
+            'format': 'GEO_TIFF'
+        })
 
-        # Wait for the task to complete
-        while task.active():
-            st.write('Waiting for Earth Engine task to complete...')
-            task.status().get('state')
-
-        # Download the file from Google Drive (this part needs to be handled by the user manually or via Google Drive API)
-        st.write("Elevation data exported to Google Drive. Please download it from your Drive folder.")
-        return file_path
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(file_path, 'wb') as fd:
+                fd.write(response.content)
+            st.write("Elevation data downloaded.")
+            return file_path
+        else:
+            st.write("No elevation data found in the selected area.")
+            return None
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
