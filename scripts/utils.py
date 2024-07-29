@@ -20,7 +20,6 @@ import streamlit as st
 @st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
-    json_str = json.dumps(json_data)
     json_object = json.loads(json_str, strict=False)
     service_account = json_object['client_email']
     credentials = ee.ServiceAccountCredentials(service_account, key_data=json_str)
