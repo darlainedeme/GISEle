@@ -47,7 +47,7 @@ def download_solar_data(polygon, solar_path):
         st.error(f"Error downloading solar data: {e}")
         return None
         
-        def download_wind_data(polygon, wind_path):
+def download_wind_data(polygon, wind_path):
     try:
         # Define the bounding box of the polygon
         bounds_combined = polygon.bounds
@@ -366,7 +366,6 @@ def show():
                 if wind_path:
                     st.write("Wind data downloaded for the selected area.")
                 progress.progress(0.95)
-
 
             # Collect all file paths that exist
             zip_files = [
