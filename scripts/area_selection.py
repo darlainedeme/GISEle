@@ -1,12 +1,15 @@
 import streamlit as st
 from geopy.geocoders import Nominatim
-from scripts.utils import create_map, uploaded_file_to_gdf, initialize_earth_engine
+from scripts.utils import create_map, uploaded_file_to_gdf
 import json
+import os
 
-# Initialize Earth Engine
-initialize_earth_engine()
+def save_geojson(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
 
 def show():
+    st.title("Area Selection")
     which_modes = ['By address', 'By coordinates', 'Upload file']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
@@ -26,6 +29,15 @@ def show():
                         st.session_state.osm_roads = None
                         st.session_state.osm_pois = None
                         st.session_state.missing_layers = []
+                        
+                        # Save selected location as GeoJSON
+                        selected_area = {
+                            "type": "Point",
+                            "coordinates": [location.longitude, location.latitude]
+                        }
+                        os.makedirs('data/input', exist_ok=True)
+                        save_geojson(selected_area, 'data/input/selected_area.geojson')
+
                         create_map(location.latitude, location.longitude)
                     else:
                         st.error("Could not geocode the address.")
@@ -39,14 +51,25 @@ def show():
         if latitude and longitude:
             try:
                 with st.spinner('Creating map...'):
-                    st.session_state.latitude = float(latitude)
-                    st.session_state.longitude = float(longitude)
+                    lat = float(latitude)
+                    lon = float(longitude)
+                    st.session_state.latitude = lat
+                    st.session_state.longitude = lon
                     st.session_state.geojson_data = None
                     st.session_state.combined_buildings = None
                     st.session_state.osm_roads = None
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
-                    create_map(float(latitude), float(longitude))
+
+                    # Save selected location as GeoJSON
+                    selected_area = {
+                        "type": "Point",
+                        "coordinates": [lon, lat]
+                    }
+                    os.makedirs('data/input', exist_ok=True)
+                    save_geojson(selected_area, 'data/input/selected_area.geojson')
+
+                    create_map(lat, lon)
             except Exception as e:
                 st.error(f"Error with coordinates: {e}")
 
@@ -61,8 +84,7 @@ def show():
                     
                     if gdf.empty:
                         st.error("Uploaded file is empty or not valid GeoJSON.")
-                        
-
+                    
                     centroid = gdf.geometry.unary_union.centroid
                     st.session_state.latitude = centroid.y
                     st.session_state.longitude = centroid.x
@@ -72,6 +94,11 @@ def show():
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
 
+                    # Save the uploaded GeoJSON to a file
+                    os.makedirs('data/input', exist_ok=True)
+                    with open('data/input/selected_area.geojson', 'w') as f:
+                        json.dump(geojson_data, f)
+
                     create_map(centroid.y, centroid.x, geojson_data)
                     st.success("Map created successfully!")
             except KeyError as e:
@@ -80,3 +107,7 @@ def show():
                 st.error(f"Error processing file: {e}")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
+
+# Display the area selection page
+if __name__ == "__main__":
+    show()
