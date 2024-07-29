@@ -11,14 +11,17 @@ import os
 def download_osm_data(polygon, tags, file_path):
     data = ox.features_from_polygon(polygon, tags)
     data.to_file(file_path, driver='GeoJSON')
-    # Print overview
+
     if 'building' in tags:
-        st.write(f"{len(data)} buildings identified")
+        print(f"{len(data)} buildings identified")
     elif 'highway' in tags:
-        total_km = sum(data.length) / 1000
-        st.write(f"{total_km:.2f} km of roads identified")
+        if data.crs.is_geographic:
+            data = data.to_crs(epsg=3857)  # Reproject to a projected CRS for accurate length calculation
+        total_km = data.geometry.length.sum() / 1000
+        print(f"{total_km:.2f} km of roads identified")
     elif 'amenity' in tags:
-        st.write(f"{len(data)} points of interest identified")
+        print(f"{len(data)} points of interest identified")
+
 
 def download_google_buildings(polygon, file_path):
     geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
@@ -42,13 +45,12 @@ def zip_results(directory, zip_file_path):
                            os.path.relpath(os.path.join(root, file), directory))
 
 def show():
-    st.title("Data Retrieve")
     st.write("Downloading data...")
 
     # Load the selected area
     with open('data/input/selected_area.geojson') as f:
         selected_area = json.load(f)
-    
+
     gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
     polygon = gdf.geometry.union_all()
 
@@ -108,6 +110,10 @@ def show():
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
+# Display the data retrieve page
+if __name__ == "__main__":
+    show()
 
 # Display the data retrieve page
 if __name__ == "__main__":
