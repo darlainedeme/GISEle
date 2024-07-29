@@ -56,7 +56,7 @@ def create_map(data_gdf=None, draw_enabled=False):
 
     return m
 
-def main():
+def show():
     st.title("Data Visualization and Enhancement")
 
     sections = {
