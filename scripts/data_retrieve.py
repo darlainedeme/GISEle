@@ -25,6 +25,51 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
+def download_solar_data(polygon, solar_path):
+    try:
+        # Define the bounding box of the polygon
+        bounds_combined = polygon.bounds
+        west_c, south_c, east_c, north_c = bounds_combined
+        
+        # Construct the API URL for solar data (GSA API)
+        url = f"https://globalsolaratlas.info/download/solar_resource_and_pv?latitude={south_c}&longitude={west_c}&maxLatitude={north_c}&maxLongitude={east_c}&dataset=solar_resource_and_pv&api_key=YOUR_API_KEY"
+        
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(solar_path, 'wb') as fd:
+                fd.write(response.content)
+            st.write("Solar data downloaded.")
+            return solar_path
+        else:
+            st.write("No solar data found for the selected area.")
+            return None
+    except Exception as e:
+        st.error(f"Error downloading solar data: {e}")
+        return None
+        
+        def download_wind_data(polygon, wind_path):
+    try:
+        # Define the bounding box of the polygon
+        bounds_combined = polygon.bounds
+        west_c, south_c, east_c, north_c = bounds_combined
+        
+        # Construct the API URL for wind data (GWA API)
+        url = f"https://globalwindatlas.info/api/area/download?lat1={south_c}&lon1={west_c}&lat2={north_c}&lon2={east_c}&dataset=global_wind&api_key=YOUR_API_KEY"
+        
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(wind_path, 'wb') as fd:
+                fd.write(response.content)
+            st.write("Wind data downloaded.")
+            return wind_path
+        else:
+            st.write("No wind data found for the selected area.")
+            return None
+    except Exception as e:
+        st.error(f"Error downloading wind data: {e}")
+        return None
+
+
 def download_elevation_data(polygon, dem_path):
     try:
         # Ensure output directories exist
@@ -159,7 +204,9 @@ def show():
         "Ports",
         "Power Lines",
         "Transformers and Substations",
-        "Elevation"
+        "Elevation",
+        "Solar Potential",
+        "Wind Potential"       
     ]
 
 
@@ -298,6 +345,26 @@ def show():
 
                 if elevation_path:
                     st.write("Elevation data downloaded to the selected area.")
+                progress.progress(0.95)
+
+            if "Solar Potential" in selected_datasets:
+                status_text.text("Downloading solar data...")
+                solar_file = 'data/output/solar/solar_data.tif'
+                os.makedirs('data/output/solar', exist_ok=True)
+                solar_path = download_solar_data(polygon, solar_file)
+
+                if solar_path:
+                    st.write("Solar data downloaded for the selected area.")
+                progress.progress(0.95)
+
+            if "Wind Potential" in selected_datasets:
+                status_text.text("Downloading wind data...")
+                wind_file = 'data/output/wind/wind_data.tif'
+                os.makedirs('data/output/wind', exist_ok=True)
+                wind_path = download_wind_data(polygon, wind_file)
+
+                if wind_path:
+                    st.write("Wind data downloaded for the selected area.")
                 progress.progress(0.95)
 
 
