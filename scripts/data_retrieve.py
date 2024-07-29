@@ -11,6 +11,14 @@ import os
 def download_osm_data(polygon, tags, file_path):
     data = ox.features_from_polygon(polygon, tags)
     data.to_file(file_path, driver='GeoJSON')
+    # Print overview
+    if 'building' in tags:
+        print(f"{len(data)} buildings identified")
+    elif 'highway' in tags:
+        total_km = sum(data.length) / 1000
+        print(f"{total_km:.2f} km of roads identified")
+    elif 'amenity' in tags:
+        print(f"{len(data)} points of interest identified")
 
 def download_google_buildings(polygon, file_path):
     geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
@@ -21,6 +29,10 @@ def download_google_buildings(polygon, file_path):
     response = requests.get(download_url)
     with open(file_path, 'w') as f:
         json.dump(response.json(), f)
+    # Print overview
+    google_buildings = gpd.read_file(file_path)
+    print(f"{len(google_buildings)} Google buildings identified")
+
 
 def zip_results(directory, zip_file_path):
     with zipfile.ZipFile(zip_file_path, 'w') as zipf:
@@ -30,7 +42,6 @@ def zip_results(directory, zip_file_path):
                            os.path.relpath(os.path.join(root, file), directory))
 
 def show():
-    st.title("Data Retrieve")
     st.write("Downloading data...")
 
     # Load the selected area
@@ -61,6 +72,7 @@ def show():
         status_text.text("Downloading OSM buildings data...")
         osm_buildings = ox.features_from_polygon(polygon, tags={'building': True})
         osm_buildings.to_file(buildings_file, driver='GeoJSON')
+        print(f"{len(osm_buildings)} buildings identified")
         progress.progress(0.3)
 
         status_text.text("Downloading Google buildings data...")
@@ -94,6 +106,10 @@ def show():
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
+# Display the data retrieve page
+if __name__ == "__main__":
+    show()
 
 # Display the data retrieve page
 if __name__ == "__main__":
