@@ -23,6 +23,9 @@ def clear_output_directories():
         os.makedirs(dir_path, exist_ok=True)
 
 
+import rasterio
+from rasterio.mask import mask
+
 def download_elevation_data(polygon, file_path):
     try:
         geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
@@ -40,13 +43,14 @@ def download_elevation_data(polygon, file_path):
 
         response = requests.get(url, stream=True)
         if response.status_code == 200:
-            with open(file_path, 'wb') as f:
+            temp_tif_path = file_path.replace('.tif', '_temp.tif')
+            with open(temp_tif_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
             st.write("Elevation data downloaded.")
 
             # Mask the downloaded raster
-            with rasterio.open(file_path) as src:
+            with rasterio.open(temp_tif_path) as src:
                 out_image, out_transform = mask(src, [geom], crop=True)
                 out_meta = src.meta.copy()
                 out_meta.update({"driver": "GTiff",
@@ -56,11 +60,12 @@ def download_elevation_data(polygon, file_path):
 
                 with rasterio.open(file_path, "w", **out_meta) as dest:
                     dest.write(out_image)
-            
+
+            os.remove(temp_tif_path)  # Clean up temporary file
             st.write("Elevation data masked.")
             return file_path
         else:
-            st.write("No elevation data found in the selected area.")
+            st.write("Failed to download elevation data.")
             return None
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
@@ -290,13 +295,14 @@ def show():
                 status_text.text("Downloading OSM transformers and substations data...")
                 substations_path = download_osm_data(buffer_polygon, {'power': ['transformer', 'substation']}, substations_file)
                 progress.progress(0.9)
-                
+                             
             if "Elevation" in selected_datasets:
                 status_text.text("Downloading elevation data...")
                 elevation_file = 'data/output/elevation/elevation.tif'
                 os.makedirs('data/output/elevation', exist_ok=True)
                 elevation_path = download_elevation_data(polygon, elevation_file)
                 progress.progress(0.95)
+
 
 
             # Collect all file paths that exist
