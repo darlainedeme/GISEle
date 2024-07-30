@@ -277,7 +277,6 @@ def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, 
         os.remove(f'{band}.tif')
         os.remove(f'{band}.zip')
 
-
 def show():
     st.title("Data Retrieve")
 
@@ -294,7 +293,9 @@ def show():
         "Transformers and Substations",
         "Elevation",
         "Solar Potential",
-        "Wind Potential"       
+        "Wind Potential",
+        "Satellite"
+]        
     ]
 
 
@@ -435,24 +436,33 @@ def show():
                     st.write("Elevation data downloaded to the selected area.")
                 progress.progress(0.95)
 
-                # Define file paths
-                solar_file = 'data/output/solar/solar_potential.tif'
-                wind_file = 'data/output/wind/wind_potential.tif'
-                
-                # Download solar and wind data
-                if "Solar Potential" in selected_datasets:
-                    status_text.text("Downloading solar data...")
-                    os.makedirs('data/output/solar', exist_ok=True)
-                    download_ee_image('SOLAR_GLOBAL_DATASET', ['GHI'], region, solar_file, scale=1000)
-                    st.write("Solar data downloaded for the selected area.")
-                    progress.progress(0.9)
+            if "Solar Potential" in selected_datasets:
+                status_text.text("Downloading solar data...")
+                solar_file = 'data/output/solar/solar_data.tif'
+                os.makedirs('data/output/solar', exist_ok=True)
+                solar_path = download_solar_data(polygon, solar_file)
 
-                if "Wind Potential" in selected_datasets:
-                    status_text.text("Downloading wind data...")
-                    os.makedirs('data/output/wind', exist_ok=True)
-                    download_ee_image('WIND_GLOBAL_DATASET', ['wind_speed'], region, wind_file, scale=1000)
+                if solar_path:
+                    st.write("Solar data downloaded for the selected area.")
+                progress.progress(0.95)
+
+            if "Wind Potential" in selected_datasets:
+                status_text.text("Downloading wind data...")
+                wind_file = 'data/output/wind/wind_data.tif'
+                os.makedirs('data/output/wind', exist_ok=True)
+                wind_path = download_wind_data(polygon, wind_file)
+
+                if wind_path:
                     st.write("Wind data downloaded for the selected area.")
-                    progress.progress(1.0)
+                progress.progress(0.95)
+
+            if "Satellite" in selected_datasets:
+                status_text.text("Downloading satellite data...")
+                satellite_file = 'data/output/satellite/satellite_image.tif'
+                os.makedirs('data/output/satellite', exist_ok=True)
+                download_ee_image('COPERNICUS/S2_SR', ['B4', 'B3', 'B2'], region, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-30')
+                st.write("Satellite data downloaded for the selected area.")
+                progress.progress(0.9)
 
             # Collect all file paths that exist
             zip_files = [
