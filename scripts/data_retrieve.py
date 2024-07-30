@@ -13,6 +13,12 @@ import rasterio as rio
 import rioxarray as riox
 from rasterio.plot import show
 import requests
+import planetary_computer as pc
+import pystac_client
+import fiona
+from rasterio.mask import mask
+from shapely.geometry import mapping
+
 
 def clear_output_directories():
     output_dirs = [
