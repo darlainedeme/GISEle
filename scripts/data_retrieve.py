@@ -18,7 +18,7 @@ import pystac_client
 import fiona
 from rasterio.mask import mask
 from shapely.geometry import mapping
-
+import numpy as np
 
 def download_nighttime_lights_mpc(polygon, nighttime_lights_path, clipped_nighttime_lights_path):
     try:
