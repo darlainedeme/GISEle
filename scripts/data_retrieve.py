@@ -190,6 +190,94 @@ def zip_results(files, zip_file_path):
         for file_path in files:
             zipf.write(file_path, os.path.basename(file_path))
 
+def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, dateMax=None, crs='EPSG:4326'):
+    """
+    Download specified bands from an Earth Engine dataset within a given region as a GeoTIFF.
+    
+    Parameters:
+        dataset (str): The Earth Engine dataset to use.
+        bands (list): List of bands to download.
+        region (ee.Geometry.Polygon): The region to download.
+        filename (str): The output filename for the GeoTIFF image.
+        scale (int): The scale in meters of the output GeoTIFF.
+        dateMin (str): The minimum date for filtering images (if applicable).
+        dateMax (str): The maximum date for filtering images (if applicable).
+        crs (str): The coordinate reference system for the output GeoTIFF.
+    """
+    print(f'Downloading {dataset} dataset ... ')
+    
+    # Get the image using Google's Earth Engine
+    collection = ee.ImageCollection(dataset).filterBounds(region)
+    
+    if dateMin and dateMax:
+        collection = collection.filterDate(ee.Date(dateMin), ee.Date(dateMax))
+    
+    image = collection.mosaic().clip(region)
+    image = image.addBands(ee.Image.pixelLonLat())
+    
+    for band in bands:
+        task = ee.batch.Export.image.toDrive(image=image.select(band),
+                                             description=band,
+                                             scale=scale,
+                                             region=region,
+                                             fileNamePrefix=band,
+                                             crs=crs,
+                                             fileFormat='GeoTIFF')
+        task.start()
+
+        url = image.select(band).getDownloadURL({
+            'scale': scale,
+            'crs': crs,
+            'fileFormat': 'GeoTIFF',
+            'region': region})
+        
+        r = requests.get(url, stream=True)
+
+        filenameZip = f'{band}.zip'
+        filenameTif = f'{band}.tif'
+
+        # Unzip and write the tif file, then remove the original zip file
+        with open(filenameZip, "wb") as fd:
+            for chunk in r.iter_content(chunk_size=1024):
+                fd.write(chunk)
+
+        zipdata = zipfile.ZipFile(filenameZip)
+        zipinfos = zipdata.infolist()
+
+        # Iterate through each file (there should be only one)
+        for zipinfo in zipinfos:
+            zipinfo.filename = filenameTif
+            zipdata.extract(zipinfo)
+        
+        zipdata.close()
+        
+    # Create a combined multi-band GeoTIFF image
+    print('Creating multi-band GeoTIFF image ... ')
+    
+    # Open the images
+    band_files = [rasterio.open(f'{band}.tif') for band in bands]
+
+    # Get the scaling
+    image = np.array([band_file.read(1) for band_file in band_files]).transpose(1, 2, 0)
+    p2, p98 = np.percentile(image, (2, 98))
+
+    # Use the first band image as a starting point so that I keep the same parameters
+    first_band_geo = band_files[0].profile
+    first_band_geo.update({'count': len(bands)})
+
+    with rasterio.open(filename, 'w', **first_band_geo) as dest:
+        for i, band_file in enumerate(band_files):
+            dest.write((np.clip(band_file.read(1), p2, p98) - p2) / (p98 - p2) * 255, i + 1)
+
+    for band_file in band_files:
+        band_file.close()
+    
+    # Remove the intermediate files
+    for band in bands:
+        os.remove(f'{band}.tif')
+        os.remove(f'{band}.zip')
+
+
 def show():
     st.title("Data Retrieve")
 
@@ -347,25 +435,24 @@ def show():
                     st.write("Elevation data downloaded to the selected area.")
                 progress.progress(0.95)
 
-            if "Solar Potential" in selected_datasets:
-                status_text.text("Downloading solar data...")
-                solar_file = 'data/output/solar/solar_data.tif'
-                os.makedirs('data/output/solar', exist_ok=True)
-                solar_path = download_solar_data(polygon, solar_file)
-
-                if solar_path:
+                # Define file paths
+                solar_file = 'data/output/solar/solar_potential.tif'
+                wind_file = 'data/output/wind/wind_potential.tif'
+                
+                # Download solar and wind data
+                if "Solar Potential" in selected_datasets:
+                    status_text.text("Downloading solar data...")
+                    os.makedirs('data/output/solar', exist_ok=True)
+                    download_ee_image('SOLAR_GLOBAL_DATASET', ['GHI'], region, solar_file, scale=1000)
                     st.write("Solar data downloaded for the selected area.")
-                progress.progress(0.95)
+                    progress.progress(0.9)
 
-            if "Wind Potential" in selected_datasets:
-                status_text.text("Downloading wind data...")
-                wind_file = 'data/output/wind/wind_data.tif'
-                os.makedirs('data/output/wind', exist_ok=True)
-                wind_path = download_wind_data(polygon, wind_file)
-
-                if wind_path:
+                if "Wind Potential" in selected_datasets:
+                    status_text.text("Downloading wind data...")
+                    os.makedirs('data/output/wind', exist_ok=True)
+                    download_ee_image('WIND_GLOBAL_DATASET', ['wind_speed'], region, wind_file, scale=1000)
                     st.write("Wind data downloaded for the selected area.")
-                progress.progress(0.95)
+                    progress.progress(1.0)
 
             # Collect all file paths that exist
             zip_files = [
