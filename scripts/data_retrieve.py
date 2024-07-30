@@ -51,7 +51,7 @@ def download_nighttime_lights_mpc(polygon, nighttime_lights_path, clipped_nightt
 
         # Download the nighttime lights data
         signed_asset = pc.sign(asset)
-        data = rioxarray.open_rasterio(signed_asset.href)
+        data = riox.open_rasterio(signed_asset.href)
         data.values[data.values < 0] = np.nan
 
         # Save the downloaded raster
