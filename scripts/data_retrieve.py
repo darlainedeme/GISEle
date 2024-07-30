@@ -295,7 +295,6 @@ def show():
         "Solar Potential",
         "Wind Potential",
         "Satellite"
-]        
     ]
 
 
