@@ -459,7 +459,7 @@ def show():
                 status_text.text("Downloading satellite data...")
                 satellite_file = 'data/output/satellite/satellite_image.tif'
                 os.makedirs('data/output/satellite', exist_ok=True)
-                download_ee_image('COPERNICUS/S2_SR_HARMONIZED', ['B4', 'B3', 'B2'], polygon, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-30')
+                download_ee_image('COPERNICUS/S2_SR_HARMONIZED', ['B4', 'B3', 'B2'], region, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-30')
                 st.write("Satellite data downloaded for the selected area.")
                 progress.progress(0.9)
 

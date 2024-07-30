@@ -17,3 +17,4 @@ pystac
 scikit-learn
 matplotlib
 elevation
+planetary_computer
