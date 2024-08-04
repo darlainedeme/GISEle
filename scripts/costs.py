@@ -63,7 +63,7 @@ def display_section(section_name, section_data):
         user_inputs[cost_name] = st.number_input(cost_name, value=cost_value)
     return user_inputs
 
-def main():
+def show():
     st.title("Technoeconomic Analysis Cost Inputs")
 
     # Display each section and collect user inputs
