@@ -9,7 +9,8 @@ from scripts.mpc_data import download_nighttime_lights_mpc
 from scripts.solar_data import download_solar_data
 from scripts.wind_data import download_wind_data
 import scripts.worldpop as worldpop
-import elevation  # Ensure elevation is imported
+import elevation 
+import os
 
 def show():
     st.title("Data Retrieve")
