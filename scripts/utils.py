@@ -9,6 +9,8 @@ import streamlit as st
 import pandas as pd
 import os
 import shutil
+import zipfile
+
 
 # Initialize Earth Engine
 @st.cache_resource
