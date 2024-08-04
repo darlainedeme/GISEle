@@ -11,6 +11,9 @@ from shapely.geometry import mapping
 def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, dateMax=None, crs='EPSG:4326'):
     print(f'Downloading {dataset} dataset ... ')
     
+    if not isinstance(region, ee.Geometry):
+        region = ee.Geometry.Polygon(region.exterior.coords[:])
+
     collection = ee.ImageCollection(dataset).filterBounds(region)
     
     if dateMin and dateMax:
@@ -75,23 +78,22 @@ def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, 
         os.remove(f'{band}.zip')
 
 def download_elevation_data(polygon, dem_path):
+    import elevation
+    import rasterio as rio
+    from rasterio.plot import show
+
     try:
-        # Ensure output directories exist
         os.makedirs(os.path.dirname(dem_path), exist_ok=True)
         
-        # Extract DEM based on polygon bounds
         bounds_combined = polygon.bounds
         west_c, south_c, east_c, north_c = bounds_combined
         
-        # Ensure absolute paths
         absolute_dem_path = os.path.abspath(dem_path)
         
-        # Clip the DEM based on bounds
         elevation.clip(bounds=(west_c, south_c, east_c, north_c), output=absolute_dem_path, product='SRTM1')
         dem = rio.open(absolute_dem_path)
         show(dem)
         
-        # Clean up temporary files
         elevation.clean()
         
         st.write("Elevation data downloaded.")
