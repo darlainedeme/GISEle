@@ -7,6 +7,8 @@ import rasterio
 from rasterio.mask import mask
 import streamlit as st
 from shapely.geometry import mapping
+import zipfile
+import numpy as np
 
 def download_nighttime_lights_mpc(polygon, nighttime_lights_path, clipped_nighttime_lights_path):
     try:
