@@ -37,7 +37,7 @@ def create_map(data_gdf=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
 
     if data_gdf is not None and not data_gdf.empty:
-        centroid = data_gdf.geometry.centroid.mean()
+        centroid = data_gdf.geometry.unary_union.centroid
         m.location = [centroid.y, centroid.x]
         m.zoom_start = 10
 
