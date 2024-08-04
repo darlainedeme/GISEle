@@ -202,14 +202,23 @@ def show():
                 progress.progress(1.0)
 
     
+            # Collect all file paths that exist
             zip_files = [
                 file_path for file_path in [
                     osm_buildings_file, google_buildings_file, combined_buildings_file, 
                     roads_file, pois_file, water_bodies_file, cities_file,
-                    airports_file, ports_file, power_lines_file, substations_file
+                    airports_file, ports_file, power_lines_file, substations_file,
+                    'data/output/elevation/image_original.tif',  # Include elevation file
+                    'data/output/solar/solar_data.tif',          # Include solar data file
+                    'data/output/wind/wind_data.tif',            # Include wind data file
+                    'data/output/satellite/satellite_image.tif', # Include satellite data file
+                    'data/output/nighttime_lights/clipped_nighttime_lights.tif', # Include nighttime lights file
+                    'data/output/population/age_structure_output.csv' # Include population data file
                 ] if file_path and os.path.exists(file_path)
             ]
 
+
+            # Zip all results
             status_text.text("Zipping results...")
             zip_results(zip_files, 'data/output/results.zip')
             progress.progress(1.0)
