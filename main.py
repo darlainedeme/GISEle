@@ -7,7 +7,7 @@ from scripts import home, area_selection, data_retrieve, buildings, clustering, 
 main_nav = st.sidebar.radio("Navigation", [
     "Home", "Area Selection", "Data Retrieve", "Buildings", 
     "Clustering", "Data Visualization and Enhancement", 
-    "Costs", "Summary Analysis", "Demand Estimation", 
+    "Summary Analysis", "Costs", "Demand Estimation", 
     "Mini-grid Sizing", "Grid", "Results"
 ])
 
