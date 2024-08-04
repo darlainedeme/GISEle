@@ -29,7 +29,7 @@ def show():
         "Solar Potential",
         "Wind Potential",
         "Satellite",
-        "Nighttime Lights",
+        # "Nighttime Lights",
         "Population"
     ]
 
