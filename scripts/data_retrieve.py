@@ -19,6 +19,7 @@ import fiona
 from rasterio.mask import mask
 from shapely.geometry import mapping
 import numpy as np
+import scripts.worldpop as worldpop
 
 def download_nighttime_lights_mpc(polygon, nighttime_lights_path, clipped_nighttime_lights_path):
     try:
@@ -360,7 +361,8 @@ def show():
         "Solar Potential",
         "Wind Potential",
         "Satellite",
-        "Nighttime Lights"
+        "Nighttime Lights",
+        "Population"
 ]
 
     # Multiselect box for datasets
@@ -538,6 +540,16 @@ def show():
                 if nighttime_lights_path:
                     st.write("Nighttime lights data downloaded and clipped to the selected area.")
                 progress.progress(0.95)
+               
+            if "Population" in selected_datasets:
+                status_text.text("Downloading population data...")
+                geojson_path = 'data/input/selected_area.geojson'
+                population_file = 'data/output/population/age_structure_output.csv'
+                os.makedirs('data/output/population', exist_ok=True)
+                worldpop.download_worldpop_age_structure(geojson_path, 2020, population_file)
+                st.write("Population data downloaded for the selected area.")
+                progress.progress(1.0)
+
     
             # Collect all file paths that exist
             zip_files = [
