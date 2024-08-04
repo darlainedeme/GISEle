@@ -9,7 +9,7 @@ from scripts.mpc_data import download_nighttime_lights_mpc
 from scripts.solar_data import download_solar_data
 from scripts.wind_data import download_wind_data
 import scripts.worldpop as worldpop
-import os
+import elevation  # Ensure elevation is imported
 
 def show():
     st.title("Data Retrieve")
@@ -202,7 +202,6 @@ def show():
                 progress.progress(1.0)
 
     
-            # Collect all file paths that exist
             zip_files = [
                 file_path for file_path in [
                     osm_buildings_file, google_buildings_file, combined_buildings_file, 
@@ -217,8 +216,6 @@ def show():
                 ] if file_path and os.path.exists(file_path)
             ]
 
-
-            # Zip all results
             status_text.text("Zipping results...")
             zip_results(zip_files, 'data/output/results.zip')
             progress.progress(1.0)
