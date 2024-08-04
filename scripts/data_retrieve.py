@@ -1,347 +1,13 @@
 import streamlit as st
-import osmnx as ox
-import requests
 import geopandas as gpd
 import json
-import ee
-from scripts.utils import initialize_earth_engine, create_combined_buildings_layer
-import zipfile
 import os
-import shutil
-import elevation
-import rasterio as rio
-import rioxarray as riox
-from rasterio.plot import show
-import requests
-import planetary_computer as pc
-import pystac_client
-import fiona
-from rasterio.mask import mask
-from shapely.geometry import mapping
-import numpy as np
+from scripts.utils import initialize_earth_engine, create_combined_buildings_layer, zip_results, clear_output_directories
+from scripts.osm_data import download_osm_data
+from scripts.google_buildings import download_google_buildings
+from scripts.ee_data import download_ee_image, download_elevation_data
+from scripts.mpc_data import download_nighttime_lights_mpc
 import scripts.worldpop as worldpop
-
-def download_nighttime_lights_mpc(polygon, nighttime_lights_path, clipped_nighttime_lights_path):
-    try:
-        # Define your area of interest
-        aoi = mapping(polygon)
-
-        # Define your temporal range
-        daterange = {"interval": ["2019-01-01", "2019-12-31"]}
-
-        # Search against the Planetary Computer STAC API
-        catalog = pystac_client.Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier=pc.sign_inplace)
-
-        # Define your search with CQL2 syntax
-        search = catalog.search(filter_lang="cql2-json", filter={
-            "op": "and",
-            "args": [
-                {"op": "s_intersects", "args": [{"property": "geometry"}, aoi]},
-                {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
-                {"op": "=", "args": [{"property": "collection"}, "hrea"]}
-            ]
-        })
-
-        items = search.get_all_items()
-        if not items:
-            st.write("No nighttime lights data found for the selected area.")
-            return None
-
-        first_item = items[0]
-        asset = first_item.assets["lightscore"]
-
-        # Download the nighttime lights data
-        signed_asset = pc.sign(asset)
-        data = riox.open_rasterio(signed_asset.href)
-        data.values[data.values < 0] = np.nan
-
-        # Save the downloaded raster
-        data.rio.to_raster(nighttime_lights_path)
-
-        # Clip the downloaded raster to the polygon
-        with fiona.open('data/input/selected_area.geojson', "r") as shapefile:
-            shapes = [feature["geometry"] for feature in shapefile]
-
-        with rasterio.open(nighttime_lights_path) as src:
-            out_image, out_transform = mask(src, shapes, crop=True)
-            out_meta = src.meta
-
-        out_meta.update({"driver": "GTiff",
-                         "height": out_image.shape[1],
-                         "width": out_image.shape[2],
-                         "transform": out_transform})
-
-        with rasterio.open(clipped_nighttime_lights_path, "w", **out_meta) as dest:
-            dest.write(out_image)
-
-        st.write("Nighttime lights data downloaded and clipped to the selected area.")
-        return clipped_nighttime_lights_path
-    except Exception as e:
-        st.error(f"Error downloading nighttime lights data: {e}")
-        return None
-        
-def clear_output_directories():
-    output_dirs = [
-        'data/output/buildings', 'data/output/roads', 'data/output/poi',
-        'data/output/water_bodies', 'data/output/cities', 'data/output/airports',
-        'data/output/ports', 'data/output/power_lines', 'data/output/substations'
-    ]
-    for dir_path in output_dirs:
-        if os.path.exists(dir_path):
-            shutil.rmtree(dir_path)
-        os.makedirs(dir_path, exist_ok=True)
-
-def download_solar_data(polygon, solar_path):
-    try:
-        # Define the bounding box of the polygon
-        bounds_combined = polygon.bounds
-        west_c, south_c, east_c, north_c = bounds_combined
-        
-        # Construct the API URL for solar data (GSA API)
-        url = f"https://globalsolaratlas.info/download/solar_resource_and_pv?latitude={south_c}&longitude={west_c}&maxLatitude={north_c}&maxLongitude={east_c}&dataset=solar_resource_and_pv&api_key=YOUR_API_KEY"
-        
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(solar_path, 'wb') as fd:
-                fd.write(response.content)
-            st.write("Solar data downloaded.")
-            return solar_path
-        else:
-            st.write("No solar data found for the selected area.")
-            return None
-    except Exception as e:
-        st.error(f"Error downloading solar data: {e}")
-        return None
-        
-def download_wind_data(polygon, wind_path):
-    try:
-        # Define the bounding box of the polygon
-        bounds_combined = polygon.bounds
-        west_c, south_c, east_c, north_c = bounds_combined
-        
-        # Construct the API URL for wind data (GWA API)
-        url = f"https://globalwindatlas.info/api/area/download?lat1={south_c}&lon1={west_c}&lat2={north_c}&lon2={east_c}&dataset=global_wind&api_key=YOUR_API_KEY"
-        
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(wind_path, 'wb') as fd:
-                fd.write(response.content)
-            st.write("Wind data downloaded.")
-            return wind_path
-        else:
-            st.write("No wind data found for the selected area.")
-            return None
-    except Exception as e:
-        st.error(f"Error downloading wind data: {e}")
-        return None
-
-
-def download_elevation_data(polygon, dem_path):
-    try:
-        # Ensure output directories exist
-        os.makedirs(os.path.dirname(dem_path), exist_ok=True)
-        
-        # Extract DEM based on polygon bounds
-        bounds_combined = polygon.bounds
-        west_c, south_c, east_c, north_c = bounds_combined
-        
-        # Ensure absolute paths
-        absolute_dem_path = os.path.abspath(dem_path)
-        
-        # Clip the DEM based on bounds
-        elevation.clip(bounds=(west_c, south_c, east_c, north_c), output=absolute_dem_path, product='SRTM1')
-        dem = rio.open(absolute_dem_path)
-        show(dem)
-        
-        # Clean up temporary files
-        elevation.clean()
-        
-        st.write("Elevation data downloaded.")
-        return absolute_dem_path
-    except Exception as e:
-        st.error(f"Error downloading elevation data: {e}")
-        return None
-        
-def clip_raster_to_polygon(raster_path, polygon, output_path):
-    with rasterio.open(raster_path) as src:
-        out_image, out_transform = mask(src, [polygon], crop=True)
-        out_meta = src.meta.copy()
-
-        out_meta.update({
-            "driver": "GTiff",
-            "height": out_image.shape[1],
-            "width": out_image.shape[2],
-            "transform": out_transform
-        })
-
-        with rasterio.open(output_path, "w", **out_meta) as dest:
-            dest.write(out_image)
-
-
-def download_osm_data(polygon, tags, file_path):
-    try:
-        data = ox.features_from_polygon(polygon, tags)
-        if data.empty:
-            if 'building' in tags:
-                st.write("No buildings found in the selected area.")
-            elif 'highway' in tags:
-                st.write("No roads found in the selected area.")
-            elif 'amenity' in tags:
-                st.write("No points of interest found in the selected area.")
-            elif 'natural' in tags and tags['natural'] == 'water':
-                st.write("No water bodies found in the selected area.")
-            elif 'place' in tags and tags['place'] == 'city':
-                st.write("No major cities found within 200 km of the selected area.")
-            elif 'aeroway' in tags and tags['aeroway'] == 'aerodrome':
-                st.write("No airports found within 200 km of the selected area.")
-            elif 'amenity' in tags and tags['amenity'] == 'port':
-                st.write("No ports found within 200 km of the selected area.")
-            elif 'power' in tags and tags['power'] == 'line':
-                st.write("No power lines found within 200 km of the selected area.")
-            elif 'power' in tags and tags['power'] in ['transformer', 'substation']:
-                st.write("No transformers or substations found within 200 km of the selected area.")
-            return None
-        data.to_file(file_path, driver='GeoJSON')
-
-        if 'building' in tags:
-            st.write(f"{len(data)} buildings identified")
-        elif 'highway' in tags:
-            if data.crs.is_geographic:
-                data = data.to_crs(epsg=3857)  # Reproject to a projected CRS for accurate length calculation
-            total_km = data.geometry.length.sum() / 1000
-            st.write(f"{total_km:.2f} km of roads identified")
-        elif 'amenity' in tags:
-            st.write(f"{len(data)} points of interest identified")
-        elif 'natural' in tags and tags['natural'] == 'water':
-            st.write(f"{len(data)} water bodies identified")
-        elif 'place' in tags and tags['place'] == 'city':
-            st.write(f"{len(data)} major cities identified")
-        elif 'aeroway' in tags and tags['aeroway'] == 'aerodrome':
-            st.write(f"{len(data)} airports identified")
-        elif 'amenity' in tags and tags['amenity'] == 'port':
-            st.write(f"{len(data)} ports identified")
-        elif 'power' in tags and tags['power'] == 'line':
-            st.write(f"{len(data)} power lines identified")
-        elif 'power' in tags and tags['power'] in ['transformer', 'substation']:
-            st.write(f"{len(data)} transformers or substations identified")
-        return file_path
-    except Exception as e:
-        st.error(f"Error downloading OSM data: {e}")
-        return None
-
-def download_google_buildings(polygon, file_path):
-    try:
-        geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
-        buildings = ee.FeatureCollection('GOOGLE/Research/open-buildings/v3/polygons') \
-            .filter(ee.Filter.intersects('.geo', geom))
-        
-        download_url = buildings.getDownloadURL('geojson')
-        response = requests.get(download_url)
-        if response.status_code != 200:
-            st.write("No Google buildings found in the selected area.")
-            return None
-
-        with open(file_path, 'w') as f:
-            json.dump(response.json(), f)
-        
-        google_buildings = gpd.read_file(file_path)
-        st.write(f"{len(google_buildings)} Google buildings identified")
-        return file_path
-    except Exception as e:
-        st.error(f"Error downloading Google buildings: {e}")
-        return None
-
-def zip_results(files, zip_file_path):
-    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
-        for file_path in files:
-            zipf.write(file_path, os.path.basename(file_path))
-
-def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, dateMax=None, crs='EPSG:4326'):
-    """
-    Download specified bands from an Earth Engine dataset within a given region as a GeoTIFF.
-    
-    Parameters:
-        dataset (str): The Earth Engine dataset to use.
-        bands (list): List of bands to download.
-        region (ee.Geometry.Polygon): The region to download.
-        filename (str): The output filename for the GeoTIFF image.
-        scale (int): The scale in meters of the output GeoTIFF.
-        dateMin (str): The minimum date for filtering images (if applicable).
-        dateMax (str): The maximum date for filtering images (if applicable).
-        crs (str): The coordinate reference system for the output GeoTIFF.
-    """
-    print(f'Downloading {dataset} dataset ... ')
-    
-    # Get the image using Google's Earth Engine
-    collection = ee.ImageCollection(dataset).filterBounds(region)
-    
-    if dateMin and dateMax:
-        collection = collection.filterDate(ee.Date(dateMin), ee.Date(dateMax))
-    
-    image = collection.mosaic().clip(region)
-    image = image.addBands(ee.Image.pixelLonLat())
-    
-    for band in bands:
-        task = ee.batch.Export.image.toDrive(image=image.select(band),
-                                             description=band,
-                                             scale=scale,
-                                             region=region,
-                                             fileNamePrefix=band,
-                                             crs=crs,
-                                             fileFormat='GeoTIFF')
-        task.start()
-
-        url = image.select(band).getDownloadURL({
-            'scale': scale,
-            'crs': crs,
-            'fileFormat': 'GeoTIFF',
-            'region': region})
-        
-        r = requests.get(url, stream=True)
-
-        filenameZip = f'{band}.zip'
-        filenameTif = f'{band}.tif'
-
-        # Unzip and write the tif file, then remove the original zip file
-        with open(filenameZip, "wb") as fd:
-            for chunk in r.iter_content(chunk_size=1024):
-                fd.write(chunk)
-
-        zipdata = zipfile.ZipFile(filenameZip)
-        zipinfos = zipdata.infolist()
-
-        # Iterate through each file (there should be only one)
-        for zipinfo in zipinfos:
-            zipinfo.filename = filenameTif
-            zipdata.extract(zipinfo)
-        
-        zipdata.close()
-        
-    # Create a combined multi-band GeoTIFF image
-    print('Creating multi-band GeoTIFF image ... ')
-    
-    # Open the images
-    band_files = [rasterio.open(f'{band}.tif') for band in bands]
-
-    # Get the scaling
-    image = np.array([band_file.read(1) for band_file in band_files]).transpose(1, 2, 0)
-    p2, p98 = np.percentile(image, (2, 98))
-
-    # Use the first band image as a starting point so that I keep the same parameters
-    first_band_geo = band_files[0].profile
-    first_band_geo.update({'count': len(bands)})
-
-    with rasterio.open(filename, 'w', **first_band_geo) as dest:
-        for i, band_file in enumerate(band_files):
-            dest.write((np.clip(band_file.read(1), p2, p98) - p2) / (p98 - p2) * 255, i + 1)
-
-    for band_file in band_files:
-        band_file.close()
-    
-    # Remove the intermediate files
-    for band in bands:
-        os.remove(f'{band}.tif')
-        os.remove(f'{band}.zip')
 
 def show():
     st.title("Data Retrieve")
@@ -363,7 +29,7 @@ def show():
         "Satellite",
         "Nighttime Lights",
         "Population"
-]
+    ]
 
     # Multiselect box for datasets
     selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets[-1])
@@ -379,7 +45,7 @@ def show():
             selected_area = json.load(f)
 
         gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
-        polygon = gdf.geometry.union_all()
+        polygon = gdf.geometry.unary_union()
 
         polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
         polygon_gdf = polygon_gdf.set_crs(epsg=4326)  # Ensure initial CRS is set if not already
@@ -388,7 +54,7 @@ def show():
         buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
         buffer_gdf = buffer_gdf.to_crs(epsg=4326)  # Reproject back to geographic CRS
         
-        buffer_polygon = buffer_gdf.geometry.union_all()
+        buffer_polygon = buffer_gdf.geometry.unary_union()
             
         # Initialize Earth Engine
         initialize_earth_engine()

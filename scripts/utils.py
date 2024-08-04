@@ -17,7 +17,23 @@ def initialize_earth_engine():
     credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
     ee.Initialize(credentials)
 
+def clear_output_directories():
+    output_dirs = [
+        'data/output/buildings', 'data/output/roads', 'data/output/poi',
+        'data/output/water_bodies', 'data/output/cities', 'data/output/airports',
+        'data/output/ports', 'data/output/power_lines', 'data/output/substations',
+        'data/output/elevation', 'data/output/solar', 'data/output/wind', 'data/output/satellite', 'data/output/nighttime_lights', 'data/output/population'
+    ]
+    for dir_path in output_dirs:
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
 
+def zip_results(files, zip_file_path):
+    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+        for file_path in files:
+            zipf.write(file_path, os.path.basename(file_path))
+            
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
