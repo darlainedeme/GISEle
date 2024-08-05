@@ -38,64 +38,45 @@ appliance_data_dict = {
 
 # Function to collect appliance info
 def collect_appliance_info(category, appliance, idx):
-    num_appliances = st.number_input(
-        f"Number of {appliance}(s) in {category}", 
-        min_value=0, step=1, 
-        value=int(appliance_data_dict[category][appliance]["num"]), 
-        key=f"num_{category}_{appliance}_{idx}"
-    )
-    power_rating = st.number_input(
-        f"Power rating of each {appliance} (in watts)", 
-        min_value=0, step=1, 
-        value=int(appliance_data_dict[category][appliance]["power"]), 
-        key=f"power_{category}_{appliance}_{idx}"
-    )
-    start_time = st.slider(
-        f"Start time of use for {appliance} (minutes from midnight)", 
-        min_value=0, max_value=1440, 
-        value=int(appliance_data_dict[category][appliance]["start"][0]), 
-        key=f"start_{category}_{appliance}_{idx}"
-    )
-    end_time = st.slider(
-        f"End time of use for {appliance} (minutes from midnight)", 
-        min_value=0, max_value=1440, 
-        value=int(appliance_data_dict[category][appliance]["end"][1]), 
-        key=f"end_{category}_{appliance}_{idx}"
-    )
-    coincidence_factor = st.number_input(
-        f"Coincidence factor for {appliance}", 
-        min_value=0.0, max_value=1.0, step=0.01, 
-        value=float(appliance_data_dict[category][appliance]["coincidence"]), 
-        key=f"coincidence_{category}_{appliance}_{idx}"
-    )
-    min_time_on = st.number_input(
-        f"Minimum time the {appliance} is on (in hours)", 
-        min_value=0.0, max_value=24.0, step=0.5, 
-        value=float(appliance_data_dict[category][appliance]["min_time_on"]), 
-        key=f"min_time_{category}_{appliance}_{idx}"
-    )
-    return num_appliances, power_rating, start_time, end_time, coincidence_factor, min_time_on
+    st.subheader(f"Category: {category}, Appliance: {appliance}")
+    num_appliances = st.number_input(f"Number of {appliance}(s) in {category}", min_value=0, step=1, value=appliance_data_dict[category][appliance]["num"], key=f"num_{category}_{appliance}_{idx}")
+    power_rating = st.number_input(f"Power rating of each {appliance} (in watts)", min_value=0, step=1, value=appliance_data_dict[category][appliance]["power"], key=f"power_{category}_{appliance}_{idx}")
+    start_time = st.time_input(f"Start time of use for {appliance}", value=appliance_data_dict[category][appliance]["start"], key=f"start_{category}_{appliance}_{idx}")
+    end_time = st.time_input(f"End time of use for {appliance}", value=appliance_data_dict[category][appliance]["end"], key=f"end_{category}_{appliance}_{idx}")
+    coincidence_factor = st.number_input(f"Coincidence factor for {appliance}", min_value=0.0, max_value=1.0, step=0.01, value=appliance_data_dict[category][appliance]["coincidence"], key=f"coincidence_{category}_{appliance}_{idx}")
+    min_time_on = st.number_input(f"Minimum time the {appliance} is on (in hours)", min_value=0.0, max_value=24.0, step=0.5, value=appliance_data_dict[category][appliance]["min_time_on"], key=f"min_time_{category}_{appliance}_{idx}")
+    
+    start_time_minutes = start_time.hour * 60 + start_time.minute
+    end_time_minutes = end_time.hour * 60 + end_time.minute
+    
+    return num_appliances, power_rating, start_time_minutes, end_time_minutes, coincidence_factor, min_time_on
 
 # Function to create user classes and appliances
 def create_user_classes(appliance_data):
     users = []
     for category, appliance_info in appliance_data.items():
-        st.write(category)
-        
         user = User(user_name=category, num_users=appliance_info['num_users'])
         for appliance in appliance_info['appliances']:
-            st.write(appliance)
+            func_time = appliance['min_time_on'] * 60
+            start_time = appliance['start_time']
+            end_time = appliance['end_time']
+            window_duration = end_time - start_time if end_time > start_time else (1440 - start_time + end_time)
+
+            if window_duration < func_time:
+                st.error(f"Time window for {appliance['name']} in {category} is less than the functional time. Please adjust the start and end times.")
+                continue
+
             app = user.Appliance(
                 appliance['num_appliances'],
                 appliance['power_rating'],
                 1,
-                appliance['min_time_on'] * 60,
+                func_time,
                 appliance['coincidence_factor'],
                 5,
                 fixed="no"
             )
             app.windows(
-                window_1=[appliance['start_time'], appliance['end_time']],
+                window_1=[start_time, end_time],
                 random_var_w=appliance['coincidence_factor']
             )
         users.append(user)
