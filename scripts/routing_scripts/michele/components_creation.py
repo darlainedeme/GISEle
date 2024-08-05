@@ -1,8 +1,8 @@
 from pyomo.environ import Param, RangeSet, Set, Var, Objective, Constraint, minimize,\
     NonNegativeReals, NonNegativeIntegers, Binary
 
-from gisele.michele.constraints_definition import *
-from gisele.michele.components_initialization import *
+from constraints_definition import *
+from components_initialization import *
 
 def Model_Creation(model, input_load, wt_prod, pv_prod,input_michele):
     '''
