@@ -8,29 +8,42 @@ from ramp.post_process.post_process import Profile_formatting
 
 # Predefined appliance data
 appliance_data_dict = {
-    "Refrigerator": {"power": 150, "num": 1, "start": datetime.time(0, 0), "end": datetime.time(23, 59), "coincidence": 1.0, "min_time_on": 24.0},
-    "Television": {"power": 100, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 0), "coincidence": 0.7, "min_time_on": 1.0},
-    "Air Conditioner": {"power": 2000, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.5, "min_time_on": 1.0},
-    "Washing Machine": {"power": 500, "num": 1, "start": datetime.time(8, 0), "end": datetime.time(20, 0), "coincidence": 0.3, "min_time_on": 1.0},
-    "Microwave": {"power": 1200, "num": 1, "start": datetime.time(6, 0), "end": datetime.time(22, 0), "coincidence": 0.2, "min_time_on": 0.5},
-    "Electric Kettle": {"power": 2000, "num": 1, "start": datetime.time(6, 0), "end": datetime.time(22, 0), "coincidence": 0.2, "min_time_on": 0.2},
-    "Computer": {"power": 150, "num": 1, "start": datetime.time(8, 0), "end": datetime.time(18, 0), "coincidence": 0.5, "min_time_on": 1.0},
-    "Heater": {"power": 1500, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.4, "min_time_on": 1.0},
-    "Fan": {"power": 75, "num": 1, "start": datetime.time(0, 0), "end": datetime.time(23, 59), "coincidence": 0.8, "min_time_on": 24.0},
-    "Light Bulb": {"power": 60, "num": 5, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.9, "min_time_on": 1.0}
+    "High-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 6, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.1, "min_time_on": 2.0},
+        "Television": {"power": 60, "num": 2, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 3.0},
+        "DVD": {"power": 8, "num": 1, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
+        "Antenna": {"power": 8, "num": 1, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 2.0},
+        "Phone charger": {"power": 2, "num": 5, "start": [1110, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 5.0},
+        "Freezer": {"power": 200, "num": 1, "start": [0, 1440], "end": [0, 0], "coincidence": 0.0, "min_time_on": 30.0},
+        "Mixer": {"power": 50, "num": 1, "start": [420, 480], "end": [660, 750], "coincidence": 0.35, "min_time_on": 1.0}
+    },
+    "Middle-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 3, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 2.0},
+        "Outdoor bulb": {"power": 13, "num": 2, "start": [0, 330], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 10.0},
+        "Television": {"power": 60, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.5},
+        "DVD": {"power": 8, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 0.5},
+        "Antenna": {"power": 8, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
+        "Phone charger": {"power": 2, "num": 4, "start": [1020, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0},
+        "Mixer": {"power": 50, "num": 1, "start": [660, 750], "end": [1110, 1200], "coincidence": 0.35, "min_time_on": 1.0}
+    },
+    "Low-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 2, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 2.0},
+        "Outdoor bulb": {"power": 13, "num": 1, "start": [0, 330], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 10.0},
+        "Television": {"power": 60, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.5},
+        "DVD": {"power": 8, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 0.5},
+        "Antenna": {"power": 8, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
+        "Phone charger": {"power": 2, "num": 2, "start": [1080, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0}
+    }
 }
-
-appliance_options = list(appliance_data_dict.keys())
 
 # Function to collect appliance info
 def collect_appliance_info(category, appliance, idx):
-    st.subheader(f"Category: {category}, Appliance: {appliance}")
-    num_appliances = st.number_input(f"Number of {appliance}(s) in {category}", min_value=0, step=1, value=appliance_data_dict[appliance]["num"], key=f"num_{category}_{appliance}_{idx}")
-    power_rating = st.number_input(f"Power rating of each {appliance} (in watts)", min_value=0, step=1, value=appliance_data_dict[appliance]["power"], key=f"power_{category}_{appliance}_{idx}")
-    start_time = st.time_input(f"Start time of use for {appliance}", value=appliance_data_dict[appliance]["start"], key=f"start_{category}_{appliance}_{idx}")
-    end_time = st.time_input(f"End time of use for {appliance}", value=appliance_data_dict[appliance]["end"], key=f"end_{category}_{appliance}_{idx}")
-    coincidence_factor = st.number_input(f"Coincidence factor for {appliance}", min_value=0.0, max_value=1.0, step=0.01, value=appliance_data_dict[appliance]["coincidence"], key=f"coincidence_{category}_{appliance}_{idx}")
-    min_time_on = st.number_input(f"Minimum time the {appliance} is on (in hours)", min_value=0.0, max_value=24.0, step=0.5, value=appliance_data_dict[appliance]["min_time_on"], key=f"min_time_{category}_{appliance}_{idx}")
+    num_appliances = st.number_input(f"Number of {appliance}(s) in {category}", min_value=0, step=1, value=appliance_data_dict[category][appliance]["num"], key=f"num_{category}_{appliance}_{idx}")
+    power_rating = st.number_input(f"Power rating of each {appliance} (in watts)", min_value=0, step=1, value=appliance_data_dict[category][appliance]["power"], key=f"power_{category}_{appliance}_{idx}")
+    start_time = st.slider(f"Start time of use for {appliance}", min_value=0, max_value=1440, value=appliance_data_dict[category][appliance]["start"][0], key=f"start_{category}_{appliance}_{idx}")
+    end_time = st.slider(f"End time of use for {appliance}", min_value=0, max_value=1440, value=appliance_data_dict[category][appliance]["end"][1], key=f"end_{category}_{appliance}_{idx}")
+    coincidence_factor = st.number_input(f"Coincidence factor for {appliance}", min_value=0.0, max_value=1.0, step=0.01, value=appliance_data_dict[category][appliance]["coincidence"], key=f"coincidence_{category}_{appliance}_{idx}")
+    min_time_on = st.number_input(f"Minimum time the {appliance} is on (in hours)", min_value=0.0, max_value=24.0, step=0.5, value=appliance_data_dict[category][appliance]["min_time_on"], key=f"min_time_{category}_{appliance}_{idx}")
     return num_appliances, power_rating, start_time, end_time, coincidence_factor, min_time_on
 
 # Function to create user classes and appliances
@@ -48,9 +61,11 @@ def create_user_classes(appliance_data):
                 5,
                 fixed="no"
             )
-            start_minutes = appliance['start_time'].hour * 60 + appliance['start_time'].minute
-            end_minutes = appliance['end_time'].hour * 60 + appliance['end_time'].minute
-            app.windows([start_minutes, end_minutes], [0, 0])
+            app.windows(
+                [appliance['start_time']],
+                [appliance['end_time']],
+                appliance['coincidence_factor']
+            )
         users.append(user)
     return users
 
@@ -73,7 +88,6 @@ def plot_load_profile(Profiles_series):
     Profiles_max = Profiles_reshaped.max(axis=0)
     plt.fill_between(range(minutes_per_day), Profiles_min / 1000, Profiles_max / 1000, color='grey', alpha=0.3, label='Variability Range')
     plt.plot(Profiles_daily_avg / 1000, color='red', linewidth=2, label='Average Daily Profile')
-
     plt.title('Daily Average Load Curve')
     plt.xlabel('Time of Day')
     plt.ylabel('Power [kW]')
@@ -81,28 +95,23 @@ def plot_load_profile(Profiles_series):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    st.pyplot(plt)
+    plt.show()
 
     return Profiles_daily_avg
 
 def show():
-    st.title("Demand Estimation with RAMP")
-    
-    # Predefined categories
-    categories_predefined = ["High Income", "Middle Income", "Low Income"]
-    categories = []
+    st.title("Community Appliance Information Collection Tool")
+    st.write("Please fill in the details for each appliance in the respective categories.")
 
-    for i in range(3):
-        category_name = categories_predefined[i]
-        category = st.text_input(f"Category {i+1} Name", value=category_name, key=f"category_{i}")
-        num_users = st.number_input(f"Number of users in {category}", min_value=0, step=1, value=50, key=f"num_users_{i}")
-        appliance_selections = st.multiselect(f"Select appliances for {category}", appliance_options, default=np.random.choice(appliance_options, 3, replace=False).tolist(), key=f"appliances_{i}")
-        appliance_data = {}
-        if appliance_selections:
-            appliance_data[category] = {"num_users": num_users, "appliances": []}
-            for idx, appliance in enumerate(appliance_selections):
+    appliance_data_combined = {}
+    for category, appliances in appliance_data_dict.items():
+        with st.expander(f"{category}"):
+            num_users = st.number_input(f"Number of users in {category}", min_value=0, step=1, value=10)
+            appliance_list = []
+            idx = 0
+            for appliance, default_values in appliances.items():
                 num_appliances, power_rating, start_time, end_time, coincidence_factor, min_time_on = collect_appliance_info(category, appliance, idx)
-                appliance_data[category]["appliances"].append({
+                appliance_list.append({
                     "num_appliances": num_appliances,
                     "power_rating": power_rating,
                     "start_time": start_time,
@@ -110,30 +119,31 @@ def show():
                     "coincidence_factor": coincidence_factor,
                     "min_time_on": min_time_on
                 })
-            categories.append(appliance_data)
+                idx += 1
+            appliance_data_combined[category] = {"num_users": num_users, "appliances": appliance_list}
 
     if st.button("Estimate Demand"):
-        if not categories:
-            st.warning("Please select appliances for at least one category.")
-        else:
-            appliance_data_combined = {k: v for d in categories for k, v in d.items()}
-            users = create_user_classes(appliance_data_combined)
-            progress_bar = st.progress(0)
-            progress_bar.progress(10)
-            today_date = datetime.date.today().strftime('%Y-%m-%d')
-            load_profile = generate_load_profiles(users, today_date, today_date)
-            progress_bar.progress(70)
-            st.write("**Load Profile Generated:**")
-            Profiles_daily_avg = plot_load_profile(load_profile)
-            progress_bar.progress(100)
-            df = pd.DataFrame(load_profile, columns=["Power (W)"])
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download Load Profile as CSV",
-                data=csv,
-                file_name='load_profile.csv',
-                mime='text/csv',
-            )
+        st.write("Generating load profiles...")
+        progress_bar = st.progress(0)
+        users = create_user_classes(appliance_data_combined)
+        progress_bar.progress(50)
+
+        today_date = datetime.date.today().strftime('%Y-%m-%d')
+        load_profile = generate_load_profiles(users, today_date, today_date)
+        progress_bar.progress(70)
+        
+        st.write("**Load Profile Generated:**")
+        Profiles_daily_avg = plot_load_profile(load_profile)
+        progress_bar.progress(100)
+        
+        df = pd.DataFrame(load_profile, columns=["Power (W)"])
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Load Profile as CSV",
+            data=csv,
+            file_name='load_profile.csv',
+            mime='text/csv',
+        )
 
 if __name__ == "__main__":
     show()
