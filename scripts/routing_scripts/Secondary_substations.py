@@ -3,9 +3,9 @@ from sklearn.cluster import AgglomerativeClustering
 from shapely.geometry import Polygon
 from shapely.ops import nearest_points
 from math import sqrt
-from gisele import initialization
+import initialization
 from shapely import geometry
-from gisele.functions import *
+from functions import *
 from math import *
 #from gisele import LV_routing_new_strategy as new_strategy
 def points_region_to_casestudy(points_region, polygon_casestudy):

@@ -1,16 +1,16 @@
 from shapely.geometry import MultiLineString
 from shapely.ops import nearest_points
-from gisele.functions import *
+from functions import *
 from math import *
 from scipy import sparse
 import networkx as nx
-from gisele.Steiner_tree_code import *
+from Steiner_tree_code import *
 from itertools import combinations
 import numpy as np
 import time
 from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
-from gisele.geneticalgorithm_github import geneticalgorithm as ga
+from geneticalgorithm_github import geneticalgorithm as ga
 from scipy.spatial import Delaunay
 def genetic2(clustered_points,points_new_graph,distance_matrix,n_clusters,graph):
     clustered_points.reset_index(drop=True,inplace=True)

@@ -2,8 +2,8 @@ import os
 import math
 import networkx as nx
 from shapely.geometry import Point, Polygon
-from gisele.grid import *
-from gisele import Steinerman
+from grid import *
+import Steinerman
 
 
 def routing(geo_df_clustered, geo_df, clusters_list, resolution,

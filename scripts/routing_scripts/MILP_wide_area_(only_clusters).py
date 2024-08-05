@@ -1,12 +1,12 @@
 from math import ceil
-from gisele import dijkstra
+import dijkstra
 from shapely.ops import nearest_points
-from gisele.functions2 import *
+from functions2 import *
 from scipy.spatial import Delaunay
 from shapely.geometry import Point
-from gisele.Local_area_optimization import *
-from gisele.MILP_Input_creation import *
-from gisele.Secondary_substations import *
+from Local_area_optimization import *
+from MILP_Input_creation import *
+from Secondary_substations import *
 from math import *
 from __future__ import division
 from shapely import wkt

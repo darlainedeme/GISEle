@@ -11,7 +11,7 @@ import pandas as pd
 import pdb 
 import os
 
-from gisele.functions import *
+from functions import *
 from scipy.spatial import cKDTree
 from sklearn.cluster import AgglomerativeClustering
 from scipy.spatial.distance import pdist, squareform 

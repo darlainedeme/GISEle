@@ -2,8 +2,8 @@ import math
 import time
 import networkx as nx
 from scipy import sparse
-from gisele.functions import *
-from gisele import dijkstra
+from functions import *
+import dijkstra
 
 
 def spider(geo_df, gdf_cluster_pop, line_bc, resolution, gdf_roads,

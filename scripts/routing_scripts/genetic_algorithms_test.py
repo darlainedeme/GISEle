@@ -1,13 +1,13 @@
 import numpy as np
 import math
-from gisele.geneticalgorithm_github import geneticalgorithm as ga
+from geneticalgorithm_github import geneticalgorithm as ga
 import pandas as pd
 import pandapower as pp
 import pandapower.topology
 import pandapower.plotting
 import geopandas as gpd
 from datetime import datetime
-from gisele import myFirstGA
+import myFirstGA
 import matplotlib.pyplot as plt
 
 #input data

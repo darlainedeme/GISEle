@@ -19,8 +19,8 @@ from collections import Counter
 from statistics import mean
 from math import ceil
 from shapely import ops
-from gisele import initialization 
-from gisele import QGIS_processing_polygon
+import initialization 
+import QGIS_processing_polygon
 import pdb
 # Define the function resample
 def resample(raster, resolution,options):

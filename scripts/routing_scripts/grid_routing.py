@@ -1,6 +1,6 @@
-from gisele.functions import *
+from functions import *
 from shapely.geometry import Point,box
-from gisele import Steinerman, Spiderman, dijkstra,initialization
+import Steinerman, Spiderman, dijkstra,initialization
 
 def routing(Clusters,gisele_dir,case_study,crs,resolution_MV,Roads_option,roads_weight,simplify_road_coef_inside,Rivers_option,line_bc):
     dir_output = '/Case studies/' + case_study

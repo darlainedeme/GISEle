@@ -1,7 +1,7 @@
 from math import ceil
-from gisele import dijkstra
+import dijkstra
 from shapely.ops import nearest_points
-from gisele.functions2 import *
+from functions2 import *
 from scipy.spatial import Delaunay
 from shapely.geometry import Point
 import pdb
