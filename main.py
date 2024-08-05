@@ -1,7 +1,7 @@
 import streamlit as st
 st.set_page_config(layout="wide")
 
-from scripts import home, area_selection, data_retrieve, buildings, clustering, data_visualization, costs, summary_analysis, demand_estimation, minigrid_sizing, grid, results
+from scripts import home, area_selection, data_retrieve, buildings, clustering, data_visualization, costs, summary_analysis, demand_estimation, routing, results
 
 # Define navigation
 main_nav = st.sidebar.radio("Navigation", [
@@ -38,11 +38,8 @@ elif main_nav == "Summary Analysis":
 elif main_nav == "Demand Estimation":
     demand_estimation.show()
 
-elif main_nav == "Mini-grid Sizing":
+elif main_nav == "Routing":
     minigrid_sizing.show()
-
-elif main_nav == "Grid":
-    grid.show()
 
 elif main_nav == "Results":
     results.show()
