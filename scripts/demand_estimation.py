@@ -1,11 +1,3 @@
-import streamlit as st
-from ramp import UseCase, User
-import pandas as pd
-import numpy as np
-from datetime import datetime
-import plotly.graph_objects as go
-
-
 # Define initial values for user categories and appliances
 initial_values = {
     "High-Income Household": {
@@ -62,6 +54,13 @@ initial_values = {
         ]
     }
 }
+
+import streamlit as st
+from ramp import UseCase, User
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import plotly.graph_objects as go
 
 # Function to display and edit user categories and appliances
 def display_user_category(category_name, category_data):
@@ -123,12 +122,12 @@ def show():
     if st.button("Generate Demand"):
         st.write("Generating load profiles...")
         progress = st.progress(0)
+        total_users = sum(v["num_users"] for v in st.session_state.user_data.values())
+        profiles = np.zeros((total_users, 1440))
+        user_offsets = {}
 
-        combined_profile = np.zeros(1440)
-        category_profiles = {}
-        
-        for idx, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
-            users = []
+        current_offset = 0
+        for category_name, category_data in st.session_state.user_data.items():
             user = User(user_name=category_name, num_users=category_data["num_users"])
             for appliance in category_data["appliances"]:
                 app = user.Appliance(
@@ -142,38 +141,34 @@ def show():
                 # Ensure total window time is greater than or equal to func_time
                 total_window_time = sum([end - start for start, end in appliance["windows"]])
                 if total_window_time < appliance["func_time"]:
-                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance["func_time"]}). Please adjust the time windows.")
+                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance['func_time']}). Please adjust the time windows.")
                     return
                 
                 for i, window in enumerate(appliance["windows"], start=1):
                     start, end = window
                     setattr(app, f"window_{i}", (start, end))
-            users.append(user)
-            
+                user_offsets[category_name] = current_offset
+                current_offset += category_data["num_users"]
+
             today = datetime.today().strftime('%Y-%m-%d')
-            use_case = UseCase(users=users, date_start=today, date_end=today)
+            use_case = UseCase(users=[user], date_start=today, date_end=today)
             load_profile = use_case.generate_daily_load_profiles()
-            category_profile = np.array(load_profile).reshape((len(load_profile) // 1440, 1440)).sum(axis=0)
-            combined_profile += category_profile
-            category_profiles[category_name] = category_profile
+            profiles[user_offsets[category_name]:current_offset] = np.array(load_profile).reshape((category_data["num_users"], 1440))
 
-            progress.progress((idx + 1) / len(st.session_state.user_data))
-
+        progress.progress(100)
         st.write("Load profile generation complete.")
 
-        # Plotly interactive chart
-        import plotly.graph_objects as go
-
+        # Prepare data for plotting
+        cumulative_profile = np.zeros(1440)
         fig = go.Figure()
 
-        cumulative_profile = np.zeros(1440)
-        for category_name, category_profile in category_profiles.items():
+        for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
+            category_profile = profiles[user_offsets[category_name]:user_offsets[category_name] + category_data["num_users"]].sum(axis=0)
             fig.add_trace(go.Scatter(
-                x=np.arange(1440),
+                x=list(range(1440)),
                 y=cumulative_profile + category_profile,
-                mode='lines',
-                name=category_name,
-                stackgroup='one'  # Define the stack group
+                fill='tonexty',
+                name=category_name
             ))
             cumulative_profile += category_profile
 
@@ -181,13 +176,12 @@ def show():
             title="Daily Load Profile",
             xaxis_title="Time (minutes)",
             yaxis_title="Load (kW)",
-            showlegend=True
+            legend_title="Categories"
         )
-
         st.plotly_chart(fig)
 
         # Export to CSV
-        csv = pd.DataFrame(combined_profile).to_csv(index=False)
+        csv = pd.DataFrame(profiles).to_csv(index=False)
         st.download_button(label="Download Load Profile as CSV", data=csv, file_name="load_profile.csv", mime='text/csv')
 
 if __name__ == "__main__":
