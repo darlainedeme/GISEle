@@ -14,7 +14,7 @@ appliance_data_dict = {
         "DVD": {"power": 8, "num": 1, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
         "Antenna": {"power": 8, "num": 1, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 2.0},
         "Phone charger": {"power": 2, "num": 5, "start": [1110, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 5.0},
-        "Freezer": {"power": 200, "num": 1, "start": [0, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 30.0},
+        "Freezer": {"power": 200, "num": 1, "start": [0, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0},
         "Mixer": {"power": 50, "num": 1, "start": [420, 480], "end": [660, 750], "coincidence": 0.35, "min_time_on": 1.0}
     },
     "Middle-Income Household": {
