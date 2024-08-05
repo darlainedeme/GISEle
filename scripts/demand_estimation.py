@@ -11,21 +11,58 @@ initial_values = {
     "High-Income Household": {
         "num_users": 25,
         "appliances": [
-            {"name": "Indoor Bulb", "number": 6, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
-            {"name": "Television", "number": 2, "power": 60, "num_windows": 3, "func_time": 180, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(720, 900), (1170, 1440), (0, 60)]},
+            {"name": "Indoor Bulb High-Income Household", "number": 6, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Television High-Income Household", "number": 2, "power": 60, "num_windows": 3, "func_time": 180, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(720, 900), (1170, 1440), (0, 60)]},
             # Add other appliances similarly...
         ]
     },
     "Middle-Income Household": {
         "num_users": 75,
         "appliances": [
-            {"name": "Indoor Bulb", "number": 3, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
-            {"name": "Outdoor Bulb", "number": 2, "power": 13, "num_windows": 2, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 330), (1170, 1440)]},
-            {"name": "Television", "number": 1, "power": 60, "num_windows": 3, "func_time": 90, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(450, 660), (720, 840), (1170, 1440)]},
+            {"name": "Indoor Bulb Middle-Income Household", "number": 3, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Outdoor Bulb Middle-Income Household", "number": 2, "power": 13, "num_windows": 2, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 330), (1170, 1440)]},
+            {"name": "Television Middle-Income Household", "number": 1, "power": 60, "num_windows": 3, "func_time": 90, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(450, 660), (720, 840), (1170, 1440)]},
             # Add other appliances similarly...
         ]
     },
+    "Low-Income Household": {
+        "num_users": 50,
+        "appliances": [
+            {"name": "Indoor Bulb Low-Income Household", "number": 2, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Outdoor Bulb Low-Income Household", "number": 1, "power": 13, "num_windows": 2, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 330), (1170, 1440)]},
+            {"name": "Television Low-Income Household", "number": 1, "power": 60, "num_windows": 3, "func_time": 90, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(750, 840), (1170, 1440), (0, 30)]},
+            # Add other appliances similarly...
+        ]
+    },
+    "Public Lighting": {
+        "num_users": 1,
+        "appliances": [
+            {"name": "Public Lighting Type 1", "number": 12, "power": 40, "num_windows": 2, "func_time": 310, "time_fraction_random_variability": 0.1, "func_cycle": 300, "fixed": "yes", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "yes", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 336), (1110, 1440)]},
+            {"name": "Public Lighting Type 2", "number": 25, "power": 150, "num_windows": 2, "func_time": 310, "time_fraction_random_variability": 0.1, "func_cycle": 300, "fixed": "yes", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "yes", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 336), (1110, 1440)]},
+        ]
+    },
+    "Rural School": {
+        "num_users": 1,
+        "appliances": [
+            {"name": "Indoor Bulb Rural School", "number": 8, "power": 7, "num_windows": 1, "func_time": 60, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1020, 1080)]},
+            {"name": "Outdoor Bulb Rural School", "number": 6, "power": 13, "num_windows": 1, "func_time": 60, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1020, 1080)]},
+            {"name": "Phone Charger Rural School", "number": 5, "power": 2, "num_windows": 2, "func_time": 180, "time_fraction_random_variability": 0.2, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(510, 750), (810, 1080)]},
+            {"name": "Laptop Rural School", "number": 18, "power": 50, "num_windows": 2, "func_time": 210, "time_fraction_random_variability": 0.1, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(510, 750), (810, 1080)]},
+            # Add other appliances similarly...
+        ]
+    },
+    "Rural Hospital": {
+        "num_users": 1,
+        "appliances": [
+            {"name": "Indoor Bulb Rural Hospital", "number": 12, "power": 7, "num_windows": 2, "func_time": 690, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(480, 720), (870, 1440)]},
+            {"name": "Outdoor Bulb Rural Hospital", "number": 1, "power": 13, "num_windows": 2, "func_time": 690, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 330), (1050, 1440)]},
+            {"name": "Phone Charger Rural Hospital", "number": 8, "power": 2, "num_windows": 2, "func_time": 300, "time_fraction_random_variability": 0.2, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(480, 720), (900, 1440)]},
+            {"name": "Fridge Type 1 Rural Hospital", "number": 1, "power": 150, "num_windows": 1, "func_time": 1440, "time_fraction_random_variability": 0.0, "func_cycle": 30, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 1440)]},
+            # Add other appliances similarly...
+        ]
+    }
 }
+
 
 # Function to display and edit user categories and appliances
 def display_user_category(category_name, category_data):
