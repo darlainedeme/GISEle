@@ -3,9 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
-
-
-
 def Load_results(instance):
     '''
     This function loads and plots the results.
