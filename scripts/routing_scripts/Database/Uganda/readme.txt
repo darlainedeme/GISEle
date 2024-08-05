@@ -1,0 +1,10 @@
+ https://energydata.info/dataset?vocab_country_names=UGA
+ uganda+grids+existing/planned
+https://energydata.info/dataset/uganda-electricity-transmission-network-2017
+ substations
+ https://hub.arcgis.com/datasets/0e2d5484fff84d9a8bb9e05173de61ca?geometry=31.107%2C-0.250%2C33.193%2C0.230
+ dem
+ http://2016africalandcover20m.esrin.esa.int/download.php
+ landcover
+ https://energydata.info/dataset/uganda-high-resolution-settlement-layer-2016
+ population
