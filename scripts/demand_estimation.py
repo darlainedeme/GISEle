@@ -13,12 +13,65 @@ initial_values = {
         "appliances": [
             {"name": "Indoor Bulb", "number": 6, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
             {"name": "Television", "number": 2, "power": 60, "num_windows": 3, "func_time": 180, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(720, 900), (1170, 1440), (0, 60)]},
-            # Add other appliances similarly...
+            {"name": "Refrigerator", "number": 1, "power": 150, "num_windows": 1, "func_time": 1440, "time_fraction_random_variability": 0.0, "func_cycle": 30, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 1440)]}
         ]
     },
-    # Define other user categories similarly...
+    "Middle-Income Household": {
+        "num_users": 75,
+        "appliances": [
+            {"name": "Indoor Bulb", "number": 3, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Television", "number": 1, "power": 60, "num_windows": 3, "func_time": 90, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(450, 660), (720, 840), (1170, 1440)]},
+            {"name": "Phone Charger", "number": 4, "power": 2, "num_windows": 1, "func_time": 300, "time_fraction_random_variability": 0.2, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1020, 1440)]}
+        ]
+    },
+    "Low-Income Household": {
+        "num_users": 50,
+        "appliances": [
+            {"name": "Indoor Bulb", "number": 2, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Outdoor Bulb", "number": 1, "power": 13, "num_windows": 2, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 330), (1170, 1440)]},
+            {"name": "Phone Charger", "number": 2, "power": 2, "num_windows": 1, "func_time": 300, "time_fraction_random_variability": 0.2, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1080, 1440)]}
+        ]
+    },
+    "Public Lighting": {
+        "num_users": 1,
+        "appliances": [
+            {"name": "Street Light", "number": 20, "power": 40, "num_windows": 2, "func_time": 310, "time_fraction_random_variability": 0.1, "func_cycle": 300, "fixed": "yes", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "yes", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 336), (1110, 1440)]},
+            {"name": "Community Light", "number": 10, "power": 150, "num_windows": 2, "func_time": 310, "time_fraction_random_variability": 0.1, "func_cycle": 300, "fixed": "yes", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "yes", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 336), (1110, 1440)]}
+        ]
+    },
+    "Rural School": {
+        "num_users": 1,
+        "appliances": [
+            {"name": "Indoor Bulb", "number": 8, "power": 7, "num_windows": 1, "func_time": 60, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1020, 1080)]},
+            {"name": "Laptop", "number": 18, "power": 50, "num_windows": 2, "func_time": 210, "time_fraction_random_variability": 0.1, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(510, 750), (810, 1080)]},
+            {"name": "Printer", "number": 1, "power": 20, "num_windows": 2, "func_time": 30, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(510, 750), (810, 1080)]}
+        ]
+    },
+    "Rural Hospital": {
+        "num_users": 1,
+        "appliances": [
+            {"name": "Indoor Bulb", "number": 12, "power": 7, "num_windows": 2, "func_time": 690, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(480, 720), (870, 1440)]},
+            {"name": "Fridge", "number": 2, "power": 150, "num_windows": 1, "func_time": 1440, "time_fraction_random_variability": 0.0, "func_cycle": 30, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 1440)]},
+            {"name": "Laptop", "number": 2, "power": 50, "num_windows": 2, "func_time": 300, "time_fraction_random_variability": 0.1, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(480, 720), (1050, 1440)]}
+        ]
+    },
+    "Commercial Shops": {
+        "num_users": 10,
+        "appliances": [
+            {"name": "Lighting", "number": 10, "power": 20, "num_windows": 2, "func_time": 300, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(600, 900), (1000, 1300)]},
+            {"name": "Refrigerator", "number": 1, "power": 150, "num_windows": 1, "func_time": 1440, "time_fraction_random_variability": 0.0, "func_cycle": 30, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 1440)]},
+            {"name": "Cash Register", "number": 1, "power": 50, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.1, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(600, 900), (1000, 1300)]}
+        ]
+    },
+    "Agricultural Processing": {
+        "num_users": 5,
+        "appliances": [
+            {"name": "Grinder", "number": 2, "power": 500, "num_windows": 1, "func_time": 240, "time_fraction_random_variability": 0.1, "func_cycle": 20, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(600, 840)]},
+            {"name": "Dryer", "number": 1, "power": 1000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.1, "func_cycle": 30, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(600, 1080)]},
+            {"name": "Lighting", "number": 10, "power": 20, "num_windows": 2, "func_time": 300, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(600, 900), (1000, 1300)]}
+        ]
+    }
 }
-
 # Function to display and edit user categories and appliances
 def display_user_category(category_name, category_data):
     st.subheader(category_name)
