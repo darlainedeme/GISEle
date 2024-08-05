@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import datetime
 from ramp import UseCase, User
 from ramp.post_process.post_process import Profile_formatting
+from datetime import time
 
 # Predefined appliance data
 appliance_data_dict = {
