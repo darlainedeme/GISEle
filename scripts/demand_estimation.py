@@ -156,7 +156,7 @@ def show():
         st.write("Load profile generation complete.")
 
         # Prepare data for plotting
-        profiles = np.array(load_profile).reshape(-1, 1440)  # Reshape to (days, minutes)
+        profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
         categories = list(st.session_state.user_data.keys())
         # Generating colors dynamically based on the number of categories
         num_categories = len(categories)
