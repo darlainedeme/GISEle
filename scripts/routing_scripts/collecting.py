@@ -8,7 +8,32 @@ from shapely.geometry import Point
 import shapely
 # from osgeo import gdal
 import zipfile
+import rasterio
+from rasterio.warp import calculate_default_transform, reproject, Resampling
 
+def reproject_raster(input_raster, output_raster, dst_crs):
+    with rasterio.open(input_raster) as src:
+        transform, width, height = calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds)
+        kwargs = src.meta.copy()
+        kwargs.update({
+            'crs': dst_crs,
+            'transform': transform,
+            'width': width,
+            'height': height
+        })
+
+        with rasterio.open(output_raster, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.nearest)
+                    
 def data_gathering(crs, study_area):
 
     #  Import layer with region boundaries and extract its extent
@@ -81,6 +106,7 @@ def data_gathering(crs, study_area):
         #out_img, out_transform = mask(raster=input_raster, shapes=study_area.geometry, crop=True)
         output_raster = 'Output\Datasets\Population\Population.tif'
         # gdal.Warp(output_raster, input_raster, dstSRS='EPSG:' + str(crs))
+        reproject_raster(input_raster, output_raster, 'EPSG:' + str(crs))
         jungle_zip = zipfile.ZipFile('Output\Datasets\Population\Population.zip', 'w')
         jungle_zip.write('Output\Datasets\Population\Population.tif',
                          compress_type=zipfile.ZIP_DEFLATED)
