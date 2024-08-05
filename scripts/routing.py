@@ -90,6 +90,7 @@ Rivers_option = False
 triangulation_logic = True
 population_dataset_type = 'buildings'
 
+'''
 #%%
 print('0. Clustering Procedures')
 
@@ -235,4 +236,4 @@ process_output.process(gisele_folder, case_study, crs, mg_option, reliability_op
 process_output.create_final_output(gisele_folder, case_study)
 if mg_option:
     process_output.analyze(gisele_folder, case_study, coe, mg_option, n_line_type)
-
+'''
