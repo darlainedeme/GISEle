@@ -9,9 +9,8 @@ def Load_results(instance):
 
     :param instance: The instance of the project resolution created by PYOMO.
     '''
-
-
-    with open('gisele/michele/Inputs/data.json') as f:
+    
+    with open('Inputs/data.json') as f:
         input_michele = json.load(f)
 
 
