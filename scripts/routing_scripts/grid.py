@@ -1,6 +1,6 @@
-from gisele.functions import *
+from functions import *
 from shapely.geometry import Point
-from gisele import Steinerman, Spiderman, dijkstra
+import Steinerman, Spiderman, dijkstra
 
 
 def routing(geo_df_clustered, geo_df, clusters_list, resolution,
