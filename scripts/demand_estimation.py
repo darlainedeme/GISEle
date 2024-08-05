@@ -70,8 +70,9 @@ def show():
                     occasional_use=appliance["occasional_use"], flat=appliance["flat"], thermal_P_var=appliance["thermal_P_var"], 
                     pref_index=appliance["pref_index"], wd_we_type=appliance["wd_we_type"]
                 )
-                for i, window in enumerate(appliance["windows"]):
-                    app.windows(window[0], window[1])
+                for i, window in enumerate(appliance["windows"], start=1):
+                    start, end = window
+                    app.windows(window_1=(start, end), window_2=(0, 0))  # Ensure proper tuple input for windows
                 users.append(user)
         
         today = datetime.today().strftime('%Y-%m-%d')
