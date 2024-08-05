@@ -123,10 +123,9 @@ def show():
     if st.button("Generate Demand"):
         st.write("Generating load profiles...")
         progress = st.progress(0)
-        combined_profile = np.zeros(1440)
 
+        users = []
         for category_name, category_data in st.session_state.user_data.items():
-            users = []
             user = User(user_name=category_name, num_users=category_data["num_users"])
             for appliance in category_data["appliances"]:
                 app = user.Appliance(
@@ -140,56 +139,35 @@ def show():
                 # Ensure total window time is greater than or equal to func_time
                 total_window_time = sum([end - start for start, end in appliance["windows"]])
                 if total_window_time < appliance["func_time"]:
-                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance["func_time"]}). Please adjust the time windows.")
+                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance['func_time']}). Please adjust the time windows.")
                     return
                 
                 for i, window in enumerate(appliance["windows"], start=1):
                     start, end = window
                     setattr(app, f"window_{i}", (start, end))
-            users.append(user)
-            
-            today = datetime.today().strftime('%Y-%m-%d')
-            use_case = UseCase(users=users, date_start=today, date_end=today)
-            load_profile = use_case.generate_daily_load_profiles()
-            category_profile = np.array(load_profile).reshape((len(load_profile) // 1440, 1440)).sum(axis=0)
-            combined_profile += category_profile
+                users.append(user)
+        
+        today = datetime.today().strftime('%Y-%m-%d')
+        use_case = UseCase(users=users, date_start=today, date_end=today)
+        load_profile = use_case.generate_daily_load_profiles()
 
-            progress.progress((list(st.session_state.user_data.keys()).index(category_name) + 1) / len(st.session_state.user_data))
-
+        progress.progress(100)
         st.write("Load profile generation complete.")
 
-        # Generating colors dynamically based on the number of categories
-        num_categories = len(st.session_state.user_data)
+        # Prepare data for plotting
+        profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
+        categories = list(st.session_state.user_data.keys())
+        num_categories = len(categories)
         colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
 
         # Stacked area chart
         fig, ax = plt.subplots(figsize=(12, 6))
 
         cumulative_profile = np.zeros(1440)
-        for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
-            users = []
-            user = User(user_name=category_name, num_users=category_data["num_users"])
-            for appliance in category_data["appliances"]:
-                app = user.Appliance(
-                    number=appliance["number"], power=appliance["power"], num_windows=appliance["num_windows"], 
-                    func_time=appliance["func_time"], time_fraction_random_variability=appliance["time_fraction_random_variability"], 
-                    func_cycle=appliance["func_cycle"], fixed=appliance["fixed"], fixed_cycle=appliance["fixed_cycle"], 
-                    occasional_use=appliance["occasional_use"], flat=appliance["flat"], thermal_P_var=appliance["thermal_P_var"], 
-                    pref_index=appliance["pref_index"], wd_we_type=appliance["wd_we_type"]
-                )
-
-                for i, window in enumerate(appliance["windows"], start=1):
-                    start, end = window
-                    setattr(app, f"window_{i}", (start, end))
-            users.append(user)
-            
-            today = datetime.today().strftime('%Y-%m-%d')
-            use_case = UseCase(users=users, date_start=today, date_end=today)
-            load_profile = use_case.generate_daily_load_profiles()
-            category_profile = np.array(load_profile).reshape((len(load_profile) // 1440, 1440)).sum(axis=0)
-            
-            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + category_profile, label=category_name, color=colors[i % num_categories])
-            cumulative_profile += category_profile
+        for i, category in enumerate(categories):
+            profile = profiles[i * 1440:(i + 1) * 1440]
+            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + profile, label=category, color=colors[i % num_categories])
+            cumulative_profile += profile
 
         ax.set_xlabel("Time (minutes)")
         ax.set_ylabel("Load (kW)")
@@ -198,7 +176,7 @@ def show():
         st.pyplot(fig)
 
         # Export to CSV
-        csv = pd.DataFrame(combined_profile).to_csv(index=False)
+        csv = pd.DataFrame(load_profile).to_csv(index=False)
         st.download_button(label="Download Load Profile as CSV", data=csv, file_name="load_profile.csv", mime='text/csv')
 
 if __name__ == "__main__":
