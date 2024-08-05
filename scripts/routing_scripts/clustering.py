@@ -14,7 +14,7 @@ import plotly.express as px
 from sklearn.cluster import DBSCAN
 import plotly.graph_objs as go
 import geopandas as gpd
-from gisele.functions import l, s
+from functions import l, s
 
 
 def sensitivity(resolution, pop_points, geo_df, eps, pts, spans, case_study):
