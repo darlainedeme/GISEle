@@ -3,6 +3,14 @@ st.set_page_config(layout="wide")
 
 from scripts import home, area_selection, data_retrieve, buildings, clustering, data_visualization, costs, summary_analysis, demand_estimation, routing, results
 
+import os
+import streamlit as st
+from osgeo import gdal  # Correct import
+
+# Set GDAL environment variables
+os.environ['GDAL_DATA'] = '/usr/share/gdal'
+os.environ['PROJ_LIB'] = '/usr/share/proj'
+
 # Define navigation
 main_nav = st.sidebar.radio("Navigation", [
     "Home", "Area Selection", "Data Retrieve", "Buildings", 
