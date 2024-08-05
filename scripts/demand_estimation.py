@@ -63,57 +63,50 @@ initial_values = {
     "Agricultural Processing": {
         "num_users": 1,
         "appliances": [
-            {"name": "Maize Mill", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
-            {"name": "Oil Expeller", "number": 1, "power": 7000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
+            {"name": "Maize Mill Agricultural Processing", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
+            {"name": "Oil Expeller Agricultural Processing", "number": 1, "power": 7000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
         ]
     },
     "Small-Scale Manufacturing": {
         "num_users": 1,
         "appliances": [
-            {"name": "Brick Kiln", "number": 1, "power": 20000, "num_windows": 1, "func_time": 720, "time_fraction_random_variability": 0.3, "func_cycle": 20, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 720)]},
-            {"name": "Textile Weaving Machine", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 600)]}
+            {"name": "Brick Kiln Small-Scale Manufacturing", "number": 1, "power": 20000, "num_windows": 1, "func_time": 720, "time_fraction_random_variability": 0.3, "func_cycle": 20, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 720)]},
+            {"name": "Textile Weaving Machine Small-Scale Manufacturing", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 600)]}
         ]
     },
     "Water Pumping": {
         "num_users": 1,
         "appliances": [
-            {"name": "Irrigation Pump", "number": 1, "power": 5000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]},
-            {"name": "Community Water Pump", "number": 1, "power": 2000, "num_windows": 1, "func_time": 180, "time_fraction_random_variability": 0.2, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 180)]}
-        ]
-    },
-    "Community Services": {
-        "num_users": 1,
-        "appliances": [
-            {"name": "Small Clinic", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 600)]},
-            {"name": "School", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]}
+            {"name": "Irrigation Pump Water Pumping", "number": 1, "power": 5000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]},
+            {"name": "Community Water Pump Water Pumping", "number": 1, "power": 2000, "num_windows": 1, "func_time": 180, "time_fraction_random_variability": 0.2, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 180)]}
         ]
     },
     "Food and Beverage Production": {
         "num_users": 1,
         "appliances": [
-            {"name": "Small Bakery", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
-            {"name": "Juice Production", "number": 1, "power": 3000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
+            {"name": "Small Bakery Food and Beverage Production", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
+            {"name": "Juice Production Food and Beverage Production", "number": 1, "power": 3000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
         ]
     },
     "Retail and Market Activities": {
         "num_users": 1,
         "appliances": [
-            {"name": "Small Shop", "number": 1, "power": 3000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
-            {"name": "Market Stalls", "number": 1, "power": 2000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
+            {"name": "Small Shop Retail and Market Activities", "number": 1, "power": 3000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
+            {"name": "Market Stalls Retail and Market Activities", "number": 1, "power": 2000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
         ]
     },
     "Craft Production": {
         "num_users": 1,
         "appliances": [
-            {"name": "Pottery Kiln", "number": 1, "power": 10000, "num_windows": 1, "func_time": 720, "time_fraction_random_variability": 0.3, "func_cycle": 20, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 720)]},
-            {"name": "Carpentry Workshop", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 600)]}
+            {"name": "Pottery Kiln Craft Production", "number": 1, "power": 10000, "num_windows": 1, "func_time": 720, "time_fraction_random_variability": 0.3, "func_cycle": 20, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 720)]},
+            {"name": "Carpentry Workshop Craft Production", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 600)]}
         ]
     },
     "Energy-Based Services": {
         "num_users": 1,
         "appliances": [
-            {"name": "Solar Charging Station", "number": 1, "power": 1000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]},
-            {"name": "Small Scale Renewable Energy Systems", "number": 1, "power": 2000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]}
+            {"name": "Solar Charging Station Energy-Based Services", "number": 1, "power": 1000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]},
+            {"name": "Small Scale Renewable Energy Systems Energy-Based Services", "number": 1, "power": 2000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]}
         ]
     }
 }
