@@ -12,7 +12,7 @@ from results import Load_results
 from components_initialization import importing
 from pyomo.opt import SolverFactory
 import pandas as pd
-import numpy as np  # Add this import for numpy
+import numpy as np
 
 # Ensure that numpy floats are correctly referenced
 _floats = [float, np.float16, np.float32, np.float64]
@@ -28,9 +28,9 @@ def start(load_profile, pv_avg, wt_avg, input_michele, ht_avg, n_mg):
     print('Starting model resolution')
 
     instance = model.create_instance(
-        r'gisele\michele\Inputs\data.json')  # Load parameters
+        os.path.join(current_dir, 'Inputs/data.json'))  # Load parameters
 
-    # opt = SolverFactory('cplex',executable=r'C:\Program Files\IBM\ILOG\CPLEX_Studio1210\cplex\bin\x64_win64\cplex')
+    # opt = SolverFactory('cplex', executable=r'C:\Program Files\IBM\ILOG\CPLEX_Studio1210\cplex\bin\x64_win64\cplex')
     opt = SolverFactory('gurobi')  # Solver use during the optimization
     opt.options['mipgap'] = 0.05
     print('Begin Optimization')
