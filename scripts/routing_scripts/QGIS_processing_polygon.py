@@ -1,7 +1,7 @@
 import zipfile
 import os
 import rasterio.mask
-from osgeo import gdal
+# from osgeo import gdal
 import geopandas as gpd
 import numpy as np
 import pandas as pd
