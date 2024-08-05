@@ -38,12 +38,42 @@ appliance_data_dict = {
 
 # Function to collect appliance info
 def collect_appliance_info(category, appliance, idx):
-    num_appliances = st.number_input(f"Number of {appliance}(s) in {category}", min_value=0, step=1, value=appliance_data_dict[category][appliance]["num"], key=f"num_{category}_{appliance}_{idx}")
-    power_rating = st.number_input(f"Power rating of each {appliance} (in watts)", min_value=0, step=1, value=appliance_data_dict[category][appliance]["power"], key=f"power_{category}_{appliance}_{idx}")
-    start_time = st.slider(f"Start time of use for {appliance}", min_value=0, max_value=1440, value=appliance_data_dict[category][appliance]["start"][0], key=f"start_{category}_{appliance}_{idx}")
-    end_time = st.slider(f"End time of use for {appliance}", min_value=0, max_value=1440, value=appliance_data_dict[category][appliance]["end"][1], key=f"end_{category}_{appliance}_{idx}")
-    coincidence_factor = st.number_input(f"Coincidence factor for {appliance}", min_value=0.0, max_value=1.0, step=0.01, value=appliance_data_dict[category][appliance]["coincidence"], key=f"coincidence_{category}_{appliance}_{idx}")
-    min_time_on = st.number_input(f"Minimum time the {appliance} is on (in hours)", min_value=0.0, max_value=24.0, step=0.5, value=appliance_data_dict[category][appliance]["min_time_on"], key=f"min_time_{category}_{appliance}_{idx}")
+    num_appliances = st.number_input(
+        f"Number of {appliance}(s) in {category}", 
+        min_value=0, step=1, 
+        value=int(appliance_data_dict[category][appliance]["num"]), 
+        key=f"num_{category}_{appliance}_{idx}"
+    )
+    power_rating = st.number_input(
+        f"Power rating of each {appliance} (in watts)", 
+        min_value=0, step=1, 
+        value=int(appliance_data_dict[category][appliance]["power"]), 
+        key=f"power_{category}_{appliance}_{idx}"
+    )
+    start_time = st.slider(
+        f"Start time of use for {appliance} (minutes from midnight)", 
+        min_value=0, max_value=1440, 
+        value=int(appliance_data_dict[category][appliance]["start"][0]), 
+        key=f"start_{category}_{appliance}_{idx}"
+    )
+    end_time = st.slider(
+        f"End time of use for {appliance} (minutes from midnight)", 
+        min_value=0, max_value=1440, 
+        value=int(appliance_data_dict[category][appliance]["end"][1]), 
+        key=f"end_{category}_{appliance}_{idx}"
+    )
+    coincidence_factor = st.number_input(
+        f"Coincidence factor for {appliance}", 
+        min_value=0.0, max_value=1.0, step=0.01, 
+        value=float(appliance_data_dict[category][appliance]["coincidence"]), 
+        key=f"coincidence_{category}_{appliance}_{idx}"
+    )
+    min_time_on = st.number_input(
+        f"Minimum time the {appliance} is on (in hours)", 
+        min_value=0.0, max_value=24.0, step=0.5, 
+        value=float(appliance_data_dict[category][appliance]["min_time_on"]), 
+        key=f"min_time_{category}_{appliance}_{idx}"
+    )
     return num_appliances, power_rating, start_time, end_time, coincidence_factor, min_time_on
 
 # Function to create user classes and appliances
@@ -80,12 +110,11 @@ def plot_load_profile(Profiles_series):
     num_days = len(Profiles_series) // minutes_per_day
     Profiles_reshaped = Profiles_series.reshape((num_days, minutes_per_day))
     Profiles_daily_avg = Profiles_reshaped.mean(axis=0)
-
+    Profiles_min = Profiles_reshaped.min(axis=0)
+    Profiles_max = Profiles_reshaped.max(axis=0)
     plt.figure(figsize=(15, 10))
     for day in Profiles_reshaped:
         plt.plot(day / 1000, color='lightgrey', linewidth=0.5, alpha=0.3)
-    Profiles_min = Profiles_reshaped.min(axis=0)
-    Profiles_max = Profiles_reshaped.max(axis=0)
     plt.fill_between(range(minutes_per_day), Profiles_min / 1000, Profiles_max / 1000, color='grey', alpha=0.3, label='Variability Range')
     plt.plot(Profiles_daily_avg / 1000, color='red', linewidth=2, label='Average Daily Profile')
     plt.title('Daily Average Load Curve')
@@ -96,7 +125,6 @@ def plot_load_profile(Profiles_series):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-
     return Profiles_daily_avg
 
 def show():
@@ -127,15 +155,12 @@ def show():
         progress_bar = st.progress(0)
         users = create_user_classes(appliance_data_combined)
         progress_bar.progress(50)
-
         today_date = datetime.date.today().strftime('%Y-%m-%d')
         load_profile = generate_load_profiles(users, today_date, today_date)
         progress_bar.progress(70)
-        
         st.write("**Load Profile Generated:**")
         Profiles_daily_avg = plot_load_profile(load_profile)
         progress_bar.progress(100)
-        
         df = pd.DataFrame(load_profile, columns=["Power (W)"])
         csv = df.to_csv(index=False).encode('utf-8')
         st.download_button(
