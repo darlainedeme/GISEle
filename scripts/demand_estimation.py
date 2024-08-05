@@ -179,6 +179,12 @@ def show():
         fig = go.Figure()
 
         today = datetime.today().strftime('%Y-%m-%d')
+        # Initialize the cumulative profile to zero
+        cumulative_profile = np.zeros(1440)
+        
+        # Create the figure
+        fig = go.Figure()
+
         
         for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
             user = User(user_name=category_name, num_users=category_data["num_users"])
@@ -203,33 +209,31 @@ def show():
 
             use_case = UseCase(users=[user], date_start=today, date_end=today)
             load_profile = use_case.generate_daily_load_profiles()
-
-            # Update progress
-            progress.progress((i + 1) / len(st.session_state.user_data))
-
-            # Add to cumulative profile
-            for minute, value in enumerate(load_profile):
-                cumulative_profile[minute] += value
-
-            # Add to figure
+           
+            category_profile = np.array(load_profile).reshape(-1, 1440).sum(axis=0)
+            
             fig.add_trace(go.Scatter(
-                x=list(range(1440)),
-                y=cumulative_profile,
-                mode='lines',
+                x=[i / 60 for i in range(1440)],
+                y=cumulative_profile + category_profile,
+                fill='tonexty',
                 name=category_name
             ))
+            cumulative_profile += category_profile
 
-        # Finalize and show the plot
+        progress.progress(100)
+        st.write("Load profile generation complete.")
+
         fig.update_layout(
-            title='Cumulative Load Profile',
-            xaxis_title='Minutes from Midnight',
-            yaxis_title='Load (W)',
-            xaxis=dict(range=[0, 1440]),
-            yaxis=dict(title='Cumulative Load (W)')
+            title="Daily Load Profile",
+            xaxis_title="Time (hours)",
+            yaxis_title="Load (kW)",
+            legend_title="Categories"
         )
         st.plotly_chart(fig)
-        st.write("Demand generation complete.")
 
-# Run the Streamlit app
+        # Export to CSV
+        csv = pd.DataFrame(cumulative_profile).to_csv(index=False)
+        st.download_button(label="Download Load Profile as CSV", data=csv, file_name="load_profile.csv", mime='text/csv')
+
 if __name__ == "__main__":
     show()
