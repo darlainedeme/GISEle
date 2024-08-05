@@ -33,80 +33,108 @@ import Local_area_optimization as LAO
 import MILP_Input_creation, MILP_models, process_output, grid_routing, Secondary_substations
 from OpenEnergyMapMIT_v1 import building_to_cluster_v1
 
-def set_stuff(): 
-    # 0 - Setting input
-    ############# INPUT ELECTRICAL PARAMETERS #############
+# Define function to set parameters
+def set_parameters():
+    st.sidebar.header("Set Parameters")
+    
+    gisele_folder = st.sidebar.text_input("Gisele Folder", os.getcwd())
+    country = st.sidebar.text_input("Country", 'Uganda')
+    case_study = st.sidebar.text_input("Case Study", 'awach555')
+    crs = st.sidebar.number_input("CRS", value=21095)
+    resolution = st.sidebar.number_input("Resolution", value=200)
+    voltage = st.sidebar.number_input("Voltage (kV)", value=110)
+    LV_base_cost = st.sidebar.number_input("LV Base Cost", value=10000)
+    load_capita = st.sidebar.number_input("Load per Capita (kW)", value=0.6)
+    pop_per_household = st.sidebar.number_input("Population per Household", value=5)
+    resolution_population = st.sidebar.number_input("Resolution Population", value=30)
+    ss_data = st.sidebar.text_input("SS Data File", 'ss_data_evn.csv')
+    coe = st.sidebar.number_input("Cost of Energy (euro/MWh)", value=60)
+    grid_lifetime = st.sidebar.number_input("Grid Lifetime (years)", value=40)
+    landcover_option = st.sidebar.text_input("Landcover Option", 'ESA')
 
-    # Parameters for MV cables
-    cable_specs = {
-        'line1': {"resistance": 0.306, "reactance": 0.33, "Pmax": 6.69, "line_cost": 10000},
-        'line2': {"resistance": 0.4132, "reactance": 0.339, "Pmax": 2, "line_cost": 7800},
-        'line3': {"resistance": 0.59, "reactance": 0.35, "Pmax": 0.8, "line_cost": 6700}
+    local_database = st.sidebar.checkbox("Local Database", value=True)
+    MITBuilding = st.sidebar.checkbox("MIT Building", value=True)
+    losses = st.sidebar.checkbox("Losses", value=False)
+    reliability_option = st.sidebar.checkbox("Reliability Option", value=False)
+    mg_option = st.sidebar.checkbox("Microgrid Option", value=False)
+    multi_objective_option = st.sidebar.checkbox("Multi Objective Option", value=False)
+    n_line_type = st.sidebar.number_input("Number of Line Types", value=1)
+    MV_coincidence = st.sidebar.number_input("MV Coincidence", value=0.8)
+    mg_types = st.sidebar.number_input("Microgrid Types", value=1)
+    Roads_option = st.sidebar.checkbox("Roads Option", value=True)
+    Rivers_option = st.sidebar.checkbox("Rivers Option", value=False)
+    triangulation_logic = st.sidebar.checkbox("Triangulation Logic", value=True)
+    population_dataset_type = st.sidebar.text_input("Population Dataset Type", 'buildings')
+
+    return {
+        "gisele_folder": gisele_folder,
+        "country": country,
+        "case_study": case_study,
+        "crs": crs,
+        "resolution": resolution,
+        "voltage": voltage,
+        "LV_base_cost": LV_base_cost,
+        "load_capita": load_capita,
+        "pop_per_household": pop_per_household,
+        "resolution_population": resolution_population,
+        "ss_data": ss_data,
+        "coe": coe,
+        "grid_lifetime": grid_lifetime,
+        "landcover_option": landcover_option,
+        "local_database": local_database,
+        "MITBuilding": MITBuilding,
+        "losses": losses,
+        "reliability_option": reliability_option,
+        "mg_option": mg_option,
+        "multi_objective_option": multi_objective_option,
+        "n_line_type": n_line_type,
+        "MV_coincidence": MV_coincidence,
+        "mg_types": mg_types,
+        "Roads_option": Roads_option,
+        "Rivers_option": Rivers_option,
+        "triangulation_logic": triangulation_logic,
+        "population_dataset_type": population_dataset_type
     }
 
-    ###########STARTING THE SCRIPT###########
+def run_routing(parameters):
+    gisele_folder = parameters["gisele_folder"]
+    country = parameters["country"]
+    case_study = parameters["case_study"]
+    crs = parameters["crs"]
+    resolution = parameters["resolution"]
+    voltage = parameters["voltage"]
+    LV_base_cost = parameters["LV_base_cost"]
+    load_capita = parameters["load_capita"]
+    pop_per_household = parameters["pop_per_household"]
+    resolution_population = parameters["resolution_population"]
+    ss_data = parameters["ss_data"]
+    coe = parameters["coe"]
+    grid_lifetime = parameters["grid_lifetime"]
+    landcover_option = parameters["landcover_option"]
+    local_database = parameters["local_database"]
+    MITBuilding = parameters["MITBuilding"]
+    losses = parameters["losses"]
+    reliability_option = parameters["reliability_option"]
+    mg_option = parameters["mg_option"]
+    multi_objective_option = parameters["multi_objective_option"]
+    n_line_type = parameters["n_line_type"]
+    MV_coincidence = parameters["MV_coincidence"]
+    mg_types = parameters["mg_types"]
+    Roads_option = parameters["Roads_option"]
+    Rivers_option = parameters["Rivers_option"]
+    triangulation_logic = parameters["triangulation_logic"]
+    population_dataset_type = parameters["population_dataset_type"]
 
-    # Location information
-    gisele_folder = os.getcwd()
-    villages_file = 'Communities/Communities.shp'
-    country = 'Uganda'
-    case_study = 'awach555'
-
-    #######################################################################
-    ###############   Electrical and geographical parameters ##############
-    #######################################################################
-
-    crs = 21095
-    resolution = 200
-    voltage = 110  # [kV]
-    LV_base_cost = 10000
-    load_capita = 0.6  # [kW]
-    pop_per_household = 5
-    resolution_population = 30
-
-    # Data used for local area optimization
-    max_length_segment = resolution_population * 1.5
-    simplify_coef = 5
-    crit_dist = simplify_coef / 2
-    LV_distance = 500
-    ss_data = 'ss_data_evn.csv'
-    simplify_road_coef_inside = 5
-    simplify_road_coef_outside = 30
-    road_coef = 2
-    roads_weight = 0.3
-    coe = 60  # euro/MWh of electrical energy supplied
-    grid_lifetime = 40  # years
-    landcover_option = 'ESA'
-
-    #######################################################################
-    ###############   Flags & Options #####################################
-    #######################################################################
-
-    local_database = True
-    MITBuilding = True
-    losses = False
-    reliability_option = False
-    mg_option = False
-    multi_objective_option = False
-    n_line_type = 1
-    MV_coincidence = 0.8
-    mg_types = 1
-    Roads_option = True
-    Rivers_option = False
-    triangulation_logic = True
-    population_dataset_type = 'buildings'
-
-def show():
     st.write('0. Clustering Procedures')
 
     shortProcedureFlag = False
-    database = os.path.join(os.getcwd(), 'Database')
-    study_area_folder = os.path.join(database, 'Uganda', 'Study_area', 'small_area_5.shp')
+    database = os.path.join(gisele_folder, 'Database')
+    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
     radius = 200
     density = 100
 
     try:
-        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, 21095, radius, density, shortProcedureFlag)
+        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
     except Exception as e:
         st.error(f"Error processing clustering: {e}")
 
@@ -236,3 +264,14 @@ def show():
     if mg_option:
         process_output.analyze(gisele_folder, case_study, coe, mg_option, n_line_type)
     '''
+# Main function
+def main():
+    st.title("Routing Procedures")
+
+    parameters = set_parameters()
+
+    if st.button("Run Routing"):
+        run_routing(parameters)
+
+if __name__ == "__main__":
+    main()
