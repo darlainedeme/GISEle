@@ -24,5 +24,4 @@ pyutilib
 iso8601
 numpy==1.26.4
 pyomo
-osgeo
 GDAL==3.6.2  # Specify the GDAL version you need
