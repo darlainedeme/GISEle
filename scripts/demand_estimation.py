@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import plotly.graph_objects as go
+import sys
+
+sys.setrecursionlimit(10000)
 
 # Define initial values for user categories and appliances
 initial_values = {
