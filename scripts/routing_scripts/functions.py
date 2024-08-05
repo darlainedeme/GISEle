@@ -18,8 +18,18 @@ from scipy.spatial import distance_matrix
 from scipy.spatial.distance import cdist
 from shapely.geometry import Point, box, LineString, MultiPoint
 from shapely.ops import split
-from gisele.michele.michele import start
-from gisele.data_import import import_pv_data, import_wind_data
+
+import sys
+
+# Get the current script path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Add the routing_scripts directory to the system path
+routing_scripts_path = os.path.join(current_dir, 'michele')
+sys.path.append(routing_scripts_path)
+
+from michele.michele import start
+from data_import import import_pv_data, import_wind_data
 from datetime import datetime
 
 
