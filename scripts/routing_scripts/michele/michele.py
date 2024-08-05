@@ -8,6 +8,9 @@ from gisele.michele.components_initialization import importing
 from pyomo.opt import SolverFactory
 import pandas as pd
 
+# Ensure that numpy floats are correctly referenced
+_floats = [np.float_, np.float16, np.float32, np.float64]
+
 def start(load_profile, pv_avg, wt_avg,input_michele, ht_avg,n_mg):
     input_load, wt_prod, pv_prod = importing(load_profile, pv_avg, wt_avg, ht_avg)
 
