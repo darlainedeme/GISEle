@@ -1,4 +1,4 @@
---find-links=https://girder.github.io/large_image_wheels GDAL
+git+https://github.com/OSGeo/gdal.git
 streamlit
 matplotlib
 streamlit_folium
