@@ -38,17 +38,17 @@ elif main_nav == "Clustering":
 elif main_nav == "Data Visualization and Enhancement":
     data_visualization.show()
 
-elif main_nav == "Costs":
-    costs.show()
-
 elif main_nav == "Summary Analysis":
     summary_analysis.show()
+    
+elif main_nav == "Costs":
+    costs.show()
 
 elif main_nav == "Demand Estimation":
     demand_estimation.show()
 
 elif main_nav == "Routing":
-    minigrid_sizing.show()
+    routing.show()
 
 elif main_nav == "Results":
     results.show()
