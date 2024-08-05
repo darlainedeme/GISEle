@@ -179,7 +179,13 @@ def show():
         fig = go.Figure()
 
         today = datetime.today().strftime('%Y-%m-%d')
+        # Initialize the cumulative profile to zero
+        cumulative_profile = np.zeros(1440)
+        
+        # Create the figure
+        fig = go.Figure()
 
+        
         for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
             user = User(user_name=category_name, num_users=category_data["num_users"])
             for appliance in category_data["appliances"]:
