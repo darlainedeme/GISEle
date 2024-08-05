@@ -34,11 +34,11 @@ from collections import Counter
 from statistics import mean
 from math import ceil
 from shapely import ops
-from gisele import initialization 
-from gisele import QGIS_processing_polygon
+import initialization 
+import QGIS_processing_polygon
 import pdb 
-from gisele.functions import *
-from gisele.functions2 import *
+from functions import *
+from functions2 import *
 from scipy.spatial import cKDTree
 from sklearn.cluster import AgglomerativeClustering
 from scipy.spatial.distance import pdist, squareform 
