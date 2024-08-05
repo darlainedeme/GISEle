@@ -172,7 +172,6 @@ def show():
             legend_title="Categories"
         )
         st.plotly_chart(fig)
-        
 
         # Export to CSV
         csv = pd.DataFrame(cumulative_profile).to_csv(index=False)
