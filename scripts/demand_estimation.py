@@ -13,6 +13,13 @@ initial_values = {
         "appliances": [
             {"name": "Indoor Bulb", "number": 6, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
             {"name": "Television", "number": 2, "power": 60, "num_windows": 3, "func_time": 180, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(720, 900), (1170, 1440), (0, 60)]},
+        ]
+    },
+    "Medium-Income Household": {
+        "num_users": 25,
+        "appliances": [
+            {"name": "Indoor Bulb", "number": 3, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Television", "number": 2, "power": 60, "num_windows": 3, "func_time": 180, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(720, 900), (1170, 1440), (0, 60)]},
             # Add other appliances similarly...
         ]
     },
