@@ -6,7 +6,7 @@ os.environ['PROJ_LIB'] = '/usr/share/proj'
 
 import zipfile
 import rasterio.mask
-from osgeo import gdal
+import gdal
 import geopandas as gpd
 import numpy as np
 import pandas as pd
