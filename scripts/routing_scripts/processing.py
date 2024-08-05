@@ -1,6 +1,6 @@
 import zipfile
 import rasterio.mask
-from osgeo import gdal
+# from osgeo import gdal
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -8,8 +8,26 @@ import rasterio
 from rasterio.enums import Resampling
 from shapely.geometry import Point, MultiPoint, MultiPolygon
 from shapely.ops import nearest_points
+from rasterio.transform import Affine
 
+def compute_slope(elevation_path, slope_path):
+    # Read the elevation data
+    with rasterio.open(elevation_path) as src:
+        elevation = src.read(1, resampling=Resampling.bilinear)
+        transform = src.transform
+        profile = src.profile
+    
+    # Compute the x and y gradients
+    dx, dy = np.gradient(elevation, transform.a, transform.e)
 
+    # Compute the slope
+    slope = np.sqrt(dx**2 + dy**2)
+
+    # Save the slope data to a new raster file
+    profile.update(dtype=rasterio.float32, count=1)
+    with rasterio.open(slope_path, 'w', **profile) as dst:
+        dst.write(slope.astype(rasterio.float32), 1)
+        
 def create_mesh(study_area, crs, resolution, imported_pop=pd.DataFrame()):
 
     print('Processing the imported data and creating the input csv file..')
@@ -79,12 +97,23 @@ def create_mesh(study_area, crs, resolution, imported_pop=pd.DataFrame()):
         if file_elevation[i].endswith('.tif'):
             raster_elevation = rasterio.open('Output/Datasets/Elevation/'
                                              + file_elevation[i])
-            # compute slope
-            gdal.DEMProcessing('Output/Datasets/Elevation/slope.tif',
-                               'Output/Datasets/Elevation/' + file_elevation[
-                                   i],
-                               'slope')
+                                             
+            # compute slope using GDAL (commented out)
+            # gdal.DEMProcessing('Output/Datasets/Elevation/slope.tif',
+            #                    'Output/Datasets/Elevation/' + file_elevation[i],
+            #                    'slope')
+
+            # New method to compute slope
+            elevation_file = 'Output/Datasets/Elevation/' + file_elevation[i]
+            slope_file = 'Output/Datasets/Elevation/slope.tif'
+            compute_slope(elevation_file, slope_file)
+            
             raster_slope = rasterio.open('Output/Datasets/Elevation/slope.tif')
+            # Compute the slope
+            compute_slope(elevation_file, slope_file)
+
+            # Open the slope file to use it later
+            raster_slope = rasterio.open(slope_file)
 
         if file_land_cover[i].endswith('.tif'):
             raster_land_cover = rasterio.open('Output/Datasets/LandCover/'
