@@ -1,6 +1,6 @@
-from gisele.functions import *
+from functions import *
 from shapely.geometry import Point,box
-from gisele import Steinerman, Spiderman, dijkstra
+import Steinerman, Spiderman, dijkstra
 
 def routing_secondary_substations(input_dir_dir,dir,geo_df_clustered, geo_df, clusters_list, resolution,
             pop_thresh, input_sub, line_bc, sub_cost_hv, sub_cost_mv,Roads,clus):

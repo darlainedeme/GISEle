@@ -2,8 +2,8 @@ import networkx as nx
 import time
 import math
 from scipy import sparse
-from gisele.functions import *
-from gisele.Steiner_tree_code import *
+from functions import *
+from Steiner_tree_code import *
 
 
 def steiner(geo_df, gdf_cluster_pop, line_bc, resolution,Rivers_option, branch_points=None):
