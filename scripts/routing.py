@@ -112,6 +112,7 @@ def show():
 
     st.write("Processing completed")
 
+    '''
     # 2- New case study creation
     case_study_path = os.path.join('Case studies', case_study)
     if not os.path.exists(case_study_path):
@@ -234,4 +235,4 @@ def show():
     process_output.create_final_output(gisele_folder, case_study)
     if mg_option:
         process_output.analyze(gisele_folder, case_study, coe, mg_option, n_line_type)
-
+    '''
