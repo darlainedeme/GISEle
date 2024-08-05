@@ -13,6 +13,9 @@ from scipy.ndimage import convolve
 from scipy.spatial import cKDTree
 from sklearn.cluster import AgglomerativeClustering
 from scipy.spatial.distance import pdist, squareform
+from cleaning import *
+from functions import *
+from functions2 import *
 
 def set_stuff(): 
     # Get the current script path
@@ -23,9 +26,6 @@ def set_stuff():
     sys.path.append(routing_scripts_path)
 
     # Import custom modules
-    from cleaning import *
-    from functions import *
-    from functions2 import *
     import initialization, clustering, processing, collecting, optimization, results, grid, branches
     import QGIS_processing_polygon as qgis_process
     import Local_area_optimization as LAO
