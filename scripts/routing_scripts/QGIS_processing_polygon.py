@@ -9,7 +9,7 @@ import rasterio
 from rasterio.enums import Resampling
 from shapely.geometry import Point, MultiPoint, Polygon
 from shapely.ops import nearest_points
-from shapely.geometry import ops
+from shapely import ops
 from rasterio.plot import show
 from rasterio.mask import mask
 import json
