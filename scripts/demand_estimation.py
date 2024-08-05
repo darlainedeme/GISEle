@@ -157,7 +157,7 @@ def show():
 
         # Ensure load_profile is the correct shape before reshaping
         profile_length = len(load_profile)
-        expected_length = len(st.session_state.user_data) * 1440
+        expected_length = sum([data["num_users"] for data in st.session_state.user_data.values()]) * 1440
 
         # Debug information to check the shape
         st.write(f"Generated load profile length: {profile_length}")
@@ -168,7 +168,7 @@ def show():
             return
 
         # Prepare data for plotting
-        profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
+        profiles = np.array(load_profile).reshape((sum([data["num_users"] for data in st.session_state.user_data.values()]), 1440))  # Ensure profiles are reshaped correctly
         categories = list(st.session_state.user_data.keys())
         # Generating colors dynamically based on the number of categories
         num_categories = len(categories)
@@ -179,7 +179,7 @@ def show():
 
         cumulative_profile = np.zeros(1440)
         for i, category in enumerate(categories):
-            profile = profiles[i]
+            profile = profiles[i * 1440:(i + 1) * 1440]
             ax.fill_between(range(1440), cumulative_profile, cumulative_profile + profile, label=category, color=colors[i % num_categories])
             cumulative_profile += profile
 
@@ -188,6 +188,7 @@ def show():
         ax.legend(loc='upper right')
         ax.set_title("Daily Load Profile")
         st.pyplot(fig)
+
 
 
         # Export to CSV
