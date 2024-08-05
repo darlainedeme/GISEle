@@ -151,7 +151,7 @@ def show():
             today = datetime.today().strftime('%Y-%m-%d')
             use_case = UseCase(users=users, date_start=today, date_end=today)
             load_profile = use_case.generate_daily_load_profiles()
-            category_profile = np.array(load_profile).reshape((category_data["num_users"], 1440)).sum(axis=0)
+            category_profile = np.array(load_profile).reshape((len(load_profile) // 1440, 1440)).sum(axis=0)
             combined_profile += category_profile
 
             progress.progress((list(st.session_state.user_data.keys()).index(category_name) + 1) / len(st.session_state.user_data))
@@ -166,12 +166,29 @@ def show():
         fig, ax = plt.subplots(figsize=(12, 6))
 
         cumulative_profile = np.zeros(1440)
-        for i, category in enumerate(st.session_state.user_data.keys()):
-            category_data = st.session_state.user_data[category]
-            category_users = category_data["num_users"]
-            category_profile = combined_profile[:category_users].sum(axis=0)
-            combined_profile = combined_profile[category_users:]
-            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + category_profile, label=category, color=colors[i % num_categories])
+        for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
+            users = []
+            user = User(user_name=category_name, num_users=category_data["num_users"])
+            for appliance in category_data["appliances"]:
+                app = user.Appliance(
+                    number=appliance["number"], power=appliance["power"], num_windows=appliance["num_windows"], 
+                    func_time=appliance["func_time"], time_fraction_random_variability=appliance["time_fraction_random_variability"], 
+                    func_cycle=appliance["func_cycle"], fixed=appliance["fixed"], fixed_cycle=appliance["fixed_cycle"], 
+                    occasional_use=appliance["occasional_use"], flat=appliance["flat"], thermal_P_var=appliance["thermal_P_var"], 
+                    pref_index=appliance["pref_index"], wd_we_type=appliance["wd_we_type"]
+                )
+
+                for i, window in enumerate(appliance["windows"], start=1):
+                    start, end = window
+                    setattr(app, f"window_{i}", (start, end))
+            users.append(user)
+            
+            today = datetime.today().strftime('%Y-%m-%d')
+            use_case = UseCase(users=users, date_start=today, date_end=today)
+            load_profile = use_case.generate_daily_load_profiles()
+            category_profile = np.array(load_profile).reshape((len(load_profile) // 1440, 1440)).sum(axis=0)
+            
+            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + category_profile, label=category_name, color=colors[i % num_categories])
             cumulative_profile += category_profile
 
         ax.set_xlabel("Time (minutes)")
