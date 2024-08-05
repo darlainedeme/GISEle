@@ -66,15 +66,15 @@ initial_values = {
     "Agricultural Processing": {
         "num_users": 1,
         "appliances": [
-            {"name": "Maize Mill Agricultural Processing", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 480)]},
-            {"name": "Oil Expeller Agricultural Processing", "number": 1, "power": 7000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 360)]}
+            {"name": "Maize Mill Agricultural Processing", "number": 1, "power": 5000, "num_windows": 1, "func_time": 480, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(480, 960)]},
+            {"name": "Oil Expeller Agricultural Processing", "number": 1, "power": 7000, "num_windows": 1, "func_time": 360, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(500, 1000)]}
         ]
     },
     "Small-Scale Manufacturing": {
         "num_users": 1,
         "appliances": [
-            {"name": "Brick Kiln Small-Scale Manufacturing", "number": 1, "power": 20000, "num_windows": 1, "func_time": 720, "time_fraction_random_variability": 0.3, "func_cycle": 20, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 720)]},
-            {"name": "Textile Weaving Machine Small-Scale Manufacturing", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 600)]}
+            {"name": "Brick Kiln Small-Scale Manufacturing", "number": 1, "power": 20000, "num_windows": 1, "func_time": 720, "time_fraction_random_variability": 0.3, "func_cycle": 20, "fixed": "yes", "fixed_cycle": 3, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(480, 800)]},
+            {"name": "Textile Weaving Machine Small-Scale Manufacturing", "number": 1, "power": 3000, "num_windows": 1, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(300, 700)]}
         ]
     },
     "Water Pumping": {
