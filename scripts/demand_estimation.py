@@ -64,17 +64,21 @@ def display_user_category(category_name, category_data):
     appliances = []
     for appliance in category_data["appliances"]:
         st.markdown(f"**{appliance['name']}**")
+
+        # Debugging prints
+        st.write(f"Debug: {appliance}")
+
         appliance["number"] = st.number_input(f"Number of {appliance['name']} ({category_name})", min_value=1, value=appliance["number"])
         appliance["power"] = st.number_input(f"Power of {appliance['name']} ({category_name}) (W)", min_value=1, value=appliance["power"])
         appliance["num_windows"] = st.number_input(f"Number of Windows for {appliance['name']} ({category_name})", min_value=1, value=appliance["num_windows"])
         appliance["func_time"] = st.number_input(f"Functioning Time of {appliance['name']} ({category_name}) (minutes)", min_value=1, value=appliance["func_time"])
-        appliance["time_fraction_random_variability"] = st.number_input(f"Time Fraction Random Variability for {appliance['name']} ({category_name})", min_value=0.0, max_value=1.0, value=appliance["time_fraction_random_variability"])
+        appliance["time_fraction_random_variability"] = st.number_input(f"Time Fraction Random Variability for {appliance['name']} ({category_name})", min_value=0.0, max_value=1.0, value=float(appliance["time_fraction_random_variability"]))
         appliance["func_cycle"] = st.number_input(f"Functioning Cycle of {appliance['name']} ({category_name}) (minutes)", min_value=1, value=appliance["func_cycle"])
         appliance["fixed"] = st.selectbox(f"Fixed Operation for {appliance['name']} ({category_name})", options=["yes", "no"], index=["yes", "no"].index(appliance["fixed"]))
         appliance["fixed_cycle"] = st.number_input(f"Fixed Cycle for {appliance['name']} ({category_name})", min_value=0, value=appliance["fixed_cycle"])
-        appliance["occasional_use"] = st.number_input(f"Occasional Use for {appliance['name']} ({category_name})", min_value=0.0, max_value=1.0, value=appliance["occasional_use"])
+        appliance["occasional_use"] = st.number_input(f"Occasional Use for {appliance['name']} ({category_name})", min_value=0.0, max_value=1.0, value=float(appliance["occasional_use"]))
         appliance["flat"] = st.selectbox(f"Flat Usage for {appliance['name']} ({category_name})", options=["yes", "no"], index=["yes", "no"].index(appliance["flat"]))
-        appliance["thermal_P_var"] = st.number_input(f"Thermal Power Variability for {appliance['name']} ({category_name})", min_value=0.0, max_value=1.0, value=appliance["thermal_P_var"])
+        appliance["thermal_P_var"] = st.number_input(f"Thermal Power Variability for {appliance['name']} ({category_name})", min_value=0.0, max_value=1.0, value=float(appliance["thermal_P_var"]))
         appliance["pref_index"] = st.number_input(f"Preference Index for {appliance['name']} ({category_name})", min_value=0, value=appliance["pref_index"])
         appliance["wd_we_type"] = st.number_input(f"Weekday/Weekend Type for {appliance['name']} ({category_name})", min_value=0, max_value=2, value=appliance["wd_we_type"])
         appliances.append(appliance)
