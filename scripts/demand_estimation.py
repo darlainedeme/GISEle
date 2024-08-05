@@ -161,6 +161,7 @@ def show():
     for category_name in list(st.session_state.user_data.keys()):
         with st.expander(f"{category_name} (Click to expand/collapse)", expanded=False):
             category_data = st.session_state.user_data[category_name]
+            # Call to a function to display/edit user category details
             user_data = display_user_category(category_name, category_data)
             st.session_state.user_data[category_name] = user_data
             if st.button(f"Remove {category_name}"):
