@@ -37,7 +37,7 @@ from OpenEnergyMapMIT_v1 import building_to_cluster_v1
 def set_parameters():
     st.header("Set Parameters")
     
-    gisele_folder = st.text_input("Gisele Folder", "scripts", "routing_scripts")
+    gisele_folder = st.text_input("Gisele Folder", os.getcwd())
     country = st.text_input("Country", 'Uganda')
     case_study = st.text_input("Case Study", 'awach555')
     crs = st.number_input("CRS", value=21095)
@@ -128,7 +128,7 @@ def run_routing(parameters):
     st.write('0. Clustering Procedures')
 
     shortProcedureFlag = False
-    database = os.path.join(gisele_folder, 'Database')
+    database = os.path.join(gisele_folder, 'scripts', 'routing_scripts', 'Database')
     study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
     radius = 200
     density = 100
