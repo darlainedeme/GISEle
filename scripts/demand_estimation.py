@@ -1,3 +1,10 @@
+import streamlit as st
+from ramp import UseCase, User
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import plotly.graph_objects as go
+
 # Define initial values for user categories and appliances
 initial_values = {
     "High-Income Household": {
@@ -54,13 +61,6 @@ initial_values = {
         ]
     }
 }
-
-import streamlit as st
-from ramp import UseCase, User
-import pandas as pd
-import numpy as np
-from datetime import datetime
-import plotly.graph_objects as go
 
 # Function to display and edit user categories and appliances
 def display_user_category(category_name, category_data):
