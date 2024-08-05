@@ -80,8 +80,11 @@ def collect_appliance_info(category, appliance, idx):
 def create_user_classes(appliance_data):
     users = []
     for category, appliance_info in appliance_data.items():
+        st.write(category)
+        
         user = User(user_name=category, num_users=appliance_info['num_users'])
         for appliance in appliance_info['appliances']:
+            st.write(appliance)
             app = user.Appliance(
                 appliance['num_appliances'],
                 appliance['power_rating'],
