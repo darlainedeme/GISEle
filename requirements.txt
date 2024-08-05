@@ -1,4 +1,4 @@
-git+https://github.com/OSGeo/gdal.git
+# git+https://github.com/OSGeo/gdal.git
 streamlit
 matplotlib
 streamlit_folium
