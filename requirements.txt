@@ -23,3 +23,4 @@ rampdemand
 pyutilib
 iso8601
 pyomo
+numpy<2.0.0
