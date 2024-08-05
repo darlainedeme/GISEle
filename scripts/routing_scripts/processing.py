@@ -1,5 +1,10 @@
-import zipfile
 import os
+
+# Set GDAL environment variables
+os.environ['GDAL_DATA'] = '/usr/share/gdal'
+os.environ['PROJ_LIB'] = '/usr/share/proj'
+
+import zipfile
 import rasterio.mask
 from osgeo import gdal
 import geopandas as gpd
