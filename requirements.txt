@@ -22,5 +22,5 @@ openpyxl
 rampdemand
 pyutilib
 iso8601
+numpy==1.26.4
 pyomo
-numpy<2.0.0
