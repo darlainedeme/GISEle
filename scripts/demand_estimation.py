@@ -9,32 +9,17 @@ from ramp.post_process.post_process import Profile_formatting
 # Predefined appliance data
 appliance_data_dict = {
     "High-Income Household": {
-        "Indoor bulb": {"power": 7, "num": 6, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.1, "min_time_on": 2.0},
-        "Television": {"power": 60, "num": 2, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 3.0},
-        "DVD": {"power": 8, "num": 1, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
-        "Antenna": {"power": 8, "num": 1, "start": [720, 900], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 2.0},
-        "Phone charger": {"power": 2, "num": 5, "start": [1110, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 5.0},
-        "Freezer": {"power": 200, "num": 1, "start": [0, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0},
-        "Mixer": {"power": 50, "num": 1, "start": [420, 480], "end": [660, 750], "coincidence": 0.35, "min_time_on": 1.0}
+        "Indoor bulb": {"power": 7, "num": 6, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 2},
+        "Television": {"power": 60, "num": 2, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 3},
+        "DVD": {"power": 8, "num": 1, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 1},
+        "Antenna": {"power": 8, "num": 1, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 2},
+        "Phone charger": {"power": 2, "num": 5, "start": time(18, 30), "end": time(23, 59), "coincidence": 0.2, "min_time_on": 5},
+        "Freezer": {"power": 200, "num": 1, "start": time(0, 0), "end": time(23, 59), "coincidence": 0.0, "min_time_on": 24},
+        "Mixer": {"power": 50, "num": 1, "start": time(7, 0), "end": time(20, 0), "coincidence": 0.1, "min_time_on": 1},
     },
-    "Middle-Income Household": {
-        "Indoor bulb": {"power": 7, "num": 3, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 2.0},
-        "Outdoor bulb": {"power": 13, "num": 2, "start": [0, 330], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 10.0},
-        "Television": {"power": 60, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.5},
-        "DVD": {"power": 8, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 0.5},
-        "Antenna": {"power": 8, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
-        "Phone charger": {"power": 2, "num": 4, "start": [1020, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0},
-        "Mixer": {"power": 50, "num": 1, "start": [660, 750], "end": [1110, 1200], "coincidence": 0.35, "min_time_on": 1.0}
-    },
-    "Low-Income Household": {
-        "Indoor bulb": {"power": 7, "num": 2, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 2.0},
-        "Outdoor bulb": {"power": 13, "num": 1, "start": [0, 330], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 10.0},
-        "Television": {"power": 60, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.5},
-        "DVD": {"power": 8, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 0.5},
-        "Antenna": {"power": 8, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
-        "Phone charger": {"power": 2, "num": 2, "start": [1080, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0}
-    }
+    # Add other categories similarly
 }
+
 
 # Function to collect appliance info
 def collect_appliance_info(category, appliance, idx):
