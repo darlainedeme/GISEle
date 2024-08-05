@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 
 # Get the current script path
 current_dir = os.path.dirname(os.path.abspath(__file__))
