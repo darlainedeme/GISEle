@@ -10,16 +10,26 @@ from datetime import time
 # Predefined appliance data
 appliance_data_dict = {
     "High-Income Household": {
-        "Indoor bulb": {"power": 7, "num": 6, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 5},
-        "Television": {"power": 60, "num": 2, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 3},
-        "DVD": {"power": 8, "num": 1, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 1},
-        "Antenna": {"power": 8, "num": 1, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 2},
-        "Phone charger": {"power": 2, "num": 5, "start": time(18, 30), "end": time(23, 59), "coincidence": 0.2, "min_time_on": 5},
-        "Freezer": {"power": 200, "num": 1, "start": time(0, 0), "end": time(23, 59), "coincidence": 0.0, "min_time_on": 24},
-        "Mixer": {"power": 50, "num": 1, "start": time(7, 0), "end": time(20, 0), "coincidence": 0.1, "min_time_on": 1},
+        "Indoor bulb": {"power": 7, "num": 6, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 2},
+        "Television": {"power": 60, "num": 2, "start": time(12, 0), "end": time(23, 59), "coincidence": 0.7, "min_time_on": 3},
+        "Freezer": {"power": 200, "num": 1, "start": time(0, 0), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 24}
+        # Add other appliances as necessary
     },
-    # Add other categories similarly
+    "Middle-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 3, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 2},
+        "Television": {"power": 60, "num": 1, "start": time(12, 0), "end": time(23, 59), "coincidence": 0.7, "min_time_on": 3},
+        "Freezer": {"power": 200, "num": 1, "start": time(0, 0), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 24}
+        # Add other appliances as necessary
+    },
+    "Low-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 2, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 2},
+        "Television": {"power": 60, "num": 1, "start": time(12, 0), "end": time(23, 59), "coincidence": 0.7, "min_time_on": 3},
+        "Freezer": {"power": 200, "num": 1, "start": time(0, 0), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 24}
+        # Add other appliances as necessary
+    }
+    # Add other categories as necessary
 }
+
 
 
 # Function to collect appliance info
@@ -31,11 +41,7 @@ def collect_appliance_info(category, appliance, idx):
     end_time = st.time_input(f"End time of use for {appliance}", value=appliance_data_dict[category][appliance]["end"], key=f"end_{category}_{appliance}_{idx}")
     coincidence_factor = st.number_input(f"Coincidence factor for {appliance}", min_value=0.0, max_value=1.0, step=0.01, value=appliance_data_dict[category][appliance]["coincidence"], key=f"coincidence_{category}_{appliance}_{idx}")
     min_time_on = st.number_input(f"Minimum time the {appliance} is on (in hours)", min_value=0.0, max_value=24.0, step=0.5, value=appliance_data_dict[category][appliance]["min_time_on"], key=f"min_time_{category}_{appliance}_{idx}")
-    
-    start_time_minutes = start_time.hour * 60 + start_time.minute
-    end_time_minutes = end_time.hour * 60 + end_time.minute
-    
-    return num_appliances, power_rating, start_time_minutes, end_time_minutes, coincidence_factor, min_time_on
+    return num_appliances, power_rating, start_time, end_time, coincidence_factor, min_time_on
 
 # Function to create user classes and appliances
 def create_user_classes(appliance_data):
@@ -68,7 +74,19 @@ def create_user_classes(appliance_data):
         users.append(user)
     return users
 
+def model_usage(start_hour, end_hour, num_appliances, power, coincidence_factor, min_time_on):
+    usage = np.zeros(24)
+    if end_hour > start_hour:
+        hours_of_use = range(start_hour, end_hour)
+    else:
+        hours_of_use = list(range(start_hour, 24)) + list(range(0, end_hour))
 
+    active_hours = np.random.choice(hours_of_use, size=int(len(hours_of_use) * coincidence_factor), replace=False)
+    for hour in active_hours:
+        usage[hour] = power * num_appliances * np.random.uniform(0.5, 1.0)
+
+    return usage
+    
 def generate_load_profiles(users, start_date, end_date):
     use_case = UseCase(users=users, date_start=start_date, date_end=end_date)
     load_profile = use_case.generate_daily_load_profiles()
