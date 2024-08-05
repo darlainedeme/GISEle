@@ -1,3 +1,8 @@
+import os
+
+# Get the current script path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 from pyomo.environ import AbstractModel, Var, value
 from components_creation import Model_Creation
 from model_solve import Model_Resolution
