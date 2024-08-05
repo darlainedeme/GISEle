@@ -155,7 +155,8 @@ def show():
         st.write("Load profile generation complete.")
 
         # Prepare data for plotting
-        profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
+        total_users = sum(v["num_users"] for v in st.session_state.user_data.values())
+        profiles = np.array(load_profile).reshape((total_users, 1440))  # Ensure profiles are reshaped correctly
         categories = list(st.session_state.user_data.keys())
         num_categories = len(categories)
         colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
@@ -165,9 +166,11 @@ def show():
 
         cumulative_profile = np.zeros(1440)
         for i, category in enumerate(categories):
-            profile = profiles[i * 1440:(i + 1) * 1440]
-            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + profile, label=category, color=colors[i % num_categories])
-            cumulative_profile += profile
+            category_users = st.session_state.user_data[category]["num_users"]
+            category_profile = profiles[:category_users].sum(axis=0)
+            profiles = profiles[category_users:]
+            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + category_profile, label=category, color=colors[i % num_categories])
+            cumulative_profile += category_profile
 
         ax.set_xlabel("Time (minutes)")
         ax.set_ylabel("Load (kW)")
