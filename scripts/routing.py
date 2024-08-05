@@ -11,84 +11,85 @@ import time
 import rasterio
 import sys
 
-# Get the current script path
-current_dir = os.path.dirname(os.path.abspath(__file__))
+def set_stuff(): 
+    # Get the current script path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Add the routing_scripts directory to the system path
-routing_scripts_path = os.path.join(current_dir, 'routing_scripts')
-sys.path.append(routing_scripts_path)
+    # Add the routing_scripts directory to the system path
+    routing_scripts_path = os.path.join(current_dir, 'routing_scripts')
+    sys.path.append(routing_scripts_path)
 
-# Import custom modules
-from cleaning import *
-from functions import *
-from functions2 import *
-import initialization, clustering, processing, collecting, optimization, results, grid, branches
-import QGIS_processing_polygon as qgis_process
-import Local_area_optimization as LAO
-import MILP_Input_creation, MILP_models, process_output, grid_routing, Secondary_substations
-from OpenEnergyMapMIT_v1 import building_to_cluster_v1
+    # Import custom modules
+    from cleaning import *
+    from functions import *
+    from functions2 import *
+    import initialization, clustering, processing, collecting, optimization, results, grid, branches
+    import QGIS_processing_polygon as qgis_process
+    import Local_area_optimization as LAO
+    import MILP_Input_creation, MILP_models, process_output, grid_routing, Secondary_substations
+    from OpenEnergyMapMIT_v1 import building_to_cluster_v1
 
-# 0 - Setting input
-############# INPUT ELECTRICAL PARAMETERS #############
+    # 0 - Setting input
+    ############# INPUT ELECTRICAL PARAMETERS #############
 
-# Parameters for MV cables
-cable_specs = {
-    'line1': {"resistance": 0.306, "reactance": 0.33, "Pmax": 6.69, "line_cost": 10000},
-    'line2': {"resistance": 0.4132, "reactance": 0.339, "Pmax": 2, "line_cost": 7800},
-    'line3': {"resistance": 0.59, "reactance": 0.35, "Pmax": 0.8, "line_cost": 6700}
-}
+    # Parameters for MV cables
+    cable_specs = {
+        'line1': {"resistance": 0.306, "reactance": 0.33, "Pmax": 6.69, "line_cost": 10000},
+        'line2': {"resistance": 0.4132, "reactance": 0.339, "Pmax": 2, "line_cost": 7800},
+        'line3': {"resistance": 0.59, "reactance": 0.35, "Pmax": 0.8, "line_cost": 6700}
+    }
 
-###########STARTING THE SCRIPT###########
+    ###########STARTING THE SCRIPT###########
 
-# Location information
-gisele_folder = os.getcwd()
-villages_file = 'Communities/Communities.shp'
-country = 'Uganda'
-case_study = 'awach555'
+    # Location information
+    gisele_folder = os.getcwd()
+    villages_file = 'Communities/Communities.shp'
+    country = 'Uganda'
+    case_study = 'awach555'
 
-#######################################################################
-###############   Electrical and geographical parameters ##############
-#######################################################################
+    #######################################################################
+    ###############   Electrical and geographical parameters ##############
+    #######################################################################
 
-crs = 21095
-resolution = 200
-voltage = 110  # [kV]
-LV_base_cost = 10000
-load_capita = 0.6  # [kW]
-pop_per_household = 5
-resolution_population = 30
+    crs = 21095
+    resolution = 200
+    voltage = 110  # [kV]
+    LV_base_cost = 10000
+    load_capita = 0.6  # [kW]
+    pop_per_household = 5
+    resolution_population = 30
 
-# Data used for local area optimization
-max_length_segment = resolution_population * 1.5
-simplify_coef = 5
-crit_dist = simplify_coef / 2
-LV_distance = 500
-ss_data = 'ss_data_evn.csv'
-simplify_road_coef_inside = 5
-simplify_road_coef_outside = 30
-road_coef = 2
-roads_weight = 0.3
-coe = 60  # euro/MWh of electrical energy supplied
-grid_lifetime = 40  # years
-landcover_option = 'ESA'
+    # Data used for local area optimization
+    max_length_segment = resolution_population * 1.5
+    simplify_coef = 5
+    crit_dist = simplify_coef / 2
+    LV_distance = 500
+    ss_data = 'ss_data_evn.csv'
+    simplify_road_coef_inside = 5
+    simplify_road_coef_outside = 30
+    road_coef = 2
+    roads_weight = 0.3
+    coe = 60  # euro/MWh of electrical energy supplied
+    grid_lifetime = 40  # years
+    landcover_option = 'ESA'
 
-#######################################################################
-###############   Flags & Options #####################################
-#######################################################################
+    #######################################################################
+    ###############   Flags & Options #####################################
+    #######################################################################
 
-local_database = True
-MITBuilding = True
-losses = False
-reliability_option = False
-mg_option = False
-multi_objective_option = False
-n_line_type = 1
-MV_coincidence = 0.8
-mg_types = 1
-Roads_option = True
-Rivers_option = False
-triangulation_logic = True
-population_dataset_type = 'buildings'
+    local_database = True
+    MITBuilding = True
+    losses = False
+    reliability_option = False
+    mg_option = False
+    multi_objective_option = False
+    n_line_type = 1
+    MV_coincidence = 0.8
+    mg_types = 1
+    Roads_option = True
+    Rivers_option = False
+    triangulation_logic = True
+    population_dataset_type = 'buildings'
 
 def show():
 
