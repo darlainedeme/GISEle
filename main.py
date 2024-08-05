@@ -17,7 +17,7 @@ main_nav = st.sidebar.radio("Navigation", [
     "Home", "Area Selection", "Data Retrieve", "Buildings", 
     "Clustering", "Data Visualization and Enhancement", 
     "Summary Analysis", "Costs", "Demand Estimation", 
-    "Mini-grid Sizing", "Grid", "Results"
+    "Rounting", "Results"
 ])
 
 if main_nav == "Home":
