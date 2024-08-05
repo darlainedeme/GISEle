@@ -70,9 +70,16 @@ def show():
                     occasional_use=appliance["occasional_use"], flat=appliance["flat"], thermal_P_var=appliance["thermal_P_var"], 
                     pref_index=appliance["pref_index"], wd_we_type=appliance["wd_we_type"]
                 )
+
+                # Ensure total window time is greater than or equal to func_time
+                total_window_time = sum([end - start for start, end in appliance["windows"]])
+                if total_window_time < appliance["func_time"]:
+                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance['func_time']}). Please adjust the time windows.")
+                    return
+                
                 for i, window in enumerate(appliance["windows"], start=1):
                     start, end = window
-                    app.windows(window_1=(start, end), window_2=(0, 0))  # Ensure proper tuple input for windows
+                    setattr(app, f"window_{i}", (start, end))
                 users.append(user)
         
         today = datetime.today().strftime('%Y-%m-%d')
