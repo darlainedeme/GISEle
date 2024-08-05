@@ -6,7 +6,7 @@ import geopandas as gpd
 import functions
 from shapely.geometry import Point
 import shapely
-from osgeo import gdal
+# from osgeo import gdal
 import zipfile
 
 def data_gathering(crs, study_area):
@@ -80,7 +80,7 @@ def data_gathering(crs, study_area):
         #             'Output\Datasets\Population\Population.zip')
         #out_img, out_transform = mask(raster=input_raster, shapes=study_area.geometry, crop=True)
         output_raster = 'Output\Datasets\Population\Population.tif'
-        gdal.Warp(output_raster, input_raster, dstSRS='EPSG:' + str(crs))
+        # gdal.Warp(output_raster, input_raster, dstSRS='EPSG:' + str(crs))
         jungle_zip = zipfile.ZipFile('Output\Datasets\Population\Population.zip', 'w')
         jungle_zip.write('Output\Datasets\Population\Population.tif',
                          compress_type=zipfile.ZIP_DEFLATED)
