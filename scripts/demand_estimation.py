@@ -155,39 +155,39 @@ def show():
         progress.progress(100)
         st.write("Load profile generation complete.")
 
-    # Ensure load_profile is the correct shape before reshaping
-    profile_length = len(load_profile)
-    expected_length = len(st.session_state.user_data) * 1440
+        # Ensure load_profile is the correct shape before reshaping
+        profile_length = len(load_profile)
+        expected_length = len(st.session_state.user_data) * 1440
 
-    # Debug information to check the shape
-    st.write(f"Generated load profile length: {profile_length}")
-    st.write(f"Expected load profile length: {expected_length}")
+        # Debug information to check the shape
+        st.write(f"Generated load profile length: {profile_length}")
+        st.write(f"Expected load profile length: {expected_length}")
 
-    if profile_length != expected_length:
-        st.error(f"The generated load profile length ({profile_length}) does not match the expected length ({expected_length}).")
-        return
+        if profile_length != expected_length:
+            st.error(f"The generated load profile length ({profile_length}) does not match the expected length ({expected_length}).")
+            return
 
-    # Prepare data for plotting
-    profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
-    categories = list(st.session_state.user_data.keys())
-    # Generating colors dynamically based on the number of categories
-    num_categories = len(categories)
-    colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
+        # Prepare data for plotting
+        profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
+        categories = list(st.session_state.user_data.keys())
+        # Generating colors dynamically based on the number of categories
+        num_categories = len(categories)
+        colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
 
-    # Stacked area chart
-    fig, ax = plt.subplots(figsize=(12, 6))
+        # Stacked area chart
+        fig, ax = plt.subplots(figsize=(12, 6))
 
-    cumulative_profile = np.zeros(1440)
-    for i, category in enumerate(categories):
-        profile = profiles[i]
-        ax.fill_between(range(1440), cumulative_profile, cumulative_profile + profile, label=category, color=colors[i % num_categories])
-        cumulative_profile += profile
+        cumulative_profile = np.zeros(1440)
+        for i, category in enumerate(categories):
+            profile = profiles[i]
+            ax.fill_between(range(1440), cumulative_profile, cumulative_profile + profile, label=category, color=colors[i % num_categories])
+            cumulative_profile += profile
 
-    ax.set_xlabel("Time (minutes)")
-    ax.set_ylabel("Load (kW)")
-    ax.legend(loc='upper right')
-    ax.set_title("Daily Load Profile")
-    st.pyplot(fig)
+        ax.set_xlabel("Time (minutes)")
+        ax.set_ylabel("Load (kW)")
+        ax.legend(loc='upper right')
+        ax.set_title("Daily Load Profile")
+        st.pyplot(fig)
 
 
         # Export to CSV
