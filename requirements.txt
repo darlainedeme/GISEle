@@ -24,4 +24,4 @@ pyutilib
 iso8601
 numpy==1.26.4
 pyomo
-pygdal==3.2.2
+pygdal==3.7.2.12
