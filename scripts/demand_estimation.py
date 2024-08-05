@@ -10,7 +10,7 @@ from datetime import time
 # Predefined appliance data
 appliance_data_dict = {
     "High-Income Household": {
-        "Indoor bulb": {"power": 7, "num": 6, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 2},
+        "Indoor bulb": {"power": 7, "num": 6, "start": time(19, 30), "end": time(23, 59), "coincidence": 1.0, "min_time_on": 5},
         "Television": {"power": 60, "num": 2, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 3},
         "DVD": {"power": 8, "num": 1, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 1},
         "Antenna": {"power": 8, "num": 1, "start": time(12, 0), "end": time(15, 0), "coincidence": 0.7, "min_time_on": 2},
