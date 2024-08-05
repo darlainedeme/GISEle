@@ -10,14 +10,14 @@ from ramp.post_process.post_process import Profile_formatting
 appliance_data_dict = {
     "Refrigerator": {"power": 150, "num": 1, "start": datetime.time(0, 0), "end": datetime.time(23, 59), "coincidence": 1.0, "min_time_on": 24.0},
     "Television": {"power": 100, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 0), "coincidence": 0.7, "min_time_on": 1.0},
-    "Air Conditioner": {"power": 2000, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.5, "min_time_on": 1.0},
+    "Air Conditioner": {"power": 2000, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 59), "coincidence": 0.5, "min_time_on": 1.0},
     "Washing Machine": {"power": 500, "num": 1, "start": datetime.time(8, 0), "end": datetime.time(20, 0), "coincidence": 0.3, "min_time_on": 1.0},
     "Microwave": {"power": 1200, "num": 1, "start": datetime.time(6, 0), "end": datetime.time(22, 0), "coincidence": 0.2, "min_time_on": 0.5},
     "Electric Kettle": {"power": 2000, "num": 1, "start": datetime.time(6, 0), "end": datetime.time(22, 0), "coincidence": 0.2, "min_time_on": 0.2},
     "Computer": {"power": 150, "num": 1, "start": datetime.time(8, 0), "end": datetime.time(18, 0), "coincidence": 0.5, "min_time_on": 1.0},
-    "Heater": {"power": 1500, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.4, "min_time_on": 1.0},
+    "Heater": {"power": 1500, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 59), "coincidence": 0.4, "min_time_on": 1.0},
     "Fan": {"power": 75, "num": 1, "start": datetime.time(0, 0), "end": datetime.time(23, 59), "coincidence": 0.8, "min_time_on": 24.0},
-    "Light Bulb": {"power": 60, "num": 5, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.9, "min_time_on": 1.0}
+    "Light Bulb": {"power": 60, "num": 5, "start": datetime.time(18, 0), "end": datetime.time(23, 59), "coincidence": 0.9, "min_time_on": 1.0}
 }
 
 appliance_options = list(appliance_data_dict.keys())
@@ -57,7 +57,7 @@ def create_user_classes(appliance_data):
                 appliance['num_appliances'],
                 appliance['power_rating'],
                 1,
-                appliance['min_time_on']*60,
+                appliance['min_time_on'] * 60,
                 appliance['coincidence_factor'],
                 5,
                 fixed="no"
@@ -100,7 +100,7 @@ def plot_load_profile(Profiles_series):
 
     return Profiles_daily_avg
 
-def show():
+def main():
     st.title("Demand Estimation with RAMP")
     
     # Predefined categories
@@ -126,7 +126,7 @@ def show():
                     "min_time_on": min_time_on
                 })
             categories.append(appliance_data)
-    
+
     if st.button("Estimate Demand"):
         if not categories:
             st.warning("Please select appliances for at least one category.")
