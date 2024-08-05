@@ -12,7 +12,7 @@ import math
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
-from gisele.functions import s
+from functions import s
 import osmnx as ox
 
 
