@@ -63,7 +63,6 @@ initial_values = {
     }
 }
 
-
 # Function to display and edit user categories and appliances
 def display_user_category(category_name, category_data):
     st.subheader(category_name)
@@ -155,22 +154,9 @@ def show():
         progress.progress(100)
         st.write("Load profile generation complete.")
 
-        # Ensure load_profile is the correct shape before reshaping
-        profile_length = len(load_profile)
-        expected_length = sum([data["num_users"] for data in st.session_state.user_data.values()]) * 1440
-
-        # Debug information to check the shape
-        st.write(f"Generated load profile length: {profile_length}")
-        st.write(f"Expected load profile length: {expected_length}")
-
-        if profile_length != expected_length:
-            st.error(f"The generated load profile length ({profile_length}) does not match the expected length ({expected_length}).")
-            return
-
         # Prepare data for plotting
-        profiles = np.array(load_profile).reshape((sum([data["num_users"] for data in st.session_state.user_data.values()]), 1440))  # Ensure profiles are reshaped correctly
+        profiles = np.array(load_profile).reshape((len(st.session_state.user_data), 1440))  # Ensure profiles are reshaped correctly
         categories = list(st.session_state.user_data.keys())
-        # Generating colors dynamically based on the number of categories
         num_categories = len(categories)
         colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
 
@@ -188,8 +174,6 @@ def show():
         ax.legend(loc='upper right')
         ax.set_title("Daily Load Profile")
         st.pyplot(fig)
-
-
 
         # Export to CSV
         csv = pd.DataFrame(load_profile).to_csv(index=False)
