@@ -173,41 +173,6 @@ def show():
         )
         st.plotly_chart(fig)
         
-        # Prepare data for each category
-        data = {"Time (hours)": time_hours}
-        for category_name in st.session_state.user_data.keys():
-            category_data = st.session_state.user_data[category_name]
-            num_users = category_data["num_users"]
-
-            # Generate load profiles for this category
-            user = User(user_name=category_name, num_users=num_users)
-            for appliance in category_data["appliances"]:
-                app = user.Appliance(
-                    number=appliance["number"], power=appliance["power"], num_windows=appliance["num_windows"],
-                    func_time=appliance["func_time"], time_fraction_random_variability=appliance["time_fraction_random_variability"],
-                    func_cycle=appliance["func_cycle"], fixed=appliance["fixed"], fixed_cycle=appliance["fixed_cycle"],
-                    occasional_use=appliance["occasional_use"], flat=appliance["flat"], thermal_P_var=appliance["thermal_P_var"],
-                    pref_index=appliance["pref_index"], wd_we_type=appliance["wd_we_type"]
-                )
-                total_window_time = sum([end - start for start, end in appliance["windows"]])
-                if total_window_time < appliance["func_time"]:
-                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance['func_time']}). Please adjust the time windows.")
-                    return
-
-                for i, window in enumerate(appliance["windows"], start=1):
-                    start, end = window
-                    setattr(app, f"window_{i}", (start, end))
-
-            today = datetime.today().strftime('%Y-%m-%d')
-            use_case = UseCase(users=[user], date_start=today, date_end=today)
-            load_profile = use_case.generate_daily_load_profiles()
-
-            # Flatten the generated load profiles and add to the DataFrame
-            profile_data = np.array(load_profile).flatten()
-            data[category_name] = profile_data
-
-        # Convert to DataFrame
-        df = pd.DataFrame(data)
 
         # Export to CSV
         csv = pd.DataFrame(cumulative_profile).to_csv(index=False)
