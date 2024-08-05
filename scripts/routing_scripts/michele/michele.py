@@ -1,8 +1,8 @@
 from pyomo.environ import AbstractModel, Var, value
-from gisele.michele.components_creation import Model_Creation
-from gisele.michele.model_solve import Model_Resolution
-from gisele.michele.results import Load_results
-from gisele.michele.components_initialization import importing
+from components_creation import Model_Creation
+from model_solve import Model_Resolution
+from results import Load_results
+from components_initialization import importing
 from pyomo.opt import SolverFactory
 import pandas as pd
 import numpy as np  # Add this import for numpy
