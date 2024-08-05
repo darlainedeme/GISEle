@@ -16,7 +16,15 @@ initial_values = {
             # Add other appliances similarly...
         ]
     },
-    # Define other user categories similarly...
+    "Middle-Income Household": {
+        "num_users": 75,
+        "appliances": [
+            {"name": "Indoor Bulb", "number": 3, "power": 7, "num_windows": 2, "func_time": 120, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(1170, 1440), (0, 30)]},
+            {"name": "Outdoor Bulb", "number": 2, "power": 13, "num_windows": 2, "func_time": 600, "time_fraction_random_variability": 0.2, "func_cycle": 10, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(0, 330), (1170, 1440)]},
+            {"name": "Television", "number": 1, "power": 60, "num_windows": 3, "func_time": 90, "time_fraction_random_variability": 0.1, "func_cycle": 5, "fixed": "no", "fixed_cycle": 0, "occasional_use": 1.0, "flat": "no", "thermal_P_var": 0.0, "pref_index": 0, "wd_we_type": 2, "windows": [(450, 660), (720, 840), (1170, 1440)]},
+            # Add other appliances similarly...
+        ]
+    },
 }
 
 # Function to display and edit user categories and appliances
