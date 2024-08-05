@@ -25,4 +25,4 @@ pyutilib
 iso8601
 numpy==1.26.4
 pyomo
-geopy
+pygdal
