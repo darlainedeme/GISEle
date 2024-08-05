@@ -92,8 +92,6 @@ def set_stuff():
     population_dataset_type = 'buildings'
 
 def show():
-
-    #%%
     st.write('0. Clustering Procedures')
     '''
     if not local_database:
