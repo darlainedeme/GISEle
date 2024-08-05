@@ -2,9 +2,9 @@ import streamlit as st
 from ramp import UseCase, User
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from datetime import datetime
-from io import BytesIO
+import plotly.graph_objects as go
+
 
 # Define initial values for user categories and appliances
 initial_values = {
