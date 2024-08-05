@@ -123,9 +123,10 @@ def show():
     if st.button("Generate Demand"):
         st.write("Generating load profiles...")
         progress = st.progress(0)
+        combined_profile = np.zeros(1440)
 
-        users = []
         for category_name, category_data in st.session_state.user_data.items():
+            users = []
             user = User(user_name=category_name, num_users=category_data["num_users"])
             for appliance in category_data["appliances"]:
                 app = user.Appliance(
@@ -139,36 +140,37 @@ def show():
                 # Ensure total window time is greater than or equal to func_time
                 total_window_time = sum([end - start for start, end in appliance["windows"]])
                 if total_window_time < appliance["func_time"]:
-                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance['func_time']}). Please adjust the time windows.")
+                    st.error(f"The sum of all windows time intervals for the appliance '{appliance['name']}' of user '{category_name}' is smaller than the time the appliance is supposed to be on ({total_window_time} < {appliance["func_time"]}). Please adjust the time windows.")
                     return
                 
                 for i, window in enumerate(appliance["windows"], start=1):
                     start, end = window
                     setattr(app, f"window_{i}", (start, end))
-                users.append(user)
-        
-        today = datetime.today().strftime('%Y-%m-%d')
-        use_case = UseCase(users=users, date_start=today, date_end=today)
-        load_profile = use_case.generate_daily_load_profiles()
+            users.append(user)
+            
+            today = datetime.today().strftime('%Y-%m-%d')
+            use_case = UseCase(users=users, date_start=today, date_end=today)
+            load_profile = use_case.generate_daily_load_profiles()
+            category_profile = np.array(load_profile).reshape((category_data["num_users"], 1440)).sum(axis=0)
+            combined_profile += category_profile
 
-        progress.progress(100)
+            progress.progress((list(st.session_state.user_data.keys()).index(category_name) + 1) / len(st.session_state.user_data))
+
         st.write("Load profile generation complete.")
 
-        # Prepare data for plotting
-        total_users = sum(v["num_users"] for v in st.session_state.user_data.values())
-        profiles = np.array(load_profile).reshape((total_users, 1440))  # Ensure profiles are reshaped correctly
-        categories = list(st.session_state.user_data.keys())
-        num_categories = len(categories)
+        # Generating colors dynamically based on the number of categories
+        num_categories = len(st.session_state.user_data)
         colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
 
         # Stacked area chart
         fig, ax = plt.subplots(figsize=(12, 6))
 
         cumulative_profile = np.zeros(1440)
-        for i, category in enumerate(categories):
-            category_users = st.session_state.user_data[category]["num_users"]
-            category_profile = profiles[:category_users].sum(axis=0)
-            profiles = profiles[category_users:]
+        for i, category in enumerate(st.session_state.user_data.keys()):
+            category_data = st.session_state.user_data[category]
+            category_users = category_data["num_users"]
+            category_profile = combined_profile[:category_users].sum(axis=0)
+            combined_profile = combined_profile[category_users:]
             ax.fill_between(range(1440), cumulative_profile, cumulative_profile + category_profile, label=category, color=colors[i % num_categories])
             cumulative_profile += category_profile
 
@@ -179,7 +181,7 @@ def show():
         st.pyplot(fig)
 
         # Export to CSV
-        csv = pd.DataFrame(load_profile).to_csv(index=False)
+        csv = pd.DataFrame(combined_profile).to_csv(index=False)
         st.download_button(label="Download Load Profile as CSV", data=csv, file_name="load_profile.csv", mime='text/csv')
 
 if __name__ == "__main__":
