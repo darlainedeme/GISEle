@@ -51,16 +51,37 @@ def show():
     st.title("Demand Estimation with RAMP")
     st.write("Estimate the load profile for different user categories.")
 
-    user_data = {}
-    for category_name, category_data in initial_values.items():
-        user_data[category_name] = display_user_category(category_name, category_data)
+    # Initialize session state for user categories
+    if "user_data" not in st.session_state:
+        st.session_state.user_data = {}
 
-    if st.button("Estimate Demand"):
+    # Dropdown to select and add categories
+    category_options = list(initial_values.keys())
+    selected_category = st.selectbox("Select a category to add", options=category_options)
+    if st.button("Add Category"):
+        if selected_category not in st.session_state.user_data:
+            st.session_state.user_data[selected_category] = initial_values[selected_category]
+
+    # Display and edit user categories
+    for category_name in list(st.session_state.user_data.keys()):
+        category_data = st.session_state.user_data[category_name]
+        user_data = display_user_category(category_name, category_data)
+        st.session_state.user_data[category_name] = user_data
+        if st.button(f"Remove {category_name}"):
+            del st.session_state.user_data[category_name]
+
+    # Display summary table of categories
+    if st.session_state.user_data:
+        st.subheader("Summary of User Categories")
+        summary_data = [{"Category": k, "Count": v["num_users"]} for k, v in st.session_state.user_data.items()]
+        st.table(summary_data)
+
+    if st.button("Generate Demand"):
         st.write("Generating load profiles...")
         progress = st.progress(0)
 
         users = []
-        for category_name, category_data in user_data.items():
+        for category_name, category_data in st.session_state.user_data.items():
             user = User(user_name=category_name, num_users=category_data["num_users"])
             for appliance in category_data["appliances"]:
                 app = user.Appliance(
@@ -89,10 +110,16 @@ def show():
         progress.progress(100)
         st.write("Load profile generation complete.")
 
+        # Prepare data for plotting
+        profiles = np.array(load_profile).reshape(-1, 1440)  # Reshape to (days, minutes)
+        categories = list(st.session_state.user_data.keys())
+        colors = plt.cm.get_cmap('tab20', len(categories)).colors
+
         # Plot results
         st.write("Plotting results...")
         plt.figure(figsize=(10, 5))
-        plt.plot(load_profile, label='Load Profile')
+        for i, category in enumerate(categories):
+            plt.fill_between(range(1440), profiles[i], label=category, color=colors[i])
         plt.xlabel('Time (minutes)')
         plt.ylabel('Load (W)')
         plt.title('Generated Load Profile')
