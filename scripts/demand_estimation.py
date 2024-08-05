@@ -10,14 +10,14 @@ from ramp.post_process.post_process import Profile_formatting
 appliance_data_dict = {
     "Refrigerator": {"power": 150, "num": 1, "start": datetime.time(0, 0), "end": datetime.time(23, 59), "coincidence": 1.0, "min_time_on": 24.0},
     "Television": {"power": 100, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 0), "coincidence": 0.7, "min_time_on": 1.0},
-    "Air Conditioner": {"power": 2000, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 59), "coincidence": 0.5, "min_time_on": 1.0},
+    "Air Conditioner": {"power": 2000, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.5, "min_time_on": 1.0},
     "Washing Machine": {"power": 500, "num": 1, "start": datetime.time(8, 0), "end": datetime.time(20, 0), "coincidence": 0.3, "min_time_on": 1.0},
     "Microwave": {"power": 1200, "num": 1, "start": datetime.time(6, 0), "end": datetime.time(22, 0), "coincidence": 0.2, "min_time_on": 0.5},
     "Electric Kettle": {"power": 2000, "num": 1, "start": datetime.time(6, 0), "end": datetime.time(22, 0), "coincidence": 0.2, "min_time_on": 0.2},
     "Computer": {"power": 150, "num": 1, "start": datetime.time(8, 0), "end": datetime.time(18, 0), "coincidence": 0.5, "min_time_on": 1.0},
-    "Heater": {"power": 1500, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(23, 59), "coincidence": 0.4, "min_time_on": 1.0},
+    "Heater": {"power": 1500, "num": 1, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.4, "min_time_on": 1.0},
     "Fan": {"power": 75, "num": 1, "start": datetime.time(0, 0), "end": datetime.time(23, 59), "coincidence": 0.8, "min_time_on": 24.0},
-    "Light Bulb": {"power": 60, "num": 5, "start": datetime.time(18, 0), "end": datetime.time(23, 59), "coincidence": 0.9, "min_time_on": 1.0}
+    "Light Bulb": {"power": 60, "num": 5, "start": datetime.time(18, 0), "end": datetime.time(6, 0), "coincidence": 0.9, "min_time_on": 1.0}
 }
 
 appliance_options = list(appliance_data_dict.keys())
@@ -32,20 +32,6 @@ def collect_appliance_info(category, appliance, idx):
     coincidence_factor = st.number_input(f"Coincidence factor for {appliance}", min_value=0.0, max_value=1.0, step=0.01, value=appliance_data_dict[appliance]["coincidence"], key=f"coincidence_{category}_{appliance}_{idx}")
     min_time_on = st.number_input(f"Minimum time the {appliance} is on (in hours)", min_value=0.0, max_value=24.0, step=0.5, value=appliance_data_dict[appliance]["min_time_on"], key=f"min_time_{category}_{appliance}_{idx}")
     return num_appliances, power_rating, start_time, end_time, coincidence_factor, min_time_on
-
-# Function to model appliance usage with stochasticity
-def model_usage(start_hour, end_hour, num_appliances, power, coincidence_factor, min_time_on):
-    usage = np.zeros(24)
-    if end_hour > start_hour:
-        hours_of_use = range(start_hour, end_hour)
-    else:
-        hours_of_use = list(range(start_hour, 24)) + list(range(0, end_hour))
-
-    active_hours = np.random.choice(hours_of_use, size=int(len(hours_of_use) * coincidence_factor), replace=False)
-    for hour in active_hours:
-        usage[hour] = power * num_appliances * np.random.uniform(0.5, 1.0)
-
-    return usage
 
 # Function to create user classes and appliances
 def create_user_classes(appliance_data):
@@ -62,10 +48,9 @@ def create_user_classes(appliance_data):
                 5,
                 fixed="no"
             )
-            app.windows(
-                [int(appliance['start_time'].split(":")[0]) * 60 + int(appliance['start_time'].split(":")[1]), int(appliance['end_time'].split(":")[0]) * 60 + int(appliance['end_time'].split(":")[1])],
-                [0, 0]
-            )
+            start_minutes = appliance['start_time'].hour * 60 + appliance['start_time'].minute
+            end_minutes = appliance['end_time'].hour * 60 + appliance['end_time'].minute
+            app.windows([start_minutes, end_minutes], [0, 0])
         users.append(user)
     return users
 
@@ -120,8 +105,8 @@ def show():
                 appliance_data[category]["appliances"].append({
                     "num_appliances": num_appliances,
                     "power_rating": power_rating,
-                    "start_time": start_time.strftime("%H:%M"),
-                    "end_time": end_time.strftime("%H:%M"),
+                    "start_time": start_time,
+                    "end_time": end_time,
                     "coincidence_factor": coincidence_factor,
                     "min_time_on": min_time_on
                 })
@@ -151,4 +136,4 @@ def show():
             )
 
 if __name__ == "__main__":
-    main()
+    show()
