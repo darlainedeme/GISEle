@@ -5,9 +5,9 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import json
-from gisele.functions import line_to_points, distance_2d, nearest
-from gisele import dijkstra, lcoe_optimization
-from gisele.multi_obj_factor import emission_factor, reliability_grid, line_reliability
+from .functions import line_to_points, distance_2d, nearest
+import dijkstra, lcoe_optimization
+from .multi_obj_factor import emission_factor, reliability_grid, line_reliability
 
 
 def clusters_interconnections(geo_df_clustered, grid_resume, substations, mg, total_energy,
