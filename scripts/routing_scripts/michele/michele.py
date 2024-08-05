@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np  # Add this import for numpy
 
 # Ensure that numpy floats are correctly referenced
-_floats = [np.float_, np.float16, np.float32, np.float64]
+_floats = [float, np.float_, np.float16, np.float32, np.float64]
 
 def start(load_profile, pv_avg, wt_avg, input_michele, ht_avg, n_mg):
     input_load, wt_prod, pv_prod = importing(load_profile, pv_avg, wt_avg, ht_avg)
