@@ -155,7 +155,7 @@ def show():
             category_profile = np.array(load_profile).reshape(-1, 1440).sum(axis=0)
             
             fig.add_trace(go.Scatter(
-                x=list(range(1440)),
+                x=[i / 60 for i in range(1440)],
                 y=cumulative_profile + category_profile,
                 fill='tonexty',
                 name=category_name
@@ -167,7 +167,7 @@ def show():
 
         fig.update_layout(
             title="Daily Load Profile",
-            xaxis_title="Time (minutes)",
+            xaxis_title="Time (hours)",
             yaxis_title="Load (kW)",
             legend_title="Categories"
         )
