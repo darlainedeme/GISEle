@@ -265,7 +265,7 @@ def run_routing(parameters):
         process_output.analyze(gisele_folder, case_study, coe, mg_option, n_line_type)
     '''
 # Main function
-def main():
+def show():
     st.title("Routing Procedures")
 
     parameters = set_parameters()
