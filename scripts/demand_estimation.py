@@ -156,6 +156,7 @@ def show():
         st.write("Load profile generation complete.")
 
         # Prepare data for plotting
+        profiles = np.array(load_profile).reshape(-1, 1440)  # Reshape to (days, minutes)
         # Generating colors dynamically based on the number of categories
         num_categories = len(profiles)
         colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
