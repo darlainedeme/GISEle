@@ -3,7 +3,7 @@ import os
 import shutil
 import osmnx as ox
 import geopandas as gpd
-from gisele import functions
+import functions
 from shapely.geometry import Point
 import shapely
 from osgeo import gdal
