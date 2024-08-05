@@ -13,25 +13,26 @@ from scipy.ndimage import convolve
 from scipy.spatial import cKDTree
 from sklearn.cluster import AgglomerativeClustering
 from scipy.spatial.distance import pdist, squareform
+
+# Get the current script path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Add the routing_scripts directory to the system path
+routing_scripts_path = os.path.join(current_dir, 'routing_scripts')
+sys.path.append(routing_scripts_path)
+
+# Import custom modules
 from cleaning import *
 from functions import *
 from functions2 import *
 
+import initialization, clustering, processing, collecting, optimization, results, grid, branches
+import QGIS_processing_polygon as qgis_process
+import Local_area_optimization as LAO
+import MILP_Input_creation, MILP_models, process_output, grid_routing, Secondary_substations
+from OpenEnergyMapMIT_v1 import building_to_cluster_v1
+
 def set_stuff(): 
-    # Get the current script path
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Add the routing_scripts directory to the system path
-    routing_scripts_path = os.path.join(current_dir, 'routing_scripts')
-    sys.path.append(routing_scripts_path)
-
-    # Import custom modules
-    import initialization, clustering, processing, collecting, optimization, results, grid, branches
-    import QGIS_processing_polygon as qgis_process
-    import Local_area_optimization as LAO
-    import MILP_Input_creation, MILP_models, process_output, grid_routing, Secondary_substations
-    from OpenEnergyMapMIT_v1 import building_to_cluster_v1
-
     # 0 - Setting input
     ############# INPUT ELECTRICAL PARAMETERS #############
 
