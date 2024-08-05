@@ -1,8 +1,8 @@
 from shapely.geometry import MultiLineString,MultiPolygon
 from collections import Counter
 import networkx as nx
-from gisele.Steiner_tree_code import *
-from gisele.functions import * 
+from Steiner_tree_code import *
+from functions import * 
 import pdb
 def create_roads_new(gisele_folder, case_study, Clusters,crs, accepted_road_types,resolution_MV,resolution_LV): 
 # It takes in input: 
