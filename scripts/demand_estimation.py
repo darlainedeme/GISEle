@@ -151,7 +151,7 @@ def show():
 
             use_case = UseCase(users=[user], date_start=today, date_end=today)
             load_profile = use_case.generate_daily_load_profiles()
-            st.write(load_profile)
+            st.write(len(load_profile))
             category_profile = np.array(load_profile).reshape((category_data["num_users"], 1440)).sum(axis=0)
             
             fig.add_trace(go.Scatter(
