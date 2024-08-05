@@ -100,7 +100,7 @@ def plot_load_profile(Profiles_series):
 
     return Profiles_daily_avg
 
-def main():
+def show():
     st.title("Demand Estimation with RAMP")
     
     # Predefined categories
