@@ -122,12 +122,13 @@ def show():
     if st.button("Generate Demand"):
         st.write("Generating load profiles...")
         progress = st.progress(0)
-        total_users = sum(v["num_users"] for v in st.session_state.user_data.values())
-        profiles = np.zeros((total_users, 1440))
-        user_offsets = {}
 
-        current_offset = 0
-        for category_name, category_data in st.session_state.user_data.items():
+        cumulative_profile = np.zeros(1440)
+        fig = go.Figure()
+
+        today = datetime.today().strftime('%Y-%m-%d')
+
+        for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
             user = User(user_name=category_name, num_users=category_data["num_users"])
             for appliance in category_data["appliances"]:
                 app = user.Appliance(
@@ -147,23 +148,11 @@ def show():
                 for i, window in enumerate(appliance["windows"], start=1):
                     start, end = window
                     setattr(app, f"window_{i}", (start, end))
-                user_offsets[category_name] = current_offset
-                current_offset += category_data["num_users"]
 
-            today = datetime.today().strftime('%Y-%m-%d')
             use_case = UseCase(users=[user], date_start=today, date_end=today)
             load_profile = use_case.generate_daily_load_profiles()
-            profiles[user_offsets[category_name]:current_offset] = np.array(load_profile).reshape((category_data["num_users"], 1440))
-
-        progress.progress(100)
-        st.write("Load profile generation complete.")
-
-        # Prepare data for plotting
-        cumulative_profile = np.zeros(1440)
-        fig = go.Figure()
-
-        for i, (category_name, category_data) in enumerate(st.session_state.user_data.items()):
-            category_profile = profiles[user_offsets[category_name]:user_offsets[category_name] + category_data["num_users"]].sum(axis=0)
+            category_profile = np.array(load_profile).reshape((category_data["num_users"], 1440)).sum(axis=0)
+            
             fig.add_trace(go.Scatter(
                 x=list(range(1440)),
                 y=cumulative_profile + category_profile,
@@ -171,6 +160,9 @@ def show():
                 name=category_name
             ))
             cumulative_profile += category_profile
+
+        progress.progress(100)
+        st.write("Load profile generation complete.")
 
         fig.update_layout(
             title="Daily Load Profile",
@@ -181,7 +173,7 @@ def show():
         st.plotly_chart(fig)
 
         # Export to CSV
-        csv = pd.DataFrame(profiles).to_csv(index=False)
+        csv = pd.DataFrame(cumulative_profile).to_csv(index=False)
         st.download_button(label="Download Load Profile as CSV", data=csv, file_name="load_profile.csv", mime='text/csv')
 
 if __name__ == "__main__":
