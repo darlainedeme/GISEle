@@ -154,7 +154,7 @@ def show():
             st.write(len(load_profile))
             st.write(category_data["num_users"])
             
-            category_profile = np.array(load_profile).reshape(-1, 1440)).sum(axis=0)
+            category_profile = np.array(load_profile).reshape(-1, 1440).sum(axis=0)
             
             fig.add_trace(go.Scatter(
                 x=list(range(1440)),
