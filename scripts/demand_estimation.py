@@ -92,12 +92,12 @@ def create_user_classes(appliance_data):
                 fixed="no"
             )
             app.windows(
-                [appliance['start_time']],
-                [appliance['end_time']],
-                appliance['coincidence_factor']
+                window_1=[appliance['start_time'], appliance['end_time']],
+                random_var_w=appliance['coincidence_factor']
             )
         users.append(user)
     return users
+
 
 def generate_load_profiles(users, start_date, end_date):
     use_case = UseCase(users=users, date_start=start_date, date_end=end_date)
