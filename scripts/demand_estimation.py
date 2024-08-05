@@ -17,7 +17,23 @@ appliance_data_dict = {
         "Freezer": {"power": 200, "num": 1, "start": [0, 1440], "end": [0, 0], "coincidence": 0.0, "min_time_on": 30.0},
         "Mixer": {"power": 50, "num": 1, "start": [420, 480], "end": [660, 750], "coincidence": 0.35, "min_time_on": 1.0}
     },
-
+    "Middle-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 3, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 2.0},
+        "Outdoor bulb": {"power": 13, "num": 2, "start": [0, 330], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 10.0},
+        "Television": {"power": 60, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.5},
+        "DVD": {"power": 8, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 0.5},
+        "Antenna": {"power": 8, "num": 1, "start": [450, 660], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
+        "Phone charger": {"power": 2, "num": 4, "start": [1020, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0},
+        "Mixer": {"power": 50, "num": 1, "start": [660, 750], "end": [1110, 1200], "coincidence": 0.35, "min_time_on": 1.0}
+    },
+    "Low-Income Household": {
+        "Indoor bulb": {"power": 7, "num": 2, "start": [1170, 1440], "end": [0, 30], "coincidence": 0.35, "min_time_on": 2.0},
+        "Outdoor bulb": {"power": 13, "num": 1, "start": [0, 330], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 10.0},
+        "Television": {"power": 60, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.5},
+        "DVD": {"power": 8, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 0.5},
+        "Antenna": {"power": 8, "num": 1, "start": [750, 840], "end": [1170, 1440], "coincidence": 0.35, "min_time_on": 1.0},
+        "Phone charger": {"power": 2, "num": 2, "start": [1080, 1440], "end": [0, 0], "coincidence": 0.35, "min_time_on": 5.0}
+    }
 }
 
 # Function to collect appliance info
