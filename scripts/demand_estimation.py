@@ -156,21 +156,21 @@ def show():
         st.write("Load profile generation complete.")
 
         # Prepare data for plotting
-        profiles = np.array(load_profile).reshape(-1, 1440)  # Reshape to (days, minutes)
-        categories = list(st.session_state.user_data.keys())
-        colors = plt.cm.get_cmap('tab20', len(categories)).colors
+        # Generating colors dynamically based on the number of categories
+        num_categories = len(profiles)
+        colors = plt.cm.get_cmap('tab20', num_categories).colors  # Use 'tab20' colormap to generate up to 20 colors
 
-        # Plot results
-        st.write("Plotting results...")
-        plt.figure(figsize=(10, 5))
-        for i, category in enumerate(categories):
-            plt.fill_between(range(1440), profiles[i], label=category, color=colors[i])
-        plt.xlabel('Time (minutes)')
-        plt.ylabel('Load (W)')
-        plt.title('Generated Load Profile')
-        plt.legend()
-        plt.grid(True)
-        st.pyplot(plt)
+        # Stacked area chart
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        for i, (category, profile) in enumerate(profiles.items()):
+            ax.fill_between(range(1440), profile, label=category, color=colors[i % num_categories])
+
+        ax.set_xlabel("Time (minutes)")
+        ax.set_ylabel("Load (kW)")
+        ax.legend(loc='upper right')
+        ax.set_title("Daily Load Profile")
+        st.pyplot(fig)
 
         # Export to CSV
         csv = pd.DataFrame(load_profile).to_csv(index=False)
