@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add the project root directory to the Python path
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
 import streamlit as st
 st.set_page_config(layout="wide")
 
