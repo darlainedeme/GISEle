@@ -78,8 +78,6 @@ def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, 
         os.remove(f'{band}.zip')
 
 def download_url(url, out_path):
-    # Add your code to handle the actual downloading from the URL here
-    import requests
     response = requests.get(url)
     with open(out_path, 'wb') as out_file:
         out_file.write(response.content)
@@ -88,23 +86,22 @@ def download_url(url, out_path):
 def download_tif(area, crs, scale, image, out_path):
     """
     Download data from Earth Engine
-    :param area: GeoDataFrame with the polygon of interest area
+    :param area: GeoDataFrame or shapely Polygon with the polygon of interest area
     :param crs: str with crs of the project
     :param scale: int with pixel size in meters
     :param image: image from the wanted database in Earth Image
     :param out_path: str with output path
     :return:
     """
-    min_x, min_y, max_x, max_y = area.geometry.total_bounds
+    min_x, min_y, max_x, max_y = area.bounds
     path = image.getDownloadUrl({
         'scale': scale,
         'crs': 'EPSG:' + str(crs),
-        'region': [[min_x, min_y], [min_x, max_y], [max_x, min_y], [max_x, max_y]]
+        'region': [[min_x, min_y], [min_x, max_y], [max_x, max_y], [max_x, min_y]]
     })
     print(path)
     download_url(path, out_path)
     return
-
 
 def download_elevation_data(polygon, dem_path):
     try:
