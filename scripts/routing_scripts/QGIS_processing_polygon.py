@@ -144,16 +144,23 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
     elevation_data = []
     slope_data = []
     land_cover_data = []
+    road_dist_data = []
+    protected_area_data = []
 
+    # Add actual logic to read elevation, slope, land cover, road distance, and protected area values for each point
     for x, y in coords:
-        # Placeholder value for elevation
-        # Replace this with actual logic to read elevation for each coordinate
-        elevation_value = 100  # Example static value
-        slope_value = 10       # Example static value
-        land_cover_value = 1   # Example static value
+        # Replace these placeholder values with actual logic to read data for each coordinate
+        elevation_value = 100  # Example static value for elevation
+        slope_value = 10  # Example static value for slope
+        land_cover_value = 2  # Example static value for land cover
+        road_dist_value = 500  # Example static value for road distance
+        protected_area_value = False  # Example static value for protected area
+
         elevation_data.append(elevation_value)
         slope_data.append(slope_value)
         land_cover_data.append(land_cover_value)
+        road_dist_data.append(road_dist_value)
+        protected_area_data.append(protected_area_value)
 
     # Create the DataFrame with necessary columns
     data = {
@@ -163,7 +170,8 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
         'Elevation': elevation_data,
         'Slope': slope_data,
         'Land_cover': land_cover_data,
-        'OtherData': [0] * len(coords)  # Placeholder for other data columns
+        'Road_dist': road_dist_data,
+        'Protected_area': protected_area_data
     }
     df = pd.DataFrame(data)
     geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
@@ -255,10 +263,11 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     crs_str = 'epsg:' + str(crs)
 
     # Open the roads, protected areas, and rivers
-    protected_areas_file = locate_file(database, folder='Protected_areas', extension='.shp')
+    files_folder = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Geospatial_Data')
+    protected_areas_file = locate_file(files_folder, folder='Protected_areas', extension='.shp')
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
 
-    roads_file = locate_file(database, folder='Roads', extension='.shp')
+    roads_file = locate_file(files_folder, folder='Roads', extension='.shp')
     streets = gpd.read_file(roads_file).to_crs(crs)
 
     study_area_crs = study_area.to_crs(crs)
@@ -278,7 +287,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
         protected_areas_clipped.to_file(dir + '/Intermediate/Geospatial_Data/protected_area.shp')
 
     # Clip the elevation and then change the CRS
-    elevation_file = locate_file(database, folder='Elevation', extension='.tif')
+    elevation_file = locate_file(files_folder, folder='Elevation', extension='.tif')
     with rasterio.open(elevation_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -297,7 +306,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     reproject_raster(input_raster, output_raster, crs_str)
 
     # Clip the slope and then change the CRS
-    slope_file = locate_file(database, folder='Slope', extension='.tif')
+    slope_file = locate_file(files_folder, folder='Slope', extension='.tif')
     with rasterio.open(slope_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -316,7 +325,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     reproject_raster(input_raster, output_raster, crs_str)
 
     # Clip the land cover and then change the CRS
-    landcover_file = locate_file(database, folder='LandCover', extension='.tif')
+    landcover_file = locate_file(files_folder, folder='LandCover', extension='.tif')
     with rasterio.open(landcover_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -337,28 +346,48 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     # Convert streets from lines to multipoints
     streets_points = []
     for line in streets_clipped['geometry']:
-        if line.geom_type == 'MultiLineString':
-            for line1 in line.geoms:
-                for x in zip(line1.xy[0], line1.xy[1]):
+        try:
+            if line.geom_type == 'MultiLineString':
+                for line1 in line.geoms:
+                    for x in zip(line1.xy[0], line1.xy[1]):
+                        streets_points.append(x)
+            elif line.geom_type == 'LineString':
+                for x in zip(line.xy[0], line.xy[1]):
                     streets_points.append(x)
-        elif line.geom_type == 'LineString':
-            for x in zip(line.xy[0], line.xy[1]):
-                streets_points.append(x)
-        else:
-            st.warning(f"Unexpected geometry type: {line.geom_type}")
+            else:
+                st.warning(f"Unexpected geometry type: {line.geom_type}")
+        except AttributeError as e:
+            st.error(f"AttributeError: {e} for geometry: {line}")
+        except TypeError as e:
+            st.error(f"TypeError: {e} for geometry: {line}")
 
-    streets_multipoint = MultiPoint(streets_points)
+    if streets_points:
+        streets_multipoint = MultiPoint(streets_points)
+    else:
+        streets_multipoint = MultiPoint()
+        st.warning("No points extracted from streets data")
+
 
     # Create and populate the grid of points
     df, geo_df = rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clipped, streets_multipoint, resolution_population)
-    
+    geo_df.to_file(dir + '/Intermediate/Geospatial_Data/grid_of_points.shp')
+
+    geo_df = geo_df.reset_index(drop=True)
+    geo_df['ID'] = geo_df.index
+    df = df.reset_index(drop=True)
+    df['ID'] = df.index
+
+    df.to_csv(dir + '/Intermediate/Geospatial_Data/grid_of_points.csv', index=False)
+
     # Check if the required columns exist
-    required_columns = ['Elevation', 'Slope', 'Land_cover']
+    required_columns = ['Elevation', 'Slope', 'Land_cover', 'Road_dist', 'Protected_area']
     for col in required_columns:
         if col not in df.columns:
             raise ValueError(f"Column {col} not found in DataFrame")
 
+    # Perform the weighting of the grid of points
     df_weighted = initialization.weighting(df, resolution, landcover_option)
+    df_weighted.to_csv(dir + '/Intermediate/Geospatial_Data/weighted_grid_of_points.csv', index=False)
 
     # Delete leftover files
     delete_leftover_files(dir, crs)
