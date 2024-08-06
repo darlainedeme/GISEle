@@ -192,7 +192,7 @@ def run_routing(parameters):
         Clusters.to_file(os.path.join(database, country, 'Input', 'Communities_boundaries'))
     else:
         destination_path = os.path.join(database, country, 'Input', 'Communities_boundaries', 'Communities_boundaries.shp')
-        st.write(destination_path)
+        st.write(output_path_clusters)
         source_gdf = gpd.read_file(output_path_clusters)
         source_gdf.to_file(destination_path)
         Clusters = gpd.read_file(destination_path)
