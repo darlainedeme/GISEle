@@ -209,7 +209,7 @@ def run_routing(parameters):
     Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
     destination_path1 = os.path.join(case_study_path, 'Input', 'Communities_boundaries', 'Communities_boundaries_2el.shp')
     Clusters.to_file(destination_path1)
-
+    '''
     # Optimize local area
     start = time.time()
     LAO.optimize(
@@ -263,7 +263,7 @@ def run_routing(parameters):
     process_output.create_final_output(gisele_folder, case_study)
     if mg_option:
         process_output.analyze(gisele_folder, case_study, coe, mg_option, n_line_type)
-
+    '''
 # Main function
 def show():
     st.title("Routing Procedures")
