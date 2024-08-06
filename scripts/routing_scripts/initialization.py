@@ -71,58 +71,61 @@ def weighting(df, resolution, landcover_option):
     """
     Assign weights to all points of a dataframe according to the terrain
     characteristics and the distance to the nearest road.
-    :param df: DataFrame containing the points
-    :param resolution: Resolution of the dataframe df
-    :param landcover_option: Land cover option to use for weighting
-    :return df_weighted: DataFrame with weight attributes assigned
+    :param df: From which part of GISEle the user is starting
+    :param resolution: resolution of the dataframe df
+    :return df_weighted: Point dataframe with weight attributes assigned
     """
     df_weighted = df.dropna(subset=['Elevation'])
-    df_weighted.reset_index(drop=True, inplace=True)
-    df_weighted['Slope'].fillna(value=0, inplace=True)
-    df_weighted['Land_cover'].fillna(method='bfill', inplace=True)
+    df_weighted.reset_index(drop=True)
+    df_weighted.Slope.fillna(value=0, inplace=True)
+    df_weighted.Land_cover.fillna(method='bfill', inplace=True)
     df_weighted['Land_cover'] = df_weighted['Land_cover'].round(0)
+    # df_weighted.Population.fillna(value=0, inplace=True)
     df_weighted['Weight'] = 0
-
     print('Weighting the Dataframe..')
-    files_folder = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Geospatial_Data')
-    landcover_csv = os.path.join(files_folder, 'Landcover.csv')
-
-    # Create the landcover CSV if it does not exist
-    if not os.path.exists(landcover_csv):
-        create_landcover_csv(os.path.join(files_folder, 'LandCover.tif'), landcover_csv)
-
-    landcover_data = pd.read_csv(landcover_csv)
-
+    os.chdir('results')
+    landcover_csv = pd.read_csv('Landcover.csv')
+    os.chdir(r'..//')
+    del df
     # Weighting section
     # Slope conditions
-    df_weighted['Weight'] = math.e**(0.01732867951 * df_weighted['Slope'])
-
+    df_weighted['Weight'] = math.e**(
+        0.01732867951 * df_weighted['Slope'])
     # Land cover using the column Other or GLC to compute the weight
-    for i, row in landcover_data.iterrows():
+    for i,row in landcover_csv.iterrows():
         if landcover_option == 'GLC':
-            df_weighted.loc[df_weighted['Land_cover'] == row['GLC2000'], 'Weight'] += row['WeightGLC']
+            df_weighted.loc[
+                df_weighted['Land_cover'] == row['GLC2000'], 'Weight'] += \
+            landcover_csv.loc[i, 'WeightGLC']
         elif landcover_option == 'ESACCI':
-            df_weighted.loc[df_weighted['Land_cover'] == row['ESACCI'], 'Weight'] += row['WeightESACCI']
+            df_weighted.loc[df_weighted['Land_cover'] == row['ESACCI'],'Weight'] +=landcover_csv.loc[i,'WeightESACCI']
         else:
-            df_weighted.loc[df_weighted['Land_cover'] == row['Other'], 'Weight'] += row['WeightOther']
-
+            df_weighted.loc[
+                df_weighted['Land_cover'] == row['Other'], 'Weight'] += \
+            landcover_csv.loc[i, 'WeightOther']
     # Road distance conditions
-    df_weighted.loc[df_weighted['Road_dist'] < 1000, 'Weight'] += 5 * df_weighted.loc[df_weighted['Road_dist'] < 1000, 'Road_dist'] / 1000
-    df_weighted.loc[df_weighted['Road_dist'] >= 1000, 'Weight'] += 5
-    df_weighted.loc[df_weighted['Road_dist'] < resolution / 2, 'Weight'] = 1.5
+    df_weighted.loc[df_weighted['Road_dist'] < 1000, 'Weight'] += \
+        5 * df_weighted.loc[
+                  df_weighted[
+                      'Road_dist'] < 1000, 'Road_dist'] / 1000
 
-    # Protected areas condition
+    df_weighted.loc[df_weighted['Road_dist'] >= 1000,'Weight'] += 5
+    df_weighted.loc[df_weighted['Road_dist'] < resolution / 2, 'Weight'] = 1.5
+    #Protected areas condition
     df_weighted.loc[df_weighted['Protected_area'] == True, 'Weight'] += 5
 
-    # Select valid fields
+    # valid_fields = ['ID', 'X', 'Y', 'Population', 'Elevation', 'Weight'] 
     valid_fields = ['ID', 'X', 'Y', 'Elevation', 'Weight']
-    blacklist = [x for x in df_weighted.columns if x not in valid_fields]
+    blacklist = []
+    for x in df_weighted.columns:
+        if x not in valid_fields:
+            blacklist.append(x)
     df_weighted.drop(blacklist, axis=1, inplace=True)
     df_weighted.drop_duplicates(['ID'], keep='last', inplace=True)
-
     print("Cleaning and weighting process completed")
     s()
     return df_weighted
+
 
 def creating_geodataframe(df_weighted, crs, unit, input_csv, step):
     """
