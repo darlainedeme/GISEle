@@ -133,10 +133,10 @@ def run_routing(parameters):
     radius = 200
     density = 100
 
-    try:
-        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
-    except Exception as e:
-        st.error(f"Error processing clustering: {e}")
+    #try:
+    output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
+    #except Exception as e:
+    #    st.error(f"Error processing clustering: {e}")
 
     st.write("Processing completed")
 
