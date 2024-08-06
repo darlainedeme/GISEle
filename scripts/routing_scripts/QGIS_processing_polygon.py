@@ -140,19 +140,26 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
 
     coords = [(x, y) for x, y in zip(pointData['X'], pointData['Y'])]
 
-    # Placeholder code for creating df and geo_df
-    # Replace with actual processing logic
+    # Placeholder for reading elevation data
+    elevation_data = []
+    # Add actual logic to read elevation values for each point
+
+    for x, y in coords:
+        # Placeholder value for elevation
+        # Replace this with actual logic to read elevation for each coordinate
+        elevation_value = 100  # Example static value
+        elevation_data.append(elevation_value)
+
+    # Create the DataFrame with necessary columns
     data = {
         'ID': range(len(coords)),
         'X': [coord[0] for coord in coords],
         'Y': [coord[1] for coord in coords],
+        'Elevation': elevation_data,
         'OtherData': [0] * len(coords)  # Placeholder for other data columns
     }
     df = pd.DataFrame(data)
     geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
-
-    # Proceed with other processing (this part remains the same)
-    # ...
 
     return df, geo_df
 
@@ -357,6 +364,14 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
 
     df.to_csv(dir + '/Intermediate/Geospatial_Data/grid_of_points.csv', index=False)
 
+    # Check if the required columns exist
+    required_columns = ['Elevation']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"Column {col} not found in DataFrame")
+
+    df_weighted = initialization.weighting(df, resolution, landcover_option)
+    
     # Perform the weighting of the grid of points
     df_weighted = initialization.weighting(df, resolution, landcover_option)
     df_weighted.to_csv(dir + '/Intermediate/Geospatial_Data/weighted_grid_of_points.csv', index=False)
