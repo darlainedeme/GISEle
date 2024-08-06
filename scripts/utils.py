@@ -10,15 +10,14 @@ import pandas as pd
 import os
 import shutil
 import zipfile
+from google.oauth2.service_account import Credentials
 
 
 # Initialize Earth Engine
 @st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
-    service_account = json_data['client_email']
-    private_key = json_data['private_key']
-    credentials = ee.ServiceAccountCredentials(service_account, private_key)
+    credentials = Credentials.from_service_account_info(json_data)
     ee.Initialize(credentials)
 
 
