@@ -132,15 +132,7 @@ def download_elevation_data(polygon, zip_path, dem_path):
         extracted_files = extract_zip(zip_path, os.path.dirname(dem_path))
         print("Extracted files:", extracted_files)
 
-        # Verify if the file has been extracted and is a valid raster file
-        if os.path.isfile(dem_path):
-            # Open and show the DEM using rasterio
-            dem = rio.open(dem_path)
-            show(dem)
-            st.write("Elevation data downloaded.")
-            return dem_path
-        else:
-            raise Exception("File extraction failed or file is not valid.")
+
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
