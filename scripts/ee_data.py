@@ -91,6 +91,8 @@ def download_url(url, out_path):
 def extract_zip(zip_path, extract_to):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(extract_to)
+    extracted_files = zip_ref.namelist()
+    return extracted_files
 
 def download_tif(area, crs, scale, image, out_path):
     """
@@ -127,7 +129,8 @@ def download_elevation_data(polygon, zip_path, dem_path):
         download_tif(polygon, crs, scale, srtm_image, zip_path)
 
         # Extract the zip file
-        extract_zip(zip_path, os.path.dirname(dem_path))
+        extracted_files = extract_zip(zip_path, os.path.dirname(dem_path))
+        print("Extracted files:", extracted_files)
 
         # Verify if the file has been extracted and is a valid raster file
         if os.path.isfile(dem_path):
