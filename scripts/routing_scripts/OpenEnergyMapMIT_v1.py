@@ -182,11 +182,12 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     geometries = buildings_df['buffer'].tolist()
     clusters_MP = unary_union(geometries)
-    # Check if the result is a single Polygon or a MultiPolygon
-    if isinstance(clusters_MP, MultiPolygon):
+    # Ensure the result is always iterable
+    if isinstance(clusters_MP, (MultiPolygon, list)):
         clusters = list(clusters_MP)
     else:
         clusters = [clusters_MP]
+
     
 
     clusters_gdf = gpd.GeoDataFrame(geometry=clusters, crs=crs)
