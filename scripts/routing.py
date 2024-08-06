@@ -129,7 +129,7 @@ def run_routing(parameters):
 
     shortProcedureFlag = False
     database = os.path.join(gisele_folder, 'scripts', 'routing_scripts', 'Database')
-    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_d.shp')
+    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
     radius = 200
     density = 100
 
@@ -188,7 +188,8 @@ def run_routing(parameters):
         for i, row in Clusters.iterrows():
             if row['geometry'].geom_type == 'MultiPolygon':
                 Clusters.at[i, 'geometry'] = row['geometry'][0]
-        Clusters.to_file(os.path.join(case_study_path, 'Input', 'Communities_boundaries'))
+        # Clusters.to_file(os.path.join(case_study_path, 'Input', 'Communities_boundaries'))
+        Clusters.to_file(study_area_folder 
     else:
         destination_path = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Communities_boundaries', 'Communities_boundaries.shp')
         source_gdf = gpd.read_file(output_path_clusters)
