@@ -140,7 +140,7 @@ def run_routing(parameters):
 
     st.write("Processing completed")
 
-    '''
+    
     # 2- New case study creation
     case_study_path = os.path.join('Case studies', case_study)
     if not os.path.exists(case_study_path):
