@@ -16,10 +16,11 @@ import zipfile
 @st.cache_resource
 def initialize_earth_engine():
     json_data = st.secrets["json_data"]
-    json_object = json.loads(json_data, strict=False)
-    service_account = json_object['client_email']
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+    service_account = json_data['client_email']
+    private_key = json_data['private_key']
+    credentials = ee.ServiceAccountCredentials(service_account, private_key)
     ee.Initialize(credentials)
+
 
 def clear_output_directories():
     output_dirs = [
