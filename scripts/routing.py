@@ -130,7 +130,7 @@ def run_routing(parameters):
     shortProcedureFlag = False
     os.chdir(r'..//')
     database = os.path.join(current_dir, 'scripts', 'routing_scripts', 'Database')
-    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
+    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_55.shp')
     radius = 200
     density = 100
 
