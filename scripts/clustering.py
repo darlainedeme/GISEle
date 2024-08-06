@@ -30,6 +30,7 @@ def save_clustered_points(gdf):
 def save_convex_hulls(gdf):
     gdf.to_file(CONVEX_HULLS_FILE, driver='GeoJSON')
 
+# Create clustering map
 def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
     m = folium.Map(location=[combined_buildings.to_crs(epsg=4326).geometry.centroid.y.mean(), 
                              combined_buildings.to_crs(epsg=4326).geometry.centroid.x.mean()], zoom_start=15)
@@ -65,11 +66,13 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
         folium.CircleMarker(location=[row.geometry.centroid.y, row.geometry.centroid.x], radius=2, color='black').add_to(m)
 
     # Add clustered points
-    if clustered_gdf is not None:
-        if 'cluster' not in clustered_gdf.columns:
-            raise AttributeError("clustered_gdf does not have a 'cluster' column")
+    if clustered_gdf is not None and not clustered_gdf.empty:
         clustered_gdf_4326 = clustered_gdf.to_crs(epsg=4326)
-        cluster_colors = plt.cm.get_cmap('tab20', clustered_gdf_4326['cluster'].max() + 1)
+        try:
+            cluster_colors = plt.cm.get_cmap('tab20', clustered_gdf_4326['cluster'].max() + 1)
+        except ValueError as e:
+            st.error(f"Error generating cluster colors: {e}")
+            return m
         for cluster_id in clustered_gdf_4326['cluster'].unique():
             cluster_points = clustered_gdf_4326[clustered_gdf_4326['cluster'] == cluster_id]
             color = cluster_colors(cluster_id)
@@ -77,9 +80,7 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
                 folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color=f'#{int(color[0]*255):02x}{int(color[1]*255):02x}{int(color[2]*255):02x}').add_to(m)
 
     # Add convex hulls
-    if hulls_gdf is not None:
-        if 'cluster' not in hulls_gdf.columns:
-            raise AttributeError("hulls_gdf does not have a 'cluster' column")
+    if hulls_gdf is not None and not hulls_gdf.empty:
         hulls_gdf_4326 = hulls_gdf.to_crs(epsg=4326)
         for idx, row in hulls_gdf_4326.iterrows():
             color = cluster_colors(row['cluster'])
