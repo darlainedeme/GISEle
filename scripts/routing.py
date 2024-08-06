@@ -130,14 +130,14 @@ def run_routing(parameters):
     shortProcedureFlag = False
     os.chdir(r'..//')
     database = os.path.join(current_dir, 'scripts', 'routing_scripts', 'Database')
-    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_55.shp')
+    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
     radius = 200
     density = 100
 
-    try:
-        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
-    except Exception as e:
-        st.error(f"Error processing clustering: {e}")
+    #try:
+    output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
+    #except Exception as e:
+    #    st.error(f"Error processing clustering: {e}")
 
     st.write("Processing completed")
 
