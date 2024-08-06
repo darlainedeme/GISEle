@@ -85,29 +85,42 @@ def resample(raster, resolution, options):
 
 def create_grid(crs, resolution, study_area):
     """
-    Create a grid of points within the study area.
-
+    Create a grid of points for the study area with the specified resolution.
+    
     Parameters:
-    - crs: The preferred CRS of the dataframe (integer).
-    - resolution: The preferred resolution of the grid of points (integer).
-    - study_area: The study area as a Shapely polygon in the preferred CRS.
-
+    - crs: Coordinate Reference System (integer).
+    - resolution: Resolution for the grid (integer).
+    - study_area: GeoDataFrame representing the study area.
+    
     Returns:
-    - geo_df_clipped: GeoDataFrame with the grid of points clipped to the study area.
+    - GeoDataFrame of grid points.
     """
-    df = pd.DataFrame(columns=['X', 'Y'])
-    min_x, min_y, max_x, max_y = study_area.bounds
+    # Get the bounding box of the study area
+    min_x, min_y, max_x, max_y = study_area.total_bounds
 
-    # Create one-dimensional arrays for x and y
-    lon = np.arange(min_x, max_x, resolution)
-    lat = np.arange(min_y, max_y, resolution)
-    lon, lat = np.meshgrid(lon, lat)
-    df['X'] = lon.reshape((np.prod(lon.shape),))
-    df['Y'] = lat.reshape((np.prod(lat.shape),))
-    geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.X, df.Y), crs=crs)
-    geo_df_clipped = gpd.clip(geo_df, study_area)
+    # Ensure resolution is valid
+    if resolution <= 0:
+        raise ValueError("Resolution must be a positive number.")
 
-    return geo_df_clipped
+    # Check the bounding box values
+    if min_x >= max_x or min_y >= max_y:
+        raise ValueError(f"Invalid bounding box values: min_x={min_x}, max_x={max_x}, min_y={min_y}, max_y={max_y}")
+
+    # Create the grid points
+    try:
+        lon = np.arange(min_x, max_x, resolution)
+        lat = np.arange(min_y, max_y, resolution)
+        grid_points = [Point(x, y) for x in lon for y in lat]
+    except Exception as e:
+        raise ValueError(f"Error creating grid points: {e}")
+
+    # Create a GeoDataFrame from the grid points
+    grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
+    
+    # Clip the grid to the study area
+    grid_gdf = gpd.clip(grid_gdf, study_area)
+
+    return grid_gdf
 
 
 def rasters_to_points(study_area, crs, resolution_points, dir, protected_areas, streets, resolution_population):
