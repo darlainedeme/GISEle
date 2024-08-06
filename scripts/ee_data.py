@@ -41,27 +41,6 @@ def download_ee_image(collection_id, bands, polygon, file_path, scale=30, dateMi
     except Exception as e:
         print(f"An error occurred: {e}")
 
-if __name__ == "__main__":
-    import streamlit as st
-
-    # Define the polygon (example coordinates, replace with your own)
-    polygon = [[[85.3240, 27.7172], [85.3240, 27.7272], [85.3340, 27.7272], [85.3340, 27.7172], [85.3240, 27.7172]]]
-
-    # Selected datasets (example condition, replace with your own logic)
-    selected_datasets = ["Satellite"]
-
-    # Streamlit status text and progress bar
-    status_text = st.empty()
-    progress = st.progress(0)
-
-    if "Satellite" in selected_datasets:
-        status_text.text("Downloading satellite data...")
-        satellite_file = 'data/output/satellite/satellite_image.tif'
-        os.makedirs('data/output/satellite', exist_ok=True)
-        download_ee_image('COPERNICUS/S2_SR_HARMONIZED', ['B4', 'B3', 'B2'], polygon, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-30')
-        st.write("Satellite data downloaded for the selected area.")
-        progress.progress(0.9)
-
 def download_elevation_data(polygon, zip_path, dem_path):
     try:
         os.makedirs(os.path.dirname(zip_path), exist_ok=True)
