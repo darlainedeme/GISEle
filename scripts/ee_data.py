@@ -79,6 +79,7 @@ def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, 
         os.remove(f'{band}.zip')
 
 def download_url(url, out_path):
+    import requests
     response = requests.get(url)
     with open(out_path, 'wb') as out_file:
         out_file.write(response.content)
@@ -95,7 +96,7 @@ def download_tif(area, crs, scale, image, out_path):
     :return:
     """
     min_x, min_y, max_x, max_y = area.bounds
-    path = image.getDownloadUrl({
+    path = image.getDownloadURL({
         'scale': scale,
         'crs': 'EPSG:' + str(crs),
         'region': [[min_x, min_y], [min_x, max_y], [max_x, max_y], [max_x, min_y]]
@@ -127,6 +128,7 @@ def download_elevation_data(polygon, dem_path):
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
+
         
 def clip_raster_to_polygon(raster_path, polygon, output_path):
     with rasterio.open(raster_path) as src:
