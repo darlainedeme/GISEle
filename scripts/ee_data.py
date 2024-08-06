@@ -127,7 +127,6 @@ def download_elevation_data(polygon, dem_path):
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
-
         
 def clip_raster_to_polygon(raster_path, polygon, output_path):
     with rasterio.open(raster_path) as src:
