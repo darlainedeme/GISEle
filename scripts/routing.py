@@ -190,7 +190,7 @@ def run_routing(parameters):
                 Clusters.at[i, 'geometry'] = row['geometry'][0]
         Clusters.to_file(os.path.join(case_study_path, 'Input', 'Communities_boundaries'))
     else:
-        destination_path = os.path.join(case_study_path, 'Input', 'Communities_boundaries', 'Communities_boundaries.shp')
+        destination_path = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Communities_boundaries', 'Communities_boundaries.shp')
         source_gdf = gpd.read_file(output_path_clusters)
         source_gdf.to_file(destination_path)
         Clusters = gpd.read_file(destination_path)
