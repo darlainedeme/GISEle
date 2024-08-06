@@ -12,7 +12,6 @@ import scripts.worldpop as worldpop
 import os
 
 def show():
-    st.title("Data Retrieve")
 
     datasets = [
         "Buildings",
