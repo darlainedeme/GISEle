@@ -5,6 +5,7 @@ Created on Mon Jun  3 13:11:18 2024
 @author: EPSla
 """
 
+import streamlit as st
 import os
 import numpy as np
 import pandas as pd
@@ -26,7 +27,6 @@ from collections import Counter
 from statistics import mean
 from math import ceil
 import fiona
-import streamlit as st
 from rasterio.enums import Resampling
 from rasterio.mask import mask
 from shapely.geometry import Polygon
