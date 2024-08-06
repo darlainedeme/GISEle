@@ -22,8 +22,11 @@ def initialize_earth_engine():
     if json_data is None:
         raise ValueError("json_data is None")
     
-    # Convert the AttrDict to a JSON string
-    json_data_str = json.dumps(json_data)
+    # Convert the AttrDict to a dictionary
+    json_data_dict = dict(json_data)
+    
+    # Convert the dictionary to a JSON string
+    json_data_str = json.dumps(json_data_dict)
     
     # Check if json_data_str is of valid type
     if not isinstance(json_data_str, str):
@@ -42,7 +45,7 @@ def initialize_earth_engine():
     # Initialize the Earth Engine service account credentials
     credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data_str)
     ee.Initialize(credentials)
-
+    
 def clear_output_directories():
     output_dirs = [
         'data/output/buildings', 'data/output/roads', 'data/output/poi',
