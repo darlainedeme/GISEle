@@ -198,7 +198,7 @@ def run_routing(parameters):
         Clusters = gpd.read_file(destination_path)
         Clusters = Clusters.to_crs(crs)
         Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
-        st.write(case_study_path)
+        # st.write(case_study_path)
         study_area = gpd.read_file(os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Study_area', 'Study_area.shp'))
         Substations = gpd.read_file(os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'substations', 'substations.shp'))
 
