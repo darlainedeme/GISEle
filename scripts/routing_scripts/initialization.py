@@ -53,7 +53,7 @@ def weighting(df, resolution, landcover_option):
     # df_weighted.Population.fillna(value=0, inplace=True)
     df_weighted['Weight'] = 0
     print('Weighting the Dataframe..')
-    os.chdir(r'results//')
+    os.chdir('results')
     landcover_csv = pd.read_csv('Landcover.csv')
     os.chdir(r'..//')
     del df
