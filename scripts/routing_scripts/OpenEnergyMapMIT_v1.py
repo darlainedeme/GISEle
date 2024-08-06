@@ -188,7 +188,6 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
     else:
         clusters = [clusters_MP]
     
-    st.write(clusters)
 
     clusters_gdf = gpd.GeoDataFrame(geometry=clusters, crs=crs)
     clusters_gdf = clusters_gdf.reset_index().rename(columns={'index': 'cluster_ID'})
