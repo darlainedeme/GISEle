@@ -193,7 +193,8 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
     clusters_gdf = gpd.GeoDataFrame(geometry=clusters, crs=crs)
     clusters_gdf = clusters_gdf.reset_index().rename(columns={'index': 'cluster_ID'})
     clusters_gdf['cluster_ID'] = clusters_gdf['cluster_ID'] + 1
-    spatial_join = gpd.sjoin(buildings_df, clusters_gdf, how='left', op='within')
+    spatial_join = gpd.sjoin(buildings_df, clusters_gdf, how='left', predicate='within')
+
 
     try:
         buildings_df['cluster_ID'] = spatial_join['cluster_ID']
