@@ -30,7 +30,6 @@ def save_clustered_points(gdf):
 def save_convex_hulls(gdf):
     gdf.to_file(CONVEX_HULLS_FILE, driver='GeoJSON')
 
-# Create clustering map
 def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
     m = folium.Map(location=[combined_buildings.to_crs(epsg=4326).geometry.centroid.y.mean(), 
                              combined_buildings.to_crs(epsg=4326).geometry.centroid.x.mean()], zoom_start=15)
@@ -67,6 +66,8 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
 
     # Add clustered points
     if clustered_gdf is not None:
+        if 'cluster' not in clustered_gdf.columns:
+            raise AttributeError("clustered_gdf does not have a 'cluster' column")
         clustered_gdf_4326 = clustered_gdf.to_crs(epsg=4326)
         cluster_colors = plt.cm.get_cmap('tab20', clustered_gdf_4326['cluster'].max() + 1)
         for cluster_id in clustered_gdf_4326['cluster'].unique():
@@ -77,6 +78,8 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
 
     # Add convex hulls
     if hulls_gdf is not None:
+        if 'cluster' not in hulls_gdf.columns:
+            raise AttributeError("hulls_gdf does not have a 'cluster' column")
         hulls_gdf_4326 = hulls_gdf.to_crs(epsg=4326)
         for idx, row in hulls_gdf_4326.iterrows():
             color = cluster_colors(row['cluster'])
@@ -145,8 +148,11 @@ def show():
         st.success("Clusters and convex hulls saved successfully!")
 
     # Display map
-    m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.hulls_gdf)
-    st_folium(m, width=1400, height=800)
+    if st.session_state.clustered_gdf is not None and st.session_state.hulls_gdf is not None:
+        m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.hulls_gdf)
+        st_folium(m, width=1400, height=800)
+    else:
+        st.warning("Please perform clustering first.")
 
 if __name__ == "__main__":
     show()

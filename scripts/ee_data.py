@@ -1,73 +1,118 @@
-# Import necessary libraries
 import ee
-import geemap
-import os
 import requests
+import zipfile
+import numpy as np
+import rasterio
+import os
+import streamlit as st
+from rasterio.mask import mask
+from shapely.geometry import mapping
+import geemap
 
-# Function to download an image from Google Earth Engine
-def download_ee_image(collection_id, bands, polygon, file_path, scale=30, dateMin='2020-01-01', dateMax='2020-01-02'):
-    try:
-        # Initialize the Earth Engine API
-        ee.Initialize()
+def download_ee_image(dataset, bands, region, filename, scale=30, dateMin='2022-01-01', dateMax='2022-01-02', crs='EPSG:4326'):
+    print(f'Downloading {dataset} dataset ... ')
+    
+    aoi = geemap.shp_to_ee(study_area_shp).geometry()
 
-        # Define the Area of Interest (AOI)
-        aoi = ee.Geometry.Polygon(polygon)
+    collection = ee.ImageCollection(dataset).filterBounds(aoi)
+    
+    if dateMin and dateMax:
+        collection = collection.filterDate(ee.Date(dateMin), ee.Date(dateMax))
+    
+    image = collection.mosaic().clip(region)
+    image = image.addBands(ee.Image.pixelLonLat())
+    
+    for band in bands:
+        task = ee.batch.Export.image.toDrive(image=image.select(band),
+                                             description=band,
+                                             scale=scale,
+                                             region=region,
+                                             fileNamePrefix=band,
+                                             crs=crs,
+                                             fileFormat='GeoTIFF')
+        task.start()
 
-        # Filter the image collection
-        collection = ee.ImageCollection(collection_id) \
-            .filterDate(dateMin, dateMax) \
-            .filterBounds(aoi) \
-            .select(bands)
-
-        # Get the first image from the collection
-        image = collection.first()
-
-        # Get the download URL
-        url = image.getDownloadURL({
+        url = image.select(band).getDownloadURL({
             'scale': scale,
-            'crs': 'EPSG:4326',
-            'region': aoi,
-            'format': 'GEO_TIFF'
-        })
+            'crs': crs,
+            'fileFormat': 'GeoTIFF',
+            'region': region})
+        
+        r = requests.get(url, stream=True)
 
-        # Download the image
-        response = requests.get(url, stream=True)
-        with open(file_path, "wb") as fd:
-            for chunk in response.iter_content(chunk_size=1024):
+        filenameZip = f'{band}.zip'
+        filenameTif = f'{band}.tif'
+
+        with open(filenameZip, "wb") as fd:
+            for chunk in r.iter_content(chunk_size=1024):
                 fd.write(chunk)
 
-        print(f"Image downloaded successfully and saved to {file_path}")
+        zipdata = zipfile.ZipFile(filenameZip)
+        zipinfos = zipdata.infolist()
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-def download_elevation_data(polygon, zip_path, dem_path):
-    try:
-        os.makedirs(os.path.dirname(zip_path), exist_ok=True)
+        for zipinfo in zipinfos:
+            zipinfo.filename = filenameTif
+            zipdata.extract(zipinfo)
         
-        # Define the Earth Engine image for SRTM
-        srtm_image = ee.Image('USGS/SRTMGL1_003')
+        zipdata.close()
+        
+    print('Creating multi-band GeoTIFF image ... ')
+    
+    band_files = [rasterio.open(f'{band}.tif') for band in bands]
 
-        # Define the CRS and scale
-        crs = 4326  # WGS84
-        scale = 30  # SRTM resolution is approximately 30 meters
+    image = np.array([band_file.read(1) for band_file in band_files]).transpose(1, 2, 0)
+    p2, p98 = np.percentile(image, (2, 98))
 
-        # Download the zip using Earth Engine
-        download_tif(polygon, crs, scale, srtm_image, zip_path)
+    first_band_geo = band_files[0].profile
+    first_band_geo.update({'count': len(bands)})
 
-        # Extract the zip file
-        extracted_files = extract_zip(zip_path, os.path.dirname(dem_path))
-        print("Extracted files:", extracted_files)
+    with rasterio.open(filename, 'w', **first_band_geo) as dest:
+        for i, band_file in enumerate(band_files):
+            dest.write((np.clip(band_file.read(1), p2, p98) - p2) / (p98 - p2) * 255, i + 1)
 
-        # Verify if the file has been extracted and is a valid raster file
-        if os.path.isfile(dem_path):
-            # Open and show the DEM using rasterio
-            dem = rio.open(dem_path)
-            show(dem)
-            st.write("Elevation data downloaded.")
-            return dem_path
-        else:
-            raise Exception("File extraction failed or file is not valid.")
+    for band_file in band_files:
+        band_file.close()
+    
+    for band in bands:
+        os.remove(f'{band}.tif')
+        os.remove(f'{band}.zip')
+
+def download_elevation_data(polygon, dem_path):
+    import elevation
+    import rasterio as rio
+    from rasterio.plot import show
+
+    try:
+        os.makedirs(os.path.dirname(dem_path), exist_ok=True)
+        
+        bounds_combined = polygon.bounds
+        west_c, south_c, east_c, north_c = bounds_combined
+        
+        absolute_dem_path = os.path.abspath(dem_path)
+        
+        elevation.clip(bounds=(west_c, south_c, east_c, north_c), output=absolute_dem_path, product='SRTM1')
+        dem = rio.open(absolute_dem_path)
+        show(dem)
+        
+        elevation.clean()
+        
+        st.write("Elevation data downloaded.")
+        return absolute_dem_path
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
+
+def clip_raster_to_polygon(raster_path, polygon, output_path):
+    with rasterio.open(raster_path) as src:
+        out_image, out_transform = mask(src, [polygon], crop=True)
+        out_meta = src.meta.copy()
+
+        out_meta.update({
+            "driver": "GTiff",
+            "height": out_image.shape[1],
+            "width": out_image.shape[2],
+            "transform": out_transform
+        })
+
+        with rasterio.open(output_path, "w", **out_meta) as dest:
+            dest.write(out_image)
