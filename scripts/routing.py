@@ -128,20 +128,20 @@ def run_routing(parameters):
     st.write('0. Clustering Procedures')
 
     shortProcedureFlag = False
-    os.chdir(r'..//')
-    database = os.path.join(current_dir, 'scripts', 'routing_scripts', 'Database')
+
+    database = os.path.join('scripts', 'routing_scripts', 'Database')
     study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
     radius = 200
     density = 100
 
-    #try:
-    output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
-    #except Exception as e:
-    #    st.error(f"Error processing clustering: {e}")
+    try:
+        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
+    except Exception as e:
+        st.error(f"Error processing clustering: {e}")
 
     st.write("Processing completed")
 
-    '''
+    
     # 2- New case study creation
     case_study_path = os.path.join('Case studies', case_study)
     if not os.path.exists(case_study_path):
@@ -220,7 +220,7 @@ def run_routing(parameters):
     Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
     destination_path1 = os.path.join(case_study_path, 'Input', 'Communities_boundaries', 'Communities_boundaries_2el.shp')
     Clusters.to_file(destination_path1)
-    
+    '''
     # Optimize local area
     start = time.time()
     LAO.optimize(
