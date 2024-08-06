@@ -133,10 +133,10 @@ def run_routing(parameters):
     radius = 200
     density = 100
 
-    #try:
-    output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
-    #except Exception as e:
-    #    st.error(f"Error processing clustering: {e}")
+    try:
+        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
+    except Exception as e:
+        st.error(f"Error processing clustering: {e}")
 
     st.write("Processing completed")
 
@@ -198,8 +198,9 @@ def run_routing(parameters):
         Clusters = gpd.read_file(destination_path)
         Clusters = Clusters.to_crs(crs)
         Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
-        study_area = gpd.read_file(os.path.join(case_study_path, 'Input', 'Study_area', 'Study_area.shp'))
-        Substations = gpd.read_file(os.path.join(case_study_path, 'Input', 'substations', 'substations.shp'))
+        st.write(case_study_path)
+        study_area = gpd.read_file(os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Study_area', 'Study_area.shp'))
+        Substations = gpd.read_file(os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'substations', 'substations.shp'))
 
     # Create the grid of points
     st.write('1. CREATE A WEIGHTED GRID OF POINTS')
