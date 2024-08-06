@@ -41,8 +41,6 @@ def download_ee_image(collection_id, bands, polygon, file_path, scale=30, dateMi
     except Exception as e:
         print(f"An error occurred: {e}")
 
-
-
 def download_elevation_data(polygon, zip_path, dem_path):
     try:
         os.makedirs(os.path.dirname(zip_path), exist_ok=True)
