@@ -130,24 +130,16 @@ def run_routing(parameters):
     shortProcedureFlag = False
     database = os.path.join(gisele_folder, 'scripts', 'routing_scripts', 'Database')
     study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
-
-    # Print the constructed path to verify it
-    print(f"Path to the study area shapefile: {study_area_folder}")
-    
-    # Check if the file exists
-    if not os.path.exists(study_area_folder):
-        st.error(f"File does not exist: {study_area_folder}")
-        return
-
     radius = 200
     density = 100
 
-    #try:
-    output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
-    #except Exception as e:
-    #    st.error(f"Error processing clustering: {e}")
+    try:
+        output_path_points, output_path_clusters = building_to_cluster_v1(study_area_folder, crs, radius, density, shortProcedureFlag)
+    except Exception as e:
+        st.error(f"Error processing clustering: {e}")
 
     st.write("Processing completed")
+
     
     # 2- New case study creation
     case_study_path = os.path.join('Case studies', case_study)
@@ -200,15 +192,13 @@ def run_routing(parameters):
         Clusters.to_file(os.path.join(database, country, 'Input', 'Communities_boundaries'))
     else:
         destination_path = os.path.join(database, country, 'Input', 'Communities_boundaries', 'Communities_boundaries.shp')
-        st.write(output_path_clusters)
         source_gdf = gpd.read_file(output_path_clusters)
         source_gdf.to_file(destination_path)
         Clusters = gpd.read_file(destination_path)
         Clusters = Clusters.to_crs(crs)
         Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
-        # st.write(case_study_path)
-        study_area = gpd.read_file(os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Study_area', 'Study_area.shp'))
-        Substations = gpd.read_file(os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'substations', 'substations.shp'))
+        study_area = gpd.read_file(os.path.join(case_study_path, 'Input', 'Study_area', 'Study_area.shp'))
+        Substations = gpd.read_file(os.path.join(case_study_path, 'Input', 'substations', 'substations.shp'))
 
     # Create the grid of points
     st.write('1. CREATE A WEIGHTED GRID OF POINTS')
@@ -292,4 +282,4 @@ def show():
         run_routing(parameters)
 
 if __name__ == "__main__":
-    main()
+    show()
