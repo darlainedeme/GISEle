@@ -78,8 +78,8 @@ def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, 
         os.remove(f'{band}.tif')
         os.remove(f'{band}.zip')
 
+
 def download_url(url, out_path):
-    import requests
     response = requests.get(url, stream=True)
     if response.status_code == 200:
         with open(out_path, 'wb') as out_file:
@@ -94,30 +94,41 @@ def extract_zip(zip_path, extract_to):
     extracted_files = zip_ref.namelist()
     return extracted_files
 
-def download_tif(area, crs, scale, image, out_path):
-    """
-    Download data from Earth Engine
-    :param area: GeoDataFrame or shapely Polygon with the polygon of interest area
-    :param crs: str with crs of the project
-    :param scale: int with pixel size in meters
-    :param image: image from the wanted database in Earth Image
-    :param out_path: str with output path
-    :return:
-    """
-    min_x, min_y, max_x, max_y = area.bounds
-    path = image.getDownloadURL({
+def download_and_extract_band(image, selection, scale, aoi, output_folder):
+    url = image.select(selection).getDownloadURL({
         'scale': scale,
-        'crs': 'EPSG:' + str(crs),
-        'region': [[min_x, min_y], [min_x, max_y], [max_x, max_y], [max_x, min_y]]
+        'crs': 'EPSG:4326',
+        'fileFormat': 'GeoTIFF',
+        'region': aoi
     })
-    print("Download URL:", path)
-    download_url(path, out_path)
-    return
+    zip_path = os.path.join(output_folder, f"{selection}.zip")
+    tif_path = os.path.join(output_folder, f"{selection}.tif")
+    download_url(url, zip_path)
+    extracted_files = extract_zip(zip_path, output_folder)
+    if not any(tif_path in file for file in extracted_files):
+        raise Exception(f"{tif_path} not found in the extracted files.")
+    return tif_path
+
+def combine_bands_to_rgb(band_paths, output_path):
+    bands = [rio.open(band) for band in band_paths]
+    profile = bands[0].profile
+    profile.update(count=3)
+
+    with rio.open(output_path, 'w', **profile) as dst:
+        for i, band in enumerate(bands, start=1):
+            dst.write(band.read(1), i)
+
+    for band in bands:
+        band.close()
+
+    for band_path in band_paths:
+        os.remove(band_path)
+        os.remove(band_path.replace('.tif', '.zip'))
 
 def download_elevation_data(polygon, zip_path, dem_path):
     try:
         os.makedirs(os.path.dirname(zip_path), exist_ok=True)
-        
+
         # Define the Earth Engine image for SRTM
         srtm_image = ee.Image('USGS/SRTMGL1_003')
 
@@ -125,10 +136,36 @@ def download_elevation_data(polygon, zip_path, dem_path):
         crs = 4326  # WGS84
         scale = 30  # SRTM resolution is approximately 30 meters
 
-        # Download the zip using Earth Engine
-        download_tif(polygon, crs, scale, srtm_image, zip_path)
+        # Get the coordinates for the area of interest
+        min_x, min_y, max_x, max_y = polygon.bounds
+        coords = [
+            [min_x, min_y],
+            [min_x, max_y],
+            [max_x, max_y],
+            [max_x, min_y],
+            [min_x, min_y]
+        ]
+        aoi = ee.Geometry.Polygon(coords)
 
+        # Download and extract each band
+        bands = ['B4', 'B3', 'B2']
+        band_paths = []
+        for band in bands:
+            band_path = download_and_extract_band(srtm_image, band, scale, aoi, os.path.dirname(zip_path))
+            band_paths.append(band_path)
 
+        # Combine bands into a single RGB GeoTIFF
+        combine_bands_to_rgb(band_paths, dem_path)
+
+        # Verify if the file has been extracted and is a valid raster file
+        if os.path.isfile(dem_path):
+            # Open and show the DEM using rasterio
+            dem = rio.open(dem_path)
+            show(dem)
+            st.write("Elevation data downloaded.")
+            return dem_path
+        else:
+            raise Exception("File extraction failed or file is not valid.")
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
         return None
