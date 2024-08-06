@@ -17,8 +17,9 @@ from shapely.geometry import Point, MultiPoint, MultiPolygon
 from shapely.ops import nearest_points, unary_union
 from scipy.interpolate import interp1d
 from scipy.ndimage import convolve
+from scipy.spatial import cKDTree
 try:
-    from scipy.spatial import cKDTree, pdist, squareform
+    from from scipy.spatial.distance import pdist, squareform
     st.write("Imports successful!")
 except ImportError as e:
     st.write(f"ImportError: {e}")
