@@ -7,6 +7,7 @@ import os
 import streamlit as st
 from rasterio.mask import mask
 from shapely.geometry import mapping
+import rasterio as rio
 
 def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, dateMax=None, crs='EPSG:4326'):
     print(f'Downloading {dataset} dataset ... ')
