@@ -197,9 +197,17 @@ def run_routing(parameters):
         Clusters = gpd.read_file(destination_path)
         Clusters = Clusters.to_crs(crs)
         Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
-        study_area = gpd.read_file(os.path.join(case_study_path, 'Input', 'Study_area', 'Study_area.shp'))
-        Substations = gpd.read_file(os.path.join(case_study_path, 'Input', 'substations', 'substations.shp'))
+        try:
+            study_area = gpd.read_file(os.path.join(case_study_path, 'Input', 'Study_area', 'Study_area.shp'))
+        except Exception as e:
+            st.error(f"Error reading the study area shapefile: {e}")
+            return
 
+        try:
+            Substations = gpd.read_file(os.path.join(case_study_path, 'Input', 'substations', 'substations.shp'))
+        except Exception as e:
+            st.error(f"Error reading the substations shapefile: {e}")
+            return
     # Create the grid of points
     st.write('1. CREATE A WEIGHTED GRID OF POINTS')
     df_weighted = qgis_process.create_input_csv(crs, resolution, resolution_population, landcover_option, country, case_study, database, study_area)
