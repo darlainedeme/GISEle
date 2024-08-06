@@ -189,7 +189,7 @@ def run_routing(parameters):
             if row['geometry'].geom_type == 'MultiPolygon':
                 Clusters.at[i, 'geometry'] = row['geometry'][0]
         # Clusters.to_file(os.path.join(case_study_path, 'Input', 'Communities_boundaries'))
-        Clusters.to_file(database, country, 'Input', 'Communities_boundaries'))
+        Clusters.to_file(os.path.join(database, country, 'Input', 'Communities_boundaries'))
     else:
         destination_path = os.path.join(database, country, 'Input', 'Communities_boundaries', 'Communities_boundaries.shp')
         source_gdf = gpd.read_file(output_path_clusters)
