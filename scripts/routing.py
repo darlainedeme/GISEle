@@ -128,9 +128,17 @@ def run_routing(parameters):
     st.write('0. Clustering Procedures')
 
     shortProcedureFlag = False
-
-    database = os.path.join('scripts', 'routing_scripts', 'Database')
+    database = os.path.join(gisele_folder, 'scripts', 'routing_scripts', 'Database')
     study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
+
+    # Print the constructed path to verify it
+    print(f"Path to the study area shapefile: {study_area_folder}")
+    
+    # Check if the file exists
+    if not os.path.exists(study_area_folder):
+        st.error(f"File does not exist: {study_area_folder}")
+        return
+
     radius = 200
     density = 100
 
@@ -140,7 +148,6 @@ def run_routing(parameters):
     #    st.error(f"Error processing clustering: {e}")
 
     st.write("Processing completed")
-
     
     # 2- New case study creation
     case_study_path = os.path.join('Case studies', case_study)
