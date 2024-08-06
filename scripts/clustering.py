@@ -78,7 +78,7 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
                 cluster_colors = plt.colormaps.get_cmap('tab20')
             else:
                 cluster_colors = plt.colormaps.get_cmap('tab20', num_clusters)
-
+    
         except ValueError as e:
             st.error(f"Error generating cluster colors: {e}")
             return m
