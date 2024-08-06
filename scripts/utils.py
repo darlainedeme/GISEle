@@ -22,22 +22,25 @@ def initialize_earth_engine():
     if json_data is None:
         raise ValueError("json_data is None")
     
-    # Check if json_data is of valid type
-    if not isinstance(json_data, str):
-        raise TypeError(f"json_data must be str, but got {type(json_data)}")
+    # Convert the AttrDict to a JSON string
+    json_data_str = json.dumps(json_data)
+    
+    # Check if json_data_str is of valid type
+    if not isinstance(json_data_str, str):
+        raise TypeError(f"json_data must be str, but got {type(json_data_str)}")
     
     # Optionally print the data type and part of the content for debugging
-    print(f"json_data type: {type(json_data)}")
-    print(f"json_data content: {json_data[:100]}...")  # Print the first 100 characters
+    print(f"json_data_str type: {type(json_data_str)}")
+    print(f"json_data_str content: {json_data_str[:100]}...")  # Print the first 100 characters
     
-    # Parse the JSON data
-    json_object = json.loads(json_data, strict=False)
+    # Parse the JSON string
+    json_object = json.loads(json_data_str, strict=False)
     
     # Extract the service account email from the JSON object
     service_account = json_object['client_email']
     
     # Initialize the Earth Engine service account credentials
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data_str)
     ee.Initialize(credentials)
 
 def clear_output_directories():
