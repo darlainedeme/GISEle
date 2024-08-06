@@ -232,6 +232,19 @@ def reproject_raster(input_raster, output_raster, dst_crs):
                     dst_crs=dst_crs,
                     resampling=Resampling.nearest)
 
+def delete_leftover_files(dir, crs):
+    """
+    Delete leftover files from the resampling and reprojecting process.
+
+    Parameters:
+    - dir: Directory where data is stored.
+    - crs: CRS used for the files.
+    """
+    folder = dir + '/Intermediate/Geospatial_Data/'
+    os.remove(folder + 'Elevation.tif')
+    os.remove(folder + 'LandCover.tif')
+    os.remove(folder + 'Slope.tif')
+
 
 def create_input_csv(crs, resolution, resolution_population, landcover_option, country, case_study, database, study_area):
     """
@@ -254,7 +267,8 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     crs_str = 'epsg:' + str(crs)
 
     # Open the roads, protected areas, and rivers
-    protected_areas_file = locate_file(database, folder='Protected_areas', extension='.shp')
+    files_folder = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Intermediate', 'Geospatial')
+    protected_areas_file = locate_file(files_folder, folder='Protected_areas', extension='.shp')
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
 
     roads_file = locate_file(database, folder='Roads', extension='.shp')
@@ -365,17 +379,4 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
 
     return df_weighted
 
-
-def delete_leftover_files(dir, crs):
-    """
-    Delete leftover files from the resampling and reprojecting process.
-
-    Parameters:
-    - dir: Directory where data is stored.
-    - crs: CRS used for the files.
-    """
-    folder = dir + '/Intermediate/Geospatial_Data/'
-    os.remove(folder + 'Elevation.tif')
-    os.remove(folder + 'LandCover.tif')
-    os.remove(folder + 'Slope.tif')
 
