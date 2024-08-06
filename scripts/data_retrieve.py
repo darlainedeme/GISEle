@@ -145,7 +145,7 @@ def show():
             if "Elevation" in selected_datasets:
                 status_text.text("Downloading elevation data...")
                 elevation_file = 'data/input/elevation/image_original.tif'
-                os.makedirs('data/output/elevation', exist_ok=True)
+                os.makedirs('data/input/elevation', exist_ok=True)
                 elevation_path = download_elevation_data(polygon, elevation_file)
 
                 if elevation_path:
