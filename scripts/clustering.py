@@ -72,6 +72,7 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
             num_clusters = clustered_gdf_4326['cluster'].max() + 1
             st.write(f"Number of clusters: {num_clusters}")  # Debug print
             cluster_colors = plt.cm.get_cmap('tab20', num_clusters)
+            st.write(f"Cluster colors generated successfully")  # Debug print
         except ValueError as e:
             st.error(f"Error generating cluster colors: {e}")
             return m
