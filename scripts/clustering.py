@@ -69,10 +69,16 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
     if clustered_gdf is not None and not clustered_gdf.empty:
         clustered_gdf_4326 = clustered_gdf.to_crs(epsg=4326)
         try:
-            cluster_colors = plt.cm.get_cmap('tab20', clustered_gdf_4326['cluster'].max() + 1)
+            num_clusters = clustered_gdf_4326['cluster'].max() + 1
+            st.write(f"Number of clusters: {num_clusters}")  # Debug print
+            cluster_colors = plt.cm.get_cmap('tab20', num_clusters)
         except ValueError as e:
             st.error(f"Error generating cluster colors: {e}")
             return m
+        except KeyError as e:
+            st.error(f"KeyError: {e}")
+            return m
+
         for cluster_id in clustered_gdf_4326['cluster'].unique():
             cluster_points = clustered_gdf_4326[clustered_gdf_4326['cluster'] == cluster_id]
             color = cluster_colors(cluster_id)
