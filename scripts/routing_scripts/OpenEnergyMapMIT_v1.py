@@ -185,9 +185,12 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     # Check if the result is a single Polygon or a MultiPolygon
     if isinstance(clusters_MP, MultiPolygon):
-        clusters = list(clusters_MP)
-    else:
+        clusters = [poly for poly in clusters_MP]
+    elif isinstance(clusters_MP, Polygon):
         clusters = [clusters_MP]
+    else:
+        clusters = []
+
 
     clusters_gdf = gpd.GeoDataFrame(geometry=clusters, crs=crs)
     clusters_gdf = clusters_gdf.reset_index().rename(columns={'index': 'cluster_ID'})
