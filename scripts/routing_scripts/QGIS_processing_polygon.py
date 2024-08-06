@@ -350,14 +350,27 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     # Convert streets from lines to multipoints
     streets_points = []
     for line in streets_clipped['geometry']:
-        if line.geom_type == 'MultiLineString':
-            for line1 in line:
-                for x in zip(line1.xy[0], line1.xy[1]):
+        try:
+            if line.geom_type == 'MultiLineString':
+                for line1 in line.geoms:
+                    for x in zip(line1.xy[0], line1.xy[1]):
+                        streets_points.append(x)
+            elif line.geom_type == 'LineString':
+                for x in zip(line.xy[0], line.xy[1]):
                     streets_points.append(x)
-        else:
-            for x in zip(line.xy[0], line.xy[1]):
-                streets_points.append(x)
-    streets_multipoint = MultiPoint(streets_points)
+            else:
+                st.warning(f"Unexpected geometry type: {line.geom_type}")
+        except AttributeError as e:
+            st.error(f"AttributeError: {e} for geometry: {line}")
+        except TypeError as e:
+            st.error(f"TypeError: {e} for geometry: {line}")
+
+    if streets_points:
+        streets_multipoint = MultiPoint(streets_points)
+    else:
+        streets_multipoint = MultiPoint()
+        st.warning("No points extracted from streets data")
+
 
     # Create and populate the grid of points
     df, geo_df = rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clipped, streets_multipoint, resolution_population)
