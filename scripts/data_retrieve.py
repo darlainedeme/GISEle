@@ -173,24 +173,13 @@ def show():
                     st.write("Wind data downloaded for the selected area.")
                 progress.progress(0.95)
 
-                # Define the polygon (example coordinates, replace with your own)
-                polygon = [[[85.3240, 27.7172], [85.3240, 27.7272], [85.3340, 27.7272], [85.3340, 27.7172], [85.3240, 27.7172]]]
-
-                if "Satellite" in selected_datasets:
-                    status_text.text("Downloading satellite data...")
-                    satellite_file = 'data/output/satellite/satellite_image.tif'
-                    os.makedirs('data/output/satellite', exist_ok=True)
-                    download_ee_image('COPERNICUS/S2_SR_HARMONIZED', ['B4', 'B3', 'B2'], polygon, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-02')
-                    st.write("Satellite data downloaded for the selected area.")
-                    progress.progress(0.9)
-        
-            '''if "Satellite" in selected_datasets:
+            if "Satellite" in selected_datasets:
                 status_text.text("Downloading satellite data...")
                 satellite_file = 'data/output/satellite/satellite_image.tif'
                 os.makedirs('data/output/satellite', exist_ok=True)
                 download_ee_image('COPERNICUS/S2_SR_HARMONIZED', ['B4', 'B3', 'B2'], polygon, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-30')
                 st.write("Satellite data downloaded for the selected area.")
-                progress.progress(0.9)'''
+                progress.progress(0.9)
 
             if "Nighttime Lights" in selected_datasets:
                 status_text.text("Downloading nighttime lights data...")
