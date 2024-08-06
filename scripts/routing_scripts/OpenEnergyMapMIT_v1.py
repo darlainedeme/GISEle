@@ -18,9 +18,9 @@ from scipy.interpolate import interp1d
 from scipy.ndimage import convolve
 try:
     from scipy.spatial import cKDTree, pdist, squareform
-    print("Imports successful!")
+    st.write("Imports successful!")
 except ImportError as e:
-    print(f"ImportError: {e}")
+    st.write(f"ImportError: {e}")
 from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
 from statistics import mean
