@@ -56,7 +56,7 @@ def data_gathering(crs, study_area):
     os.mkdir(r'Output\Datasets\LandCover')
     # Download layers from Earth Engine
 
-    ee.Initialize()
+    #ee.Initialize()
 
     # DEM with 30m resolution SRTM
     if len(os.listdir('Input\Datasets\Elevation')) == 0:
