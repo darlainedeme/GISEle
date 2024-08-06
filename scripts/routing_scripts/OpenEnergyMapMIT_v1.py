@@ -147,6 +147,7 @@ def building_to_cluster_v1(path, crs, radius, dens_filter,flag):
         buildings_df['ID']=[*range(len(buildings_df))]
         buildings_df.reset_index(inplace=True,drop=True)
         urbanity=locate_file(base_dir,folder='Urbanity',extension='.tif')
+        st.write(urbanity)
         # pdb.set_trace()
         with rasterio.open(urbanity,
 
@@ -159,7 +160,7 @@ def building_to_cluster_v1(path, crs, radius, dens_filter,flag):
                           "height": out_image.shape[1],
                           "width": out_image.shape[2],
                           "transform": out_transform})
-
+        #darlain
         with rasterio.open( os.path.join(base_dir, "Urbanity", "Urbanity_clip.tif"), "w", **out_meta) as dest:
             dest.write(out_image)
         input_raster = gdal.Open( os.path.join(base_dir, "Urbanity", "Urbanity_clip.tif"))
