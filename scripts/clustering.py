@@ -71,7 +71,16 @@ def create_clustering_map(clustered_gdf=None, hulls_gdf=None):
         try:
             num_clusters = clustered_gdf_4326['cluster'].max() + 1
             st.write(f"Number of clusters: {num_clusters}")  # Debug print
-            cluster_colors = plt.cm.get_cmap('tab20', num_clusters)
+
+            # Use a different colormap if num_clusters exceeds the maximum for 'tab20'
+            if num_clusters > 20:
+                st.warning("Number of clusters exceeds 20, using 'tab20' colormap will cycle colors.")
+                cluster_colors = plt.cm.get_cmap('tab20')
+            else:
+                cluster_colors = plt.cm.get_cmap('tab20', num_clusters)
+
+            st.write(f"Cluster colors generated successfully")  # Debug print
+
             st.write(f"Cluster colors generated successfully")  # Debug print
         except ValueError as e:
             st.error(f"Error generating cluster colors: {e}")
