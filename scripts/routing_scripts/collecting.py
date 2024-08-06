@@ -1,4 +1,4 @@
-import ee
+# import ee
 import os
 import shutil
 import osmnx as ox
