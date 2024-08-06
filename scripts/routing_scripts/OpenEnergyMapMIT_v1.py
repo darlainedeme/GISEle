@@ -185,7 +185,7 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     # Check if the result is a single Polygon or a MultiPolygon
     if isinstance(clusters_MP, MultiPolygon):
-        clusters = [poly for poly in clusters_MP]
+        clusters = [poly for poly in clusters_MP.geoms]
     elif isinstance(clusters_MP, Polygon):
         clusters = [clusters_MP]
     else:
