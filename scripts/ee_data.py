@@ -5,7 +5,7 @@ import os
 import requests
 
 # Function to download an image from Google Earth Engine
-def download_ee_image(collection_id, bands, polygon, file_path, scale=30, dateMin='2020-01-01', dateMax='2020-12-31'):
+def download_ee_image(collection_id, bands, polygon, file_path, scale=30, dateMin='2020-01-01', dateMax='2020-01-02'):
     try:
         # Initialize the Earth Engine API
         ee.Initialize()
