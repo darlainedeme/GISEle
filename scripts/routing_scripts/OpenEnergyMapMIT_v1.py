@@ -19,7 +19,7 @@ from scipy.interpolate import interp1d
 from scipy.ndimage import convolve
 from scipy.spatial import cKDTree
 try:
-    from from scipy.spatial.distance import pdist, squareform
+    from scipy.spatial.distance import pdist, squareform
     st.write("Imports successful!")
 except ImportError as e:
     st.write(f"ImportError: {e}")
