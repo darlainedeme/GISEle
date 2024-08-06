@@ -17,7 +17,7 @@ elif main_nav == "Area Selection":
     area_selection.show()
 elif main_nav == "Data Retrieve":
     data_retrieve.show()
-elif main_nav == "Buildings":
+'''elif main_nav == "Buildings":
     buildings.show()
 elif main_nav == "Clustering":
     clustering.show()
@@ -33,3 +33,4 @@ elif main_nav == "Routing":
     routing.show()
 elif main_nav == "Results":
     results.show()
+'''
