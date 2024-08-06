@@ -16,7 +16,11 @@ from shapely.geometry import Point, MultiPoint, MultiPolygon
 from shapely.ops import nearest_points, unary_union
 from scipy.interpolate import interp1d
 from scipy.ndimage import convolve
-from scipy.spatial import cKDTree, pdist, squareform
+try:
+    from scipy.spatial import cKDTree, pdist, squareform
+    print("Imports successful!")
+except ImportError as e:
+    print(f"ImportError: {e}")
 from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
 from statistics import mean
