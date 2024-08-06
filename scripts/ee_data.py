@@ -79,7 +79,6 @@ def download_ee_image(dataset, bands, region, filename, scale=30, dateMin=None, 
         os.remove(f'{band}.zip')
 
 def download_url(url, out_path):
-    import requests
     response = requests.get(url)
     with open(out_path, 'wb') as out_file:
         out_file.write(response.content)
