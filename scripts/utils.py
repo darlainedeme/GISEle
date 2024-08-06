@@ -15,9 +15,28 @@ import zipfile
 # Initialize Earth Engine
 @st.cache_resource
 def initialize_earth_engine():
+    # Retrieve json_data from Streamlit secrets
     json_data = st.secrets["json_data"]
+    
+    # Check if json_data is None
+    if json_data is None:
+        raise ValueError("json_data is None")
+    
+    # Check if json_data is of valid type
+    if not isinstance(json_data, str):
+        raise TypeError(f"json_data must be str, but got {type(json_data)}")
+    
+    # Optionally print the data type and part of the content for debugging
+    print(f"json_data type: {type(json_data)}")
+    print(f"json_data content: {json_data[:100]}...")  # Print the first 100 characters
+    
+    # Parse the JSON data
     json_object = json.loads(json_data, strict=False)
+    
+    # Extract the service account email from the JSON object
     service_account = json_object['client_email']
+    
+    # Initialize the Earth Engine service account credentials
     credentials = ee.ServiceAccountCredentials(service_account, key_data=json_data)
     ee.Initialize(credentials)
 
