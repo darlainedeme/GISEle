@@ -182,19 +182,17 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     geometries = buildings_df['buffer'].tolist()
     clusters_MP = unary_union(geometries)
-    # Ensure the result is always iterable
-    if isinstance(clusters_MP, (MultiPolygon, list)):
+
+    # Check if the result is a single Polygon or a MultiPolygon
+    if isinstance(clusters_MP, MultiPolygon):
         clusters = list(clusters_MP)
     else:
         clusters = [clusters_MP]
-
-    
 
     clusters_gdf = gpd.GeoDataFrame(geometry=clusters, crs=crs)
     clusters_gdf = clusters_gdf.reset_index().rename(columns={'index': 'cluster_ID'})
     clusters_gdf['cluster_ID'] = clusters_gdf['cluster_ID'] + 1
     spatial_join = gpd.sjoin(buildings_df, clusters_gdf, how='left', predicate='within')
-
 
     try:
         buildings_df['cluster_ID'] = spatial_join['cluster_ID']
