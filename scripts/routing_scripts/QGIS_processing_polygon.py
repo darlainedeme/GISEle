@@ -271,7 +271,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     protected_areas_file = locate_file(files_folder, folder='Protected_areas', extension='.shp')
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
 
-    roads_file = locate_file(database, folder='Roads', extension='.shp')
+    roads_file = locate_file(files_folder, folder='Roads', extension='.shp')
     streets = gpd.read_file(roads_file).to_crs(crs)
 
     study_area_crs = study_area.to_crs(crs)
@@ -291,7 +291,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
         protected_areas_clipped.to_file(dir + '/Intermediate/Geospatial_Data/protected_area.shp')
 
     # Clip the elevation and then change the CRS
-    elevation_file = locate_file(database, folder='Elevation', extension='.tif')
+    elevation_file = locate_file(files_folder, folder='Elevation', extension='.tif')
     with rasterio.open(elevation_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -310,7 +310,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     reproject_raster(input_raster, output_raster, crs_str)
 
     # Clip the slope and then change the CRS
-    slope_file = locate_file(database, folder='Slope', extension='.tif')
+    slope_file = locate_file(files_folder, folder='Slope', extension='.tif')
     with rasterio.open(slope_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -329,7 +329,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     reproject_raster(input_raster, output_raster, crs_str)
 
     # Clip the land cover and then change the CRS
-    landcover_file = locate_file(database, folder='LandCover', extension='.tif')
+    landcover_file = locate_file(files_folder, folder='LandCover', extension='.tif')
     with rasterio.open(landcover_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
