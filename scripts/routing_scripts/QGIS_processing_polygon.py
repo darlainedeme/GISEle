@@ -140,6 +140,17 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
 
     coords = [(x, y) for x, y in zip(pointData['X'], pointData['Y'])]
 
+    # Placeholder code for creating df and geo_df
+    # Replace with actual processing logic
+    data = {
+        'ID': range(len(coords)),
+        'X': [coord[0] for coord in coords],
+        'Y': [coord[1] for coord in coords],
+        'OtherData': [0] * len(coords)  # Placeholder for other data columns
+    }
+    df = pd.DataFrame(data)
+    geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
+
     # Proceed with other processing (this part remains the same)
     # ...
 
