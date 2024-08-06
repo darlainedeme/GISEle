@@ -263,7 +263,7 @@ def run_routing(parameters):
     process_output.create_final_output(gisele_folder, case_study)
     if mg_option:
         process_output.analyze(gisele_folder, case_study, coe, mg_option, n_line_type)
-    '''
+
 # Main function
 def show():
     st.title("Routing Procedures")
