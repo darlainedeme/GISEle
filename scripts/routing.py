@@ -160,9 +160,15 @@ def run_routing(parameters):
         os.makedirs(os.path.join(case_study_path, 'Intermediate', 'Optimization', 'all_data', 'Lines_connections'))
         os.makedirs(os.path.join(case_study_path, 'Intermediate', 'Optimization', 'all_data', 'Lines_marked'))
 
-        # Copy the Configuration file from the general input
-        configuration_path = os.path.join('scripts', 'routing_scripts', 'Database', Configuration.csv')
-        pd.read_csv(configuration_path).to_csv(os.path.join(case_study_path, 'Input', 'Configuration.csv'))
+        # Define the path to the configuration file
+        configuration_path = os.path.join('scripts', 'routing_scripts', 'Database', 'Configuration.csv')
+
+        # Ensure the destination directory exists
+        destination_dir = os.path.join(case_study_path, 'Input')
+        os.makedirs(destination_dir, exist_ok=True)
+
+        # Copy the configuration file to the destination directory
+        pd.read_csv(configuration_path).to_csv(os.path.join(destination_dir, 'Configuration.csv'))
 
         # Read the possible connection points and write them in the case study's folder
         Substations = gpd.read_file(os.path.join(database, country, 'con_points_5'))
