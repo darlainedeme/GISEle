@@ -128,10 +128,6 @@ def download_elevation_data(polygon, zip_path, dem_path):
         # Download the zip using Earth Engine
         download_tif(polygon, crs, scale, srtm_image, zip_path)
 
-        # Extract the zip file
-        extracted_files = extract_zip(zip_path, os.path.dirname(dem_path))
-        print("Extracted files:", extracted_files)
-
 
     except Exception as e:
         st.error(f"Error downloading elevation data: {e}")
