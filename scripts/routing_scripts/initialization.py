@@ -136,7 +136,6 @@ def creating_geodataframe(df_weighted, crs, unit, input_csv, step):
     #       str(int(geo_df['Population'].sum(axis=0))) +
     #       " people which could gain access to electricity.")
 
-
     loc = {'x': geo_df['X'], 'y': geo_df['Y'], 'z': geo_df['Elevation']}
     pop_points = pd.DataFrame(data=loc).values
 
