@@ -1,7 +1,6 @@
 import zipfile
 import os
 import rasterio.mask
-# from osgeo import gdal
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -261,7 +260,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, c
     """
     database = database + '/' + country
     crs_str = 'epsg:' + str(crs)
-    
+
     # Open the roads, protected areas, and rivers
     files_folder = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Geospatial_Data')
     protected_areas_file = locate_file(files_folder, folder='Protected_areas', extension='.shp')
