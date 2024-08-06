@@ -147,7 +147,7 @@ def show():
                 elevation_file = 'data/output/elevation/elevation.tif'
                 zip_path = 'data/output/elevation/elevation.zip'
                 os.makedirs('data/output/elevation', exist_ok=True)
-                elevation_path = download_elevation_data(polygon, zip_path, dem_path)
+                elevation_path = download_elevation_data(polygon, zip_path, elevation_file)
 
                 if elevation_path:
                     st.write("Elevation data downloaded to the selected area.")
