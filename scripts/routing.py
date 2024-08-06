@@ -141,7 +141,7 @@ def run_routing(parameters):
 
     st.write("Processing completed")
 
-    
+    '''
     # 2- New case study creation
     case_study_path = os.path.join('Case studies', case_study)
     if not os.path.exists(case_study_path):
@@ -220,7 +220,7 @@ def run_routing(parameters):
     Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
     destination_path1 = os.path.join(case_study_path, 'Input', 'Communities_boundaries', 'Communities_boundaries_2el.shp')
     Clusters.to_file(destination_path1)
-    '''
+    
     # Optimize local area
     start = time.time()
     LAO.optimize(
