@@ -73,6 +73,7 @@ def set_parameters():
         run_genetic = st.checkbox("Run Genetic Algorithm", value=True)
         max_length_segment = st.number_input("Max Length Segment", value=None)
         simplify_coef = st.number_input("Simplify Coefficient", value=None)
+        crit_dist = st.number_input("Critical Distance", value=1000)
 
     return {
         "gisele_folder": gisele_folder,
@@ -108,6 +109,7 @@ def set_parameters():
         "run_genetic": run_genetic,
         "max_length_segment": max_length_segment,
         "simplify_coef": simplify_coef
+        "crit_dist": crit_dist
     }
 
 def clustering_procedure(parameters):
@@ -248,6 +250,7 @@ def optimize_local_area(parameters, Clusters):
     crit_dist = parameters["crit_dist"]
     LV_base_cost = parameters["LV_base_cost"]
     population_dataset_type = parameters["population_dataset_type"]
+    crit_dist = parameters["crit_dist"]
 
     start = time.time()
     LAO.optimize(
