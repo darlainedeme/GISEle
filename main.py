@@ -20,7 +20,7 @@ elif main_nav == "Data Retrieve":
 elif main_nav == "Buildings":
     buildings.show()
 elif main_nav == "Clustering":
-    clustering.show()
+    clustering_modes.show()
 elif main_nav == "Data Visualization and Enhancement":
     data_visualization.show()
 elif main_nav == "Summary Analysis":
