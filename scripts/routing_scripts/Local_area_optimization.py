@@ -528,6 +528,7 @@ def optimize(crs,country, resolution, load_capita, pop_per_household, road_coef,
     try: 
         # pdb.set_trace()
         pop_path =  os.path.join("scripts", "routing_scripts", "Database", country, "OpenEnergyMap", "pixelOfStudy", "points")
+        st.write(os.listdir(pop_path))
         Population = gpd.read_file(pop_path + '\points.shp')  
     except:                    
         Population = gpd.read_file(dir_input+'/Population_' + str(crs) + '.shp')  
