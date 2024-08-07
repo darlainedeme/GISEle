@@ -35,7 +35,7 @@ from OpenEnergyMapMIT_v1 import building_to_cluster_v1
 
 # Define function to set parameters
 def set_parameters():
-    st.header("Set Parameters")
+    # st.header("Set Parameters")
     
     gisele_folder = st.text_input("Gisele Folder", '/mount/src/gisele')
     country = st.text_input("Country", 'Uganda')
