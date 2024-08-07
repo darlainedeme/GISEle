@@ -3,13 +3,14 @@ from geopy.geocoders import Nominatim
 from scripts.utils import create_map, uploaded_file_to_gdf
 import json
 import os
+import geopandas as gpd
 
 def save_geojson(data, filename):
     with open(filename, 'w') as f:
         json.dump(data, f)
 
 def show():
-    which_modes = ['By address', 'By coordinates', 'Upload file']
+    which_modes = ['By address', 'By coordinates', 'Upload file', 'Predefined areas']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
     if which_mode == 'By address':  
@@ -124,6 +125,36 @@ def show():
                 st.error(f"Error processing file: {e}")
             except Exception as e:
                 st.error(f"Error processing file: {e}")
+
+    elif which_mode == 'Predefined areas':
+        predefined_areas_path = 'data/_precompiled_case_studies/areas'
+        area_files = [f.split('.')[0] for f in os.listdir(predefined_areas_path) if f.endswith('.geojson')]
+        selected_area = st.sidebar.selectbox('Select a predefined area', area_files)
+
+        if st.sidebar.button('Select case study'):
+            try:
+                with st.spinner('Loading predefined area...'):
+                    area_filepath = os.path.join(predefined_areas_path, f'{selected_area}.geojson')
+                    with open(area_filepath) as f:
+                        geojson_data = json.load(f)
+                    gdf = gpd.read_file(area_filepath)
+
+                    if gdf.empty:
+                        st.error("Selected area file is empty or not valid GeoJSON.")
+                    
+                    centroid = gdf.geometry.unary_union.centroid
+                    st.session_state.latitude = centroid.y
+                    st.session_state.longitude = centroid.x
+                    st.session_state.geojson_data = geojson_data
+                    st.session_state.combined_buildings = None
+                    st.session_state.osm_roads = None
+                    st.session_state.osm_pois = None
+                    st.session_state.missing_layers = []
+
+                    create_map(centroid.y, centroid.x, geojson_data)
+                    st.success("Predefined area loaded successfully!")
+            except Exception as e:
+                st.error(f"Error loading predefined area: {e}")
 
 # Display the area selection page
 if __name__ == "__main__":
