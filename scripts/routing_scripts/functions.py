@@ -16,7 +16,7 @@ import shapely.ops
 import iso8601
 from scipy.spatial import distance_matrix
 from scipy.spatial.distance import cdist
-from shapely.geometry import Point, box, LineString, MultiPoint
+from shapely.geometry import Point, box, LineString, MultiPoint, MultiLineString
 from shapely.ops import split
 
 import sys
