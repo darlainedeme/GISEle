@@ -4,8 +4,8 @@ import networkx as nx
 from Steiner_tree_code import *
 from functions import * 
 import pdb
+import geopandas as gpd
 
-   
 def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
     weighted_grid_of_points = pd.read_csv(gisele_folder + '/Case studies/' + case_study + '/Intermediate/Geospatial_Data/weighted_grid_of_points.csv')
     starting_ID = weighted_grid_of_points['ID'].max() + 1
@@ -42,7 +42,7 @@ def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_typ
 
     Lines_marked = Lines.copy()
     conn_param = 0
-    New_Lines = gpd.GeoDataFrame()
+    New_Lines = gpd.GeoDataFrame(columns=['ID1', 'ID2', 'Cost', 'length', 'geometry', 'Conn_param'], crs=crs, geometry='geometry')
     while not Lines.empty:
         nodes = Lines.ID1.to_list() + Lines.ID2.to_list()
         nodes = [int(i) for i in nodes]
@@ -83,9 +83,8 @@ def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_typ
                     Point1 = Nodes.loc[Nodes['ID'] == int(id1), 'geometry'].values[0]
                     Point2 = Nodes.loc[Nodes['ID'] == int(next_node), 'geometry'].values[0]
                     geom = LineString([Point1, Point2])
-                    Data = {'ID1': id1, 'ID2': next_node, 'Cost': tot_cost, 'length': tot_length, 'geometry': geom,
-                            'Conn_param': conn_param}
-                    New_Lines = pd.concat([New_Lines, gpd.GeoDataFrame([Data], crs=New_Lines.crs)], ignore_index=True)
+                    Data = {'ID1': id1, 'ID2': next_node, 'Cost': tot_cost, 'length': tot_length, 'geometry': geom, 'Conn_param': conn_param}
+                    New_Lines = pd.concat([New_Lines, gpd.GeoDataFrame([Data], crs=crs, geometry='geometry')], ignore_index=True)
                     current_node = next_node
                     tot_length = 0
                     tot_cost = 0
@@ -95,9 +94,8 @@ def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_typ
                     Point1 = Nodes.loc[Nodes['ID'] == int(id1), 'geometry'].values[0]
                     Point2 = Nodes.loc[Nodes['ID'] == int(next_node), 'geometry'].values[0]
                     geom = LineString([Point1, Point2])
-                    Data = {'ID1': id1, 'ID2': next_node, 'Cost': tot_cost, 'length': tot_length, 'geometry': geom,
-                            'Conn_param': conn_param}
-                    New_Lines = pd.concat([New_Lines, gpd.GeoDataFrame([Data], crs=New_Lines.crs)], ignore_index=True)
+                    Data = {'ID1': id1, 'ID2': next_node, 'Cost': tot_cost, 'length': tot_length, 'geometry': geom, 'Conn_param': conn_param}
+                    New_Lines = pd.concat([New_Lines, gpd.GeoDataFrame([Data], crs=crs, geometry='geometry')], ignore_index=True)
                     current_node = next_node
                     tot_length = 0
                     tot_cost = 0
@@ -135,7 +133,7 @@ def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_typ
     New_Nodes.to_file(gisele_folder + '/Case studies/' + case_study + '/Intermediate/Geospatial_Data/Roads_points')
 
     return New_Nodes, New_Lines
-    
+ 
 def Merge_Roads_GridOfPoints(gisele_folder,case_study):
     road_points = gpd.read_file(gisele_folder+'/Case studies/'+case_study+'/Intermediate/Geospatial_Data/Roads_points/Roads_points.shp')
     weighted_grid_points = pd.read_csv(gisele_folder+'/Case studies/'+case_study+'/Intermediate/Geospatial_Data/weighted_grid_of_points.csv')
