@@ -16,26 +16,21 @@ main_nav = st.sidebar.radio("Navigation", [
     "Routing", "Results"
 ])
 
+# Navigation dictionary for clean code
+pages = {
+    "Home": home.show,
+    "Area Selection": area_selection.show,
+    "Data Retrieve": data_retrieve.show,
+    "Buildings": buildings.show,
+    "Clustering": clustering_modes.show,
+    "Data Visualization and Enhancement": data_visualization.show,
+    "Summary Analysis": summary_analysis.show,
+    "Costs": costs.show,
+    "Demand Estimation": demand_estimation.show,
+    "Routing": routing.show,
+    "Results": results.show
+}
+
 # Display the selected page
-if main_nav == "Home":
-    home.show()
-elif main_nav == "Area Selection":
-    area_selection.show()
-elif main_nav == "Data Retrieve":
-    data_retrieve.show()
-elif main_nav == "Buildings":
-    buildings.show()
-elif main_nav == "Clustering":
-    clustering_modes.show()
-elif main_nav == "Data Visualization and Enhancement":
-    data_visualization.show()
-elif main_nav == "Summary Analysis":
-    summary_analysis.show()
-elif main_nav == "Costs":
-    costs.show()
-elif main_nav == "Demand Estimation":
-    demand_estimation.show()
-elif main_nav == "Routing":
-    routing.show()
-elif main_nav == "Results":
-    results.show()
+if main_nav in pages:
+    pages[main_nav]()
