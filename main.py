@@ -1,7 +1,7 @@
 import streamlit as st
 st.set_page_config(layout="wide")
 
-from scripts import home, area_selection, data_retrieve, buildings, clustering, data_visualization, costs, summary_analysis, demand_estimation, routing, results
+from scripts import home, area_selection, data_retrieve, buildings, clustering_modes, data_visualization, costs, summary_analysis, demand_estimation, routing, results
 
 # Define navigation
 main_nav = st.sidebar.radio("Navigation", [
