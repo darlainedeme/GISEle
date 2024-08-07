@@ -123,9 +123,9 @@ def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_typ
         New_Lines.loc[New_Lines['ID1'] == row['ID'], 'ID1'] = id
         New_Lines.loc[New_Lines['ID2'] == row['ID'], 'ID2'] = id
 
-    New_Nodes.ID += starting_ID
-    New_Lines.ID1 += starting_ID
-    New_Lines.ID2 += starting_ID
+    New_Nodes['ID'] += starting_ID
+    New_Lines['ID1'] += starting_ID
+    New_Lines['ID2'] += starting_ID
 
     drop = New_Lines.loc[New_Lines['ID1'] == New_Lines['ID2'], :]
     if not len(drop) == 0:
