@@ -140,6 +140,7 @@ def show():
         selected_area = st.sidebar.selectbox('Select a predefined area', area_files)
         save_geojson(selected_area, 'data/3_user_uploaded_data/selected_area.geojson')
         
+        
         if selected_area:
             try:
                 with st.spinner('Loading predefined area...'):
@@ -165,6 +166,8 @@ def show():
             except Exception as e:
                 st.error(f"Error loading predefined area: {e}")
                 st.write(e)
+       
+    st.session_state['selected_area'] = selected_area
 
 # Display the area selection page
 if __name__ == "__main__":
