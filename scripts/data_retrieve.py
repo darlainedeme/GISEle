@@ -48,7 +48,9 @@ def show():
 
         clear_output_directories()
         
-        gdf = gpd.read_file('data/input/selected_area.geojson')
+        selected_area_path = os.path.join('data', 'input', 'selected_area.geojson')
+        
+        gdf = gpd.read_file('selected_area_path')
         
         polygon = gdf.geometry.unary_union
 
