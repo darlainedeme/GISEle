@@ -168,7 +168,7 @@ def show():
             progress.progress(1.0)
 
             st.success("Data download complete. You can now proceed to the next section.")
-            with open('data/output/results.zip', 'rb') as f:
+            with open('data/2_downloaded_input_data/results.zip', 'rb') as f:
                 st.download_button('Download All Results', f, file_name='results.zip')
 
         except Exception as e:
