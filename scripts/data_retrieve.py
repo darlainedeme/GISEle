@@ -18,28 +18,28 @@ from scripts.data_retrieve_scripts.solar import *
 from scripts.data_retrieve_scripts.wind import *
 from scripts.data_retrieve_scripts.satellite import *
 from scripts.data_retrieve_scripts.night_time_lights import *
-from scripts.data_retrieve_scripts.population import *
+from scripts.data_retrieve_scripts.worldpop import *
 
 def show():
-    datasets = [
-        "Buildings",
-        "Roads",
-        "Points of Interest",
-        "Water Bodies",
-        "Major Cities",
+    datasets = sorted([
         "Airports",
-        "Ports",
-        "Power Lines",
-        "Transformers and Substations",
+        "Buildings",
         "Elevation",
-        "Solar Potential",
-        "Wind Potential",
-        "Satellite",
+        "Major Cities",
         "Nighttime Lights",
-        "Population"
-    ]
+        "Points of Interest",
+        "Ports",
+        "Population",
+        "Power Lines",
+        "Roads",
+        "Satellite",
+        "Solar Potential",
+        "Transformers and Substations",
+        "Water Bodies",
+        "Wind Potential"
+    ])
 
-    selected_datasets = st.multiselect("Select datasets to download", datasets.sort(), default=datasets.sort()[0])
+    selected_datasets = st.multiselect("Select datasets to download", datasets, default=[datasets[0]])
 
     if st.button("Retrieve Data"):
         st.write("Downloading data...")
