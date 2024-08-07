@@ -5,7 +5,7 @@ import streamlit as st
 
 def show():
     # Add logo
-    st.image("data/logo.png", use_column_width=True)
+    st.image("data/logo.png", width=200))
 
     st.markdown("""
     # Welcome to Local GISEle 🗺️
