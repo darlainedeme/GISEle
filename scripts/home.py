@@ -1,12 +1,6 @@
 import streamlit as st
 
-# Set page configuration
-#st.set_page_config(page_title="Local GISEle", page_icon="🗺️")
-
 def show():
-    # Add logo
-    st.sidebar.image("data/logo.png", width=200)
-
     st.markdown("""
     # Welcome to Local GISEle 🗺️
 
@@ -106,6 +100,6 @@ def show():
     We hope you find Local GISEle helpful for your GIS projects. Happy analyzing!
     """)
 
-# Display the home page
+# The `show` function is called from the main script
 if __name__ == "__main__":
     show()
