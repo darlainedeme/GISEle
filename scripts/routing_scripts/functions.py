@@ -721,14 +721,13 @@ def download_tif(area, crs, scale, image, out_path):
 
 def MultiLine_to_Line(multiline_shapefile):
     lines = []
-    for line in multiline_shapefile.geometry:
-        if isinstance(line, LineString):
-            lines.append(line)
-        else:
-            for single_line in line:
+    for geom in multiline_shapefile.geometry:
+        if isinstance(geom, LineString):
+            lines.append(geom)
+        elif isinstance(geom, MultiLineString):
+            for single_line in geom:
                 lines.append(single_line)
-    # Create a GeoDataFrame
-    lines_shapefile = gpd.GeoDataFrame({'geometry': lines})
+    lines_shapefile = gpd.GeoDataFrame({'geometry': lines}, crs=multiline_shapefile.crs)
     return lines_shapefile
 
 
