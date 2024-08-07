@@ -5,6 +5,7 @@ import geopandas as gpd
 import ee
 import os
 import osmnx as ox
+import pandas as pd
 
 def download_google_buildings(polygon, file_path):
     try:
