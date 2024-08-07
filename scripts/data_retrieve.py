@@ -161,10 +161,40 @@ def show():
             download_population_data('data/3_user_uploaded_data/selected_area.geojson', 2020)
             progress.progress(1.5)
             st.write("Population data downloaded.")
+            
+            
+        # Define the paths to the various output files
+        osm_buildings_file = os.path.join('data', '2_downloaded_input_data', 'buildings', 'osm_buildings.geojson')
+        google_buildings_file = os.path.join('data', '2_downloaded_input_data', 'buildings', 'google_buildings.geojson')
+        combined_buildings_file = os.path.join('data', '2_downloaded_input_data', 'buildings', 'combined_buildings.geojson')
+        roads_file = os.path.join('data', '2_downloaded_input_data', 'roads', 'osm_roads.geojson')
+        pois_file = os.path.join('data', '2_downloaded_input_data', 'poi', 'osm_pois.geojson')
+        water_bodies_file = os.path.join('data', '2_downloaded_input_data', 'water_bodies', 'osm_water_bodies.geojson')
+        cities_file = os.path.join('data', '2_downloaded_input_data', 'cities', 'osm_cities.geojson')
+        airports_file = os.path.join('data', '2_downloaded_input_data', 'airports', 'osm_airports.geojson')
+        ports_file = os.path.join('data', '2_downloaded_input_data', 'ports', 'osm_ports.geojson')
+        power_lines_file = os.path.join('data', '2_downloaded_input_data', 'power_lines', 'osm_power_lines.geojson')
+        substations_file = os.path.join('data', '2_downloaded_input_data', 'substations', 'osm_substations.geojson')
+        elevation_file = os.path.join('data', '2_downloaded_input_data', 'elevation', 'image_original.tif')
+        solar_file = os.path.join('data', '2_downloaded_input_data', 'solar', 'solar_data.tif')
+        wind_file = os.path.join('data', '2_downloaded_input_data', 'wind', 'wind_data.tif')
+        satellite_file = os.path.join('data', '2_downloaded_input_data', 'satellite', 'satellite_image.tif')
+        nighttime_lights_file = os.path.join('data', '2_downloaded_input_data', 'night_time_lights', 'clipped_nighttime_lights.tif')
+        population_file = os.path.join('data', '2_downloaded_input_data', 'population', 'age_structure_output.csv')
+
+        # Collect the file paths that exist
+        zip_files = [
+            file_path for file_path in [
+                osm_buildings_file, google_buildings_file, combined_buildings_file, 
+                roads_file, pois_file, water_bodies_file, cities_file,
+                airports_file, ports_file, power_lines_file, substations_file,
+                elevation_file, solar_file, wind_file, satellite_file, 
+                nighttime_lights_file, population_file
+            ] if os.path.exists(file_path)
+        ]
 
         status_text.text("Zipping results...")
-        st.write(os.getcwd())
-        zip_results('data/2_downloaded_input_data', 'data/2_downloaded_input_data/results.zip')
+        zip_results(zip_files, 'data/2_downloaded_input_data/results.zip')
         progress.progress(1.0)
 
         st.success("Data download complete. You can now proceed to the next section.")
