@@ -164,7 +164,7 @@ def show():
                 st.write("Population data downloaded.")
 
             status_text.text("Zipping results...")
-            zip_results('data/2_downloaded_input_data', 'data/output/results.zip')
+            zip_results('data/2_downloaded_input_data', 'data/2_downloaded_input_data/results.zip')
             progress.progress(1.0)
 
             st.success("Data download complete. You can now proceed to the next section.")
