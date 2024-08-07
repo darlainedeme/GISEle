@@ -138,7 +138,8 @@ def show():
         predefined_areas_path = 'data/_precompiled_case_studies/areas'
         area_files = [f.split('.')[0] for f in os.listdir(predefined_areas_path) if f.endswith('.geojson')]
         selected_area = st.sidebar.selectbox('Select a predefined area', area_files)
-
+        save_geojson(selected_area, 'data/input/selected_area.geojson')
+        
         if selected_area:
             try:
                 with st.spinner('Loading predefined area...'):
