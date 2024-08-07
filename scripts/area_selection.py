@@ -10,7 +10,7 @@ def save_geojson(data, filename):
         json.dump(data, f)
 
 def show():
-    which_modes = ['By address', 'By coordinates', 'Upload file', 'Predefined areas']
+    which_modes = ['Predefined areas', 'By address', 'By coordinates', 'Upload file']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
     if which_mode == 'By address':  
@@ -159,7 +159,6 @@ def show():
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
 
-                    st.write("Creating map with predefined area...")
                     create_map(centroid.y, centroid.x, geojson_data)
                     st.success("Predefined area loaded successfully!")
             except Exception as e:
