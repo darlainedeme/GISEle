@@ -217,7 +217,7 @@ def run_routing(parameters):
     el_th = 0.21
     Clusters = Clusters[Clusters['elec acces'] < el_th]
     Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
-    destination_path1 = os.path.join(case_study_path, 'Input', 'Communities_boundaries', 'Communities_boundaries_2el.shp')
+    destination_path1 = os.path.join('scripts', 'routing_scripts', 'Case studies', 'awach555', 'Input', 'Communities_boundaries', 'Communities_boundaries_2el.shp')
     Clusters.to_file(destination_path1)
     
     # Optimize local area
