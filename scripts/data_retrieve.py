@@ -53,7 +53,7 @@ def show():
             st.error("No selected area found in session state. Please select an area first.")
             return
 
-        gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
+        gdf = selected_area
 
         
         polygon = gdf.geometry.unary_union
