@@ -48,7 +48,7 @@ def show():
 
         clear_output_directories()
         
-        selected_area_path = os.path.join('data', 'input', 'selected_area.geojson')
+        selected_area_path = os.path.join('data', '3_user_uploaded_data', 'selected_area.geojson')
         
         with open(selected_area_path) as f:
             selected_area = json.load(f)
@@ -61,7 +61,7 @@ def show():
         polygon_gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
         polygon_gdf = polygon_gdf.set_crs(epsg=4326)
         projected_polygon = polygon_gdf.to_crs(epsg=3857)
-        buffer_polygon = projected_polygon.geometry.buffer(200000)
+        buffer_polygon = projected_polygon.geometry.buffer(20000)
         buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
         buffer_gdf = buffer_gdf.to_crs(epsg=4326)
         
@@ -159,7 +159,7 @@ def show():
 
             if "Population" in selected_datasets:
                 status_text.text("Downloading population data...")
-                download_population_data('data/input/selected_area.geojson', 2020)
+                download_population_data('data/3_user_uploaded_data/selected_area.geojson', 2020)
                 progress.progress(1.5)
                 st.write("Population data downloaded.")
 

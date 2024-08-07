@@ -44,8 +44,8 @@ def show():
                                 }
                             ]
                         }
-                        os.makedirs('data/input', exist_ok=True)
-                        save_geojson(selected_area, 'data/input/selected_area.geojson')
+                        os.makedirs('data/3_user_uploaded_data', exist_ok=True)
+                        save_geojson(selected_area, 'data/3_user_uploaded_data/selected_area.geojson')
 
                         st.write("Creating map with address coordinates...")
                         create_map(location.latitude, location.longitude)
@@ -86,8 +86,8 @@ def show():
                             }
                         ]
                     }
-                    os.makedirs('data/input', exist_ok=True)
-                    save_geojson(selected_area, 'data/input/selected_area.geojson')
+                    os.makedirs('data/3_user_uploaded_data', exist_ok=True)
+                    save_geojson(selected_area, 'data/3_user_uploaded_data/selected_area.geojson')
 
                     st.write("Creating map with coordinates...")
                     create_map(lat, lon)
@@ -117,8 +117,8 @@ def show():
                     st.session_state.missing_layers = []
 
                     # Save the uploaded GeoJSON to a file
-                    os.makedirs('data/input', exist_ok=True)
-                    with open('data/input/selected_area.geojson', 'w') as f:
+                    os.makedirs('data/3_user_uploaded_data', exist_ok=True)
+                    with open('data/3_user_uploaded_data/selected_area.geojson', 'w') as f:
                         json.dump(geojson_data, f)
 
                     st.write("Creating map with uploaded GeoJSON...")
@@ -138,7 +138,7 @@ def show():
         predefined_areas_path = 'data/_precompiled_case_studies/areas'
         area_files = [f.split('.')[0] for f in os.listdir(predefined_areas_path) if f.endswith('.geojson')]
         selected_area = st.sidebar.selectbox('Select a predefined area', area_files)
-        save_geojson(selected_area, 'data/input/selected_area.geojson')
+        save_geojson(selected_area, 'data/3_user_uploaded_data/selected_area.geojson')
         
         if selected_area:
             try:
