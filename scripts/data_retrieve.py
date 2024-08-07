@@ -39,7 +39,7 @@ def show():
         "Population"
     ]
 
-    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets)
+    selected_datasets = st.multiselect("Select datasets to download", datasets.sort(), default=datasets.sort()[0])
 
     if st.button("Retrieve Data"):
         st.write("Downloading data...")
