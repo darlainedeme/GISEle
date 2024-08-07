@@ -3,11 +3,8 @@ import json
 import streamlit as st
 import geopandas as gpd
 import ee
-import osmnx as ox
 import os
-
-# Initialize Earth Engine
-ee.Initialize()
+import osmnx as ox
 
 def download_google_buildings(polygon, file_path):
     try:

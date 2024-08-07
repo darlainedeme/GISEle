@@ -3,7 +3,7 @@ import geopandas as gpd
 import json
 import os
 
-from scripts.data_retrieve_scripts._data_utils import *
+from scripts.data_retrieve_scripts.utils import initialize_earth_engine, zip_results, clear_output_directories
 from scripts.data_retrieve_scripts.buildings import *
 from scripts.data_retrieve_scripts.roads import *
 from scripts.data_retrieve_scripts.poi import *
