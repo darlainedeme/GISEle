@@ -3,7 +3,7 @@ import geopandas as gpd
 import json
 import os
 
-from scripts.data_retrieve_scripts.utils import initialize_earth_engine, zip_results, clear_output_directories
+from scripts.data_retrieve_scripts._data_utils import initialize_earth_engine, zip_results, clear_output_directories
 from scripts.data_retrieve_scripts.buildings import download_buildings_data
 from scripts.data_retrieve_scripts.roads import download_roads_data
 from scripts.data_retrieve_scripts.poi import download_poi_data
@@ -18,7 +18,7 @@ from scripts.data_retrieve_scripts.solar import download_solar_data
 from scripts.data_retrieve_scripts.wind import download_wind_data
 from scripts.data_retrieve_scripts.satellite import download_satellite_data
 from scripts.data_retrieve_scripts.night_time_lights import download_nighttime_lights_data
-from scripts.data_retrieve_scripts.worldpop import download_population_data
+from scripts.data_retrieve_scripts.population import download_population_data
 
 def show():
     datasets = [
