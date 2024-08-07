@@ -1,7 +1,9 @@
 import streamlit as st
 
+st.set_page_config(page_title="Local GISEle", page_icon="🗺️")
+
 def show():
-    st.set_page_config(page_title="Local GISEle", page_icon="🗺️")
+    
 
     # Add logo
     st.image("data/logo.png", use_column_width=True)
@@ -108,3 +110,4 @@ def show():
 # Display the home page
 if __name__ == "__main__":
     show()
+ 
