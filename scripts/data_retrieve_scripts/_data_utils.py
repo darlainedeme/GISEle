@@ -11,7 +11,6 @@ import os
 import shutil
 import zipfile
 
-
 # Initialize Earth Engine
 @st.cache_resource
 def initialize_earth_engine():
@@ -61,6 +60,7 @@ def clear_output_directories():
 def zip_results(files, zip_file_path):
     with zipfile.ZipFile(zip_file_path, 'w') as zipf:
         for file_path in files:
+            st.write(file_path)
             zipf.write(file_path, os.path.basename(file_path))
             
 
