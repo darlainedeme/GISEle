@@ -21,7 +21,7 @@ pages = {
     "Home": home.show,
     "Area Selection": area_selection.show,
     "Data Retrieve": data_retrieve.show,
-    "Buildings": buildings.show,
+    "Buildings": buildings_mapping.show,
     "Clustering": clustering_modes.show,
     "Data Visualization and Enhancement": data_visualization.show,
     "Summary Analysis": summary_analysis.show,
