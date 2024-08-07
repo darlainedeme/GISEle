@@ -49,7 +49,8 @@ def show():
         clear_output_directories()
         
         with open('data/input/selected_area.geojson') as f:
-            selected_area = json.loads(f.read())
+            selected_area = json.load(f)
+
 
         gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
         polygon = gdf.geometry.unary_union
