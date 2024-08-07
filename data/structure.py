@@ -23,5 +23,5 @@ def print_directory_structure(directory, prefix=''):
             print(f"{prefix}{entry}")
 
 # Replace 'your_directory_path' with the path of the directory you want to traverse
-directory_path = r'C:\Users\darla\OneDrive\Roba Vecchia_onedrive\Documenti\GitHub\GISEle'
+directory_path = r'C:\Users\darla\OneDrive\Roba Vecchia_onedrive\Documenti\GitHub\GISEle\data\2_downloaded_input_data'
 print_directory_structure(directory_path)

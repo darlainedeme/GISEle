@@ -1,18 +1,26 @@
 import streamlit as st
 import geopandas as gpd
 import json
-from scripts.utils import initialize_earth_engine, create_combined_buildings_layer, zip_results, clear_output_directories
-from scripts.osm_data import download_osm_data
-from scripts.google_buildings import download_google_buildings
-from scripts.ee_data import download_ee_image, download_elevation_data
-from scripts.mpc_data import download_nighttime_lights_mpc
-from scripts.solar_data import download_solar_data
-from scripts.wind_data import download_wind_data
-import scripts.worldpop as worldpop
 import os
 
-def show():
+from scripts.data_retrieve_scripts.utils import initialize_earth_engine, zip_results, clear_output_directories
+from scripts.data_retrieve_scripts.buildings import download_buildings_data
+from scripts.data_retrieve_scripts.roads import download_roads_data
+from scripts.data_retrieve_scripts.poi import download_poi_data
+from scripts.data_retrieve_scripts.water_bodies import download_water_bodies_data
+from scripts.data_retrieve_scripts.cities import download_cities_data
+from scripts.data_retrieve_scripts.airports import download_airports_data
+from scripts.data_retrieve_scripts.ports import download_ports_data
+from scripts.data_retrieve_scripts.power_lines import download_power_lines_data
+from scripts.data_retrieve_scripts.substations import download_substations_data
+from scripts.data_retrieve_scripts.elevation import download_elevation_data
+from scripts.data_retrieve_scripts.solar import download_solar_data
+from scripts.data_retrieve_scripts.wind import download_wind_data
+from scripts.data_retrieve_scripts.satellite import download_satellite_data
+from scripts.data_retrieve_scripts.night_time_lights import download_nighttime_lights_data
+from scripts.data_retrieve_scripts.worldpop import download_population_data
 
+def show():
     datasets = [
         "Buildings",
         "Roads",
@@ -27,11 +35,11 @@ def show():
         "Solar Potential",
         "Wind Potential",
         "Satellite",
-        # "Nighttime Lights",
+        "Nighttime Lights",
         "Population"
     ]
 
-    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets[-1])
+    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets)
 
     if st.button("Retrieve Data"):
         st.write("Downloading data...")
@@ -55,169 +63,102 @@ def show():
             
         initialize_earth_engine()
 
-        osm_buildings_file = 'data/output/buildings/osm_buildings.geojson'
-        google_buildings_file = 'data/output/buildings/google_buildings.geojson'
-        combined_buildings_file = 'data/output/buildings/combined_buildings.geojson'
-        roads_file = 'data/output/roads/osm_roads.geojson'
-        pois_file = 'data/output/poi/osm_pois.geojson'
-        water_bodies_file = 'data/output/water_bodies/osm_water_bodies.geojson'
-        cities_file = 'data/output/cities/osm_cities.geojson'
-        airports_file = 'data/output/airports/osm_airports.geojson'
-        ports_file = 'data/output/ports/osm_ports.geojson'
-        power_lines_file = 'data/output/power_lines/osm_power_lines.geojson'
-        substations_file = 'data/output/substations/osm_substations.geojson'
-
-        os.makedirs('data/output/buildings', exist_ok=True)
-        os.makedirs('data/output/roads', exist_ok=True)
-        os.makedirs('data/output/poi', exist_ok=True)
-        os.makedirs('data/output/water_bodies', exist_ok=True)
-        os.makedirs('data/output/cities', exist_ok=True)
-        os.makedirs('data/output/airports', exist_ok=True)
-        os.makedirs('data/output/ports', exist_ok=True)
-        os.makedirs('data/output/power_lines', exist_ok=True)
-        os.makedirs('data/output/substations', exist_ok=True)
-
         progress = st.progress(0)
         status_text = st.empty()
 
         try:
             if "Buildings" in selected_datasets:
-                status_text.text("Downloading OSM buildings data...")
-                osm_buildings_path = download_osm_data(polygon, {'building': True}, osm_buildings_file)
+                status_text.text("Downloading buildings data...")
+                download_buildings_data(polygon)
                 progress.progress(0.1)
-
-                status_text.text("Downloading Google buildings data...")
-                google_buildings_path = download_google_buildings(polygon, google_buildings_file)
-                progress.progress(0.2)
-
-                if osm_buildings_path and google_buildings_path:
-                    status_text.text("Combining buildings data...")
-                    with open(google_buildings_path) as f:
-                        google_buildings_geojson = json.load(f)
-                    osm_buildings = gpd.read_file(osm_buildings_path)
-                    combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
-                    combined_buildings.to_file(combined_buildings_file, driver='GeoJSON')
-                    st.write(f"{len(combined_buildings)} buildings in the combined dataset")
-                else:
-                    st.write("Skipping buildings combination due to missing data.")
-                progress.progress(0.3)
+                st.write("Buildings data downloaded.")
 
             if "Roads" in selected_datasets:
-                status_text.text("Downloading OSM roads data...")
-                roads_path = download_osm_data(buffer_polygon, {'highway': ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
-                progress.progress(0.4)
+                status_text.text("Downloading roads data...")
+                download_roads_data(buffer_polygon)
+                progress.progress(0.2)
+                st.write("Roads data downloaded.")
 
             if "Points of Interest" in selected_datasets:
-                status_text.text("Downloading OSM points of interest data...")
-                pois_path = download_osm_data(polygon, {'amenity': True}, pois_file)
-                progress.progress(0.5)
+                status_text.text("Downloading points of interest data...")
+                download_poi_data(polygon)
+                progress.progress(0.3)
+                st.write("Points of interest data downloaded.")
 
             if "Water Bodies" in selected_datasets:
-                status_text.text("Downloading OSM water bodies data...")
-                water_bodies_path = download_osm_data(polygon, {'natural': 'water'}, water_bodies_file)
-                progress.progress(0.6)
+                status_text.text("Downloading water bodies data...")
+                download_water_bodies_data(polygon)
+                progress.progress(0.4)
+                st.write("Water bodies data downloaded.")
 
             if "Major Cities" in selected_datasets:
-                status_text.text("Downloading OSM major cities data...")
-                cities_path = download_osm_data(buffer_polygon, {'place': 'city'}, cities_file)
-                progress.progress(0.7)
+                status_text.text("Downloading major cities data...")
+                download_cities_data(buffer_polygon)
+                progress.progress(0.5)
+                st.write("Major cities data downloaded.")
 
             if "Airports" in selected_datasets:
-                status_text.text("Downloading OSM airports data...")
-                airports_path = download_osm_data(buffer_polygon, {'aeroway': 'aerodrome'}, airports_file)
-                progress.progress(0.75)
+                status_text.text("Downloading airports data...")
+                download_airports_data(buffer_polygon)
+                progress.progress(0.6)
+                st.write("Airports data downloaded.")
 
             if "Ports" in selected_datasets:
-                status_text.text("Downloading OSM ports data...")
-                ports_path = download_osm_data(buffer_polygon, {'amenity': 'port'}, ports_file)
-                progress.progress(0.8)
+                status_text.text("Downloading ports data...")
+                download_ports_data(buffer_polygon)
+                progress.progress(0.7)
+                st.write("Ports data downloaded.")
 
             if "Power Lines" in selected_datasets:
-                status_text.text("Downloading OSM power lines data...")
-                power_lines_path = download_osm_data(buffer_polygon, {'power': 'line'}, power_lines_file)
-                progress.progress(0.85)
+                status_text.text("Downloading power lines data...")
+                download_power_lines_data(buffer_polygon)
+                progress.progress(0.8)
+                st.write("Power lines data downloaded.")
 
             if "Transformers and Substations" in selected_datasets:
-                status_text.text("Downloading OSM transformers and substations data...")
-                substations_path = download_osm_data(buffer_polygon, {'power': ['transformer', 'substation']}, substations_file)
+                status_text.text("Downloading transformers and substations data...")
+                download_substations_data(buffer_polygon)
                 progress.progress(0.9)
-                             
+                st.write("Transformers and substations data downloaded.")
+                
             if "Elevation" in selected_datasets:
                 status_text.text("Downloading elevation data...")
-                elevation_file = 'data/output/elevation/elevation.tif'
-                zip_path = 'data/output/elevation/elevation.zip'
-                os.makedirs('data/output/elevation', exist_ok=True)
-                elevation_path = download_elevation_data(polygon, zip_path, elevation_file)
-
-                if elevation_path:
-                    st.write("Elevation data downloaded to the selected area.")
-                progress.progress(0.95)
+                download_elevation_data(polygon)
+                progress.progress(1.0)
+                st.write("Elevation data downloaded.")
 
             if "Solar Potential" in selected_datasets:
                 status_text.text("Downloading solar data...")
-                solar_file = 'data/output/solar/solar_data.tif'
-                os.makedirs('data/output/solar', exist_ok=True)
-                solar_path = download_solar_data(polygon, solar_file)
-
-                if solar_path:
-                    st.write("Solar data downloaded for the selected area.")
-                progress.progress(0.95)
+                download_solar_data(polygon)
+                progress.progress(1.1)
+                st.write("Solar data downloaded.")
 
             if "Wind Potential" in selected_datasets:
                 status_text.text("Downloading wind data...")
-                wind_file = 'data/output/wind/wind_data.tif'
-                os.makedirs('data/output/wind', exist_ok=True)
-                wind_path = download_wind_data(polygon, wind_file)
-
-                if wind_path:
-                    st.write("Wind data downloaded for the selected area.")
-                progress.progress(0.95)
+                download_wind_data(polygon)
+                progress.progress(1.2)
+                st.write("Wind data downloaded.")
 
             if "Satellite" in selected_datasets:
                 status_text.text("Downloading satellite data...")
-                satellite_file = 'data/output/satellite/satellite_image.tif'
-                os.makedirs('data/output/satellite', exist_ok=True)
-                download_ee_image('COPERNICUS/S2_SR_HARMONIZED', ['B4', 'B3', 'B2'], polygon, satellite_file, scale=30, dateMin='2020-04-01', dateMax='2020-04-30')
-                st.write("Satellite data downloaded for the selected area.")
-                progress.progress(0.9)
+                download_satellite_data(polygon)
+                progress.progress(1.3)
+                st.write("Satellite data downloaded.")
 
             if "Nighttime Lights" in selected_datasets:
                 status_text.text("Downloading nighttime lights data...")
-                nighttime_lights_file = 'data/output/nighttime_lights/nighttime_lights.tif'
-                clipped_nighttime_lights_file = 'data/output/nighttime_lights/clipped_nighttime_lights.tif'
-                os.makedirs('data/output/nighttime_lights', exist_ok=True)
-                nighttime_lights_path = download_nighttime_lights_mpc(polygon, nighttime_lights_file, clipped_nighttime_lights_file)
+                download_nighttime_lights_data(polygon)
+                progress.progress(1.4)
+                st.write("Nighttime lights data downloaded.")
 
-                if nighttime_lights_path:
-                    st.write("Nighttime lights data downloaded and clipped to the selected area.")
-                progress.progress(0.95)
-               
             if "Population" in selected_datasets:
                 status_text.text("Downloading population data...")
-                geojson_path = 'data/input/selected_area.geojson'
-                population_file = 'data/output/population/age_structure_output.csv'
-                os.makedirs('data/output/population', exist_ok=True)
-                worldpop.download_worldpop_age_structure(geojson_path, 2020, population_file)
-                st.write("Population data downloaded for the selected area.")
-                progress.progress(1.0)
-
-    
-            zip_files = [
-                file_path for file_path in [
-                    osm_buildings_file, google_buildings_file, combined_buildings_file, 
-                    roads_file, pois_file, water_bodies_file, cities_file,
-                    airports_file, ports_file, power_lines_file, substations_file,
-                    'data/output/elevation/image_original.tif',  # Include elevation file
-                    'data/output/solar/solar_data.tif',          # Include solar data file
-                    'data/output/wind/wind_data.tif',            # Include wind data file
-                    'data/output/satellite/satellite_image.tif', # Include satellite data file
-                    'data/output/nighttime_lights/clipped_nighttime_lights.tif', # Include nighttime lights file
-                    'data/output/population/age_structure_output.csv' # Include population data file
-                ] if file_path and os.path.exists(file_path)
-            ]
+                download_population_data('data/input/selected_area.geojson', 2020)
+                progress.progress(1.5)
+                st.write("Population data downloaded.")
 
             status_text.text("Zipping results...")
-            zip_results(zip_files, 'data/output/results.zip')
+            zip_results('data/2_downloaded_input_data', 'data/output/results.zip')
             progress.progress(1.0)
 
             st.success("Data download complete. You can now proceed to the next section.")
