@@ -219,6 +219,11 @@ def create_weighted_grid(parameters, Clusters, study_area):
 
     database = os.path.join(gisele_folder, 'scripts', 'routing_scripts', 'Database')
 
+    # Ensure necessary directories exist
+    geospatial_data_path = os.path.join(gisele_folder, 'Case studies', case_study, 'Intermediate', 'Geospatial_Data')
+    roads_points_path = os.path.join(geospatial_data_path, 'Roads_points')
+    os.makedirs(roads_points_path, exist_ok=True)
+
     df_weighted = qgis_process.create_input_csv(crs, resolution, resolution_population, landcover_option, country, case_study, database, study_area)
     accepted_road_types = [
         'living_street', 'pedestrian', 'primary', 'primary_link', 'secondary', 'secondary_link',
@@ -386,6 +391,9 @@ def show():
 
             if st.button("Process MILP Output"):
                 process_MILP_output(parameters)
+
+if __name__ == "__main__":
+    show()
 
 if __name__ == "__main__":
     show()
