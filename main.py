@@ -3,7 +3,7 @@ import streamlit as st
 # Set page configuration at the top level
 st.set_page_config(page_title="Local GISEle", page_icon="🗺️", layout="wide")
 
-from scripts import home, area_selection, data_retrieve, buildings, clustering_modes, data_visualization, costs, summary_analysis, demand_estimation, routing, results
+from scripts import home, area_selection, data_retrieve, buildings_mapping, clustering_modes, data_visualization, costs, summary_analysis, demand_estimation, routing, results
 
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=200)  # Adjust the width as needed
