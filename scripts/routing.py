@@ -108,7 +108,7 @@ def set_parameters():
         "roads_weight": roads_weight,
         "run_genetic": run_genetic,
         "max_length_segment": max_length_segment,
-        "simplify_coef": simplify_coef
+        "simplify_coef": simplify_coef,
         "crit_dist": crit_dist
     }
 
