@@ -5,6 +5,7 @@ import os
 
 from scripts.data_retrieve_scripts.utils import initialize_earth_engine, zip_results, clear_output_directories
 from scripts.data_retrieve_scripts.buildings import *
+'''
 from scripts.data_retrieve_scripts.roads import *
 from scripts.data_retrieve_scripts.poi import *
 from scripts.data_retrieve_scripts.water_bodies import *
@@ -19,6 +20,7 @@ from scripts.data_retrieve_scripts.wind import *
 from scripts.data_retrieve_scripts.satellite import *
 from scripts.data_retrieve_scripts.night_time_lights import *
 from scripts.data_retrieve_scripts.worldpop import *
+'''
 
 def show():
     datasets = sorted([
