@@ -50,7 +50,10 @@ def show():
         
         selected_area_path = os.path.join('data', 'input', 'selected_area.geojson')
         
-        gdf = gpd.read_file('GeoJSON:data/input/selected_area.geojson')
+        with open(selected_area_path) as f:
+            selected_area = json.load(f)
+
+        gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
 
         
         polygon = gdf.geometry.unary_union
