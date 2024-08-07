@@ -37,7 +37,7 @@ from OpenEnergyMapMIT_v1 import building_to_cluster_v1
 def set_parameters():
     st.header("Set Parameters")
     
-    gisele_folder = st.text_input("Gisele Folder", os.getcwd())
+    gisele_folder = st.text_input("Gisele Folder", '/mount/src/gisele')
     country = st.text_input("Country", 'Uganda')
     case_study = st.text_input("Case Study", 'awach555')
     crs = st.number_input("CRS", value=21095)
