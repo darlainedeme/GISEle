@@ -725,11 +725,12 @@ def MultiLine_to_Line(multiline_shapefile):
         if isinstance(geom, LineString):
             lines.append(geom)
         elif isinstance(geom, MultiLineString):
-            lines.extend([line for line in geom])
+            lines.extend([line for line in geom.geoms])
         else:
             print(f"Unsupported geometry type: {type(geom)}")
     lines_shapefile = gpd.GeoDataFrame({'geometry': lines}, crs=multiline_shapefile.crs)
     return lines_shapefile
+
 
 
 # def lcoe_analysis(clusters_list, total_energy, grid_resume, mg, coe,
