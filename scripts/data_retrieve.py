@@ -48,10 +48,10 @@ def show():
 
         clear_output_directories()
         
-        selected_area_path = os.path.join('data', '3_user_uploaded_data', 'selected_area.geojson')
-        
-        with open(selected_area_path) as f:
-            selected_area = json.load(f)
+        selected_area = st.session_state.get('selected_area')
+        if selected_area is None:
+            st.error("No selected area found in session state. Please select an area first.")
+            return
 
         gdf = gpd.GeoDataFrame.from_features(selected_area["features"])
 
