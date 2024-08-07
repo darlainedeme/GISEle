@@ -130,7 +130,7 @@ def create_roads_new(gisele_folder, case_study, Clusters, crs, accepted_road_typ
         New_Lines.drop(index=drop.index, inplace=True)
 
     New_Lines.to_file(gisele_folder + '/Case studies/' + case_study + '/Intermediate/Geospatial_Data/Roads_points/Roads_lines.shp')
-    New_Nodes.to_file(gisele_folder + '/Case studies/' + case_study + '/Intermediate/Geospatial_Data/Roads_points/Roads_points.shp')
+    New_Nodes.to_file(gisele_folder + '/Case studies/' + case_study + '/Intermediate/Geospatial_Data/Roads_points/Roads_points.shp') # darlain change to road lines
 
     return New_Nodes, New_Lines
  

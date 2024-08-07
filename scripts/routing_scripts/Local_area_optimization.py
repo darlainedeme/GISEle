@@ -564,7 +564,7 @@ def optimize(crs,country, resolution, load_capita, pop_per_household, road_coef,
         road_points = gpd.read_file(dir_input+'/Roads_points/Roads_points.shp')
         road_points = road_points[['X', 'Y', 'ID', 'Weight', 'Elevation','geometry']]
         road_points = gpd.clip(road_points,area_for_roads)
-        road_lines = gpd.read_file(dir_input+'/Roads_points/Roads_lines.shp')
+        road_lines = gpd.read_file(dir_input+'/Roads_points/Roads_lines.shp') # darlain change to road lines
         road_lines = road_lines[(road_lines['ID1'].isin(road_points.ID.to_list()) &
                                                  road_lines['ID2'].isin(road_points.ID.to_list()))]
         
