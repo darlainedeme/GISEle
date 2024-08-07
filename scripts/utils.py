@@ -63,6 +63,7 @@ def zip_results(files, zip_file_path):
         for file_path in files:
             zipf.write(file_path, os.path.basename(file_path))
             
+
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)
 

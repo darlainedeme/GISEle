@@ -10,15 +10,12 @@ def save_geojson(data, filename):
         json.dump(data, f)
 
 def show():
-    st.write("Starting area selection process...")
     which_modes = ['By address', 'By coordinates', 'Upload file', 'Predefined areas']
     which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
-    st.write(f"Selected mode: {which_mode}")
-
-    if which_mode == 'By address':
+    if which_mode == 'By address':  
         geolocator = Nominatim(user_agent="example app")
-        address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa')
+        address = st.sidebar.text_input('Enter your address:', value='B12 Bovisa') 
 
         if address:
             try:
@@ -32,7 +29,7 @@ def show():
                         st.session_state.osm_roads = None
                         st.session_state.osm_pois = None
                         st.session_state.missing_layers = []
-
+                        
                         # Save selected location as GeoJSON
                         selected_area = {
                             "type": "FeatureCollection",
@@ -58,10 +55,10 @@ def show():
                 st.error(f"Error fetching location: {e}")
                 st.write(e)
 
-    elif which_mode == 'By coordinates':
-        latitude = st.sidebar.text_input('Latitude:', value='45.5065')
-        longitude = st.sidebar.text_input('Longitude:', value='9.1598')
-
+    elif which_mode == 'By coordinates':  
+        latitude = st.sidebar.text_input('Latitude:', value='45.5065') 
+        longitude = st.sidebar.text_input('Longitude:', value='9.1598') 
+        
         if latitude and longitude:
             try:
                 with st.spinner('Creating map...'):
@@ -98,7 +95,7 @@ def show():
                 st.error(f"Error with coordinates: {e}")
                 st.write(e)
 
-    elif which_mode == 'Upload file':
+    elif which_mode == 'Upload file':  
         uploaded_file = st.file_uploader("Upload GeoJSON file", type="geojson")
 
         if uploaded_file:
@@ -106,10 +103,10 @@ def show():
                 with st.spinner('Processing file...'):
                     geojson_data = json.load(uploaded_file)
                     gdf = uploaded_file_to_gdf(uploaded_file)
-
+                    
                     if gdf.empty:
                         st.error("Uploaded file is empty or not valid GeoJSON.")
-
+                    
                     centroid = gdf.geometry.unary_union.centroid
                     st.session_state.latitude = centroid.y
                     st.session_state.longitude = centroid.x
@@ -142,7 +139,7 @@ def show():
         area_files = [f.split('.')[0] for f in os.listdir(predefined_areas_path) if f.endswith('.geojson')]
         selected_area = st.sidebar.selectbox('Select a predefined area', area_files)
 
-        if st.sidebar.button('Select case study'):
+        if selected_area:
             try:
                 with st.spinner('Loading predefined area...'):
                     area_filepath = os.path.join(predefined_areas_path, f'{selected_area}.geojson')
@@ -152,7 +149,7 @@ def show():
 
                     if gdf.empty:
                         st.error("Selected area file is empty or not valid GeoJSON.")
-
+                    
                     centroid = gdf.geometry.unary_union.centroid
                     st.session_state.latitude = centroid.y
                     st.session_state.longitude = centroid.x
