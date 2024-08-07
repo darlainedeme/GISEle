@@ -718,20 +718,20 @@ def download_tif(area, crs, scale, image, out_path):
     print(path)
     download_url(path, out_path)
     return
-def MultiLine_to_Line(lines_shapefile):
-    lines=[]
-    for index, row in lines_shapefile.iterrows():
-        try:
-            row['geometry'][0]
-            multi_line = row['geometry']
-            lines_shapefile.drop(index,axis=0,inplace=True)
-            for i in multi_line:
-                lines.append(i)
-        except:
-            a=1
-    lines_shapefile=lines_shapefile.append(gpd.GeoDataFrame({'geometry': lines}))
-    lines_shapefile = lines_shapefile.reset_index(drop=True)
+
+def MultiLine_to_Line(multiline_shapefile):
+    lines = []
+    for line in multiline_shapefile.geometry:
+        if isinstance(line, LineString):
+            lines.append(line)
+        else:
+            for single_line in line:
+                lines.append(single_line)
+    # Create a GeoDataFrame
+    lines_shapefile = gpd.GeoDataFrame({'geometry': lines})
     return lines_shapefile
+
+
 # def lcoe_analysis(clusters_list, total_energy, grid_resume, mg, coe,
 #                   grid_ir, grid_om, grid_lifetime):
 #     """
