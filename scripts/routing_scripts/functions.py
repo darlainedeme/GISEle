@@ -362,7 +362,7 @@ def create_roads2(gdf_roads, geo_df, crs):
     line_gdf = gpd.GeoDataFrame(line_vertices, crs=crs, geometry=geometry)
     
     return line_gdf, segments
-
+    
 def create_box(limits, df):
     """
     Creates a delimiting box around a geodataframe.
