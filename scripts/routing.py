@@ -250,7 +250,7 @@ def optimize_local_area(parameters, Clusters):
     crit_dist = parameters["crit_dist"]
     LV_base_cost = parameters["LV_base_cost"]
     population_dataset_type = parameters["population_dataset_type"]
-    crit_dist = parameters["crit_dist"]
+    crs = parameters["crs"]
 
     start = time.time()
     LAO.optimize(
@@ -386,6 +386,9 @@ def show():
 
             if st.button("Process MILP Output"):
                 process_MILP_output(parameters)
+
+if __name__ == "__main__":
+    show()
 
 if __name__ == "__main__":
     show()
