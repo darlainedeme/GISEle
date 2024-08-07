@@ -1,5 +1,7 @@
 import streamlit as st
-st.set_page_config(layout="wide")
+
+# Set page configuration at the top level
+st.set_page_config(page_title="Local GISEle", page_icon="🗺️", layout="wide")
 
 from scripts import home, area_selection, data_retrieve, buildings, clustering_modes, data_visualization, costs, summary_analysis, demand_estimation, routing, results
 
