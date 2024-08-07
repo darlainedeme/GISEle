@@ -47,11 +47,13 @@ def show():
                         os.makedirs('data/input', exist_ok=True)
                         save_geojson(selected_area, 'data/input/selected_area.geojson')
 
+                        st.write("Creating map with address coordinates...")
                         create_map(location.latitude, location.longitude)
                     else:
                         st.error("Could not geocode the address.")
             except Exception as e:
                 st.error(f"Error fetching location: {e}")
+                st.write(e)
 
     elif which_mode == 'By coordinates':  
         latitude = st.sidebar.text_input('Latitude:', value='45.5065') 
@@ -87,9 +89,11 @@ def show():
                     os.makedirs('data/input', exist_ok=True)
                     save_geojson(selected_area, 'data/input/selected_area.geojson')
 
+                    st.write("Creating map with coordinates...")
                     create_map(lat, lon)
             except Exception as e:
                 st.error(f"Error with coordinates: {e}")
+                st.write(e)
 
     elif which_mode == 'Upload file':  
         uploaded_file = st.file_uploader("Upload GeoJSON file", type="geojson")
@@ -117,14 +121,18 @@ def show():
                     with open('data/input/selected_area.geojson', 'w') as f:
                         json.dump(geojson_data, f)
 
+                    st.write("Creating map with uploaded GeoJSON...")
                     create_map(centroid.y, centroid.x, geojson_data)
                     st.success("Map created successfully!")
             except KeyError as e:
                 st.error(f"Error processing file: {e}")
+                st.write(e)
             except IndexError as e:
                 st.error(f"Error processing file: {e}")
+                st.write(e)
             except Exception as e:
                 st.error(f"Error processing file: {e}")
+                st.write(e)
 
     elif which_mode == 'Predefined areas':
         predefined_areas_path = 'data/_precompiled_case_studies/areas'
@@ -151,10 +159,12 @@ def show():
                     st.session_state.osm_pois = None
                     st.session_state.missing_layers = []
 
+                    st.write("Creating map with predefined area...")
                     create_map(centroid.y, centroid.x, geojson_data)
                     st.success("Predefined area loaded successfully!")
             except Exception as e:
                 st.error(f"Error loading predefined area: {e}")
+                st.write(e)
 
 # Display the area selection page
 if __name__ == "__main__":
