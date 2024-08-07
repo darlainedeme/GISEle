@@ -8,6 +8,7 @@ from shapely.ops import split,nearest_points
 import networkx as nx
 from Steiner_tree_code import * 
 import pdb
+
 def genetic2(clustered_points,points_new_graph,distance_matrix,n_clusters,graph):
     clustered_points.reset_index(drop=True,inplace=True)
     lookup_edges = [i for i in graph.edges]
@@ -75,6 +76,7 @@ def genetic2(clustered_points,points_new_graph,distance_matrix,n_clusters,graph)
         clustered_points.loc[clustered_points['ID'].isin(subset_IDs),'Cluster']=i
 
     return clustered_points, cut_edges
+
 def delaunay_test(graph,new_points,new_lines):
     tocki = new_points['geometry'].values
     number_points = new_points.shape[0]
@@ -212,6 +214,7 @@ def create_clean_graph(graph,points,terminal_points,T_metric,crs):
 
     new_points = points[points['ID'].isin(new_nodes)]
     return new_lines, new_points, new_graph
+
 def connect_unconnected_graph(graph,lines,points,weight):
     if nx.is_connected(graph):
         return graph,lines
@@ -289,6 +292,7 @@ def fix_lines_intersecting(lines,points):
        lines.drop(index=i, inplace=True)
                 # the new point is added, now just delete the old 2 lines and create 4 new lines.
    return lines,points
+
 def fix_roads(lines,points,critical_points,critdist):
     ''' The goal of this function is to take points that are critical, actually points that are very close to a road,
     but not really on a road. Then, those points are translated on to the given road, creating a much more realistic mash
@@ -352,6 +356,7 @@ def fix_roads(lines,points,critical_points,critdist):
     #            print('Line is already dropped ( there were 2 critical points on this one')
 
     return lines,points
+
 def plt(point, multiLine, threshold):
     '''Function that is used in distance_point_to_roads. It return the distance if a point is too close to a road and needs to be
     translated ( less than the threshold ).'''
@@ -360,6 +365,7 @@ def plt(point, multiLine, threshold):
         if dist<threshold and dist>0:
             return (point,line, dist)
     return False
+
 def distance_point_to_roads(segments,line_gdf,critdist,crs):
     '''Returns "critical_points", which is a geodataframe containing points which are too close to the existing roads,
     which means they should be translated on to the roads. Also, it contains data on which road they are close to.'''

@@ -36,35 +36,43 @@ from OpenEnergyMapMIT_v1 import building_to_cluster_v1
 # Define function to set parameters
 def set_parameters():
     st.header("Set Parameters")
-    
-    gisele_folder = st.text_input("Gisele Folder", '/mount/src/gisele')
-    country = st.text_input("Country", 'Uganda')
-    case_study = st.text_input("Case Study", 'awach555')
-    crs = st.number_input("CRS", value=21095)
-    resolution = st.number_input("Resolution", value=200)
-    voltage = st.number_input("Voltage (kV)", value=110)
-    LV_base_cost = st.number_input("LV Base Cost", value=10000)
-    load_capita = st.number_input("Load per Capita (kW)", value=0.6)
-    pop_per_household = st.number_input("Population per Household", value=5)
-    resolution_population = st.number_input("Resolution Population", value=30)
-    ss_data = st.text_input("SS Data File", 'ss_data_evn.csv')
-    coe = st.number_input("Cost of Energy (euro/MWh)", value=60)
-    grid_lifetime = st.number_input("Grid Lifetime (years)", value=40)
-    landcover_option = st.text_input("Landcover Option", 'ESA')
 
-    local_database = st.checkbox("Local Database", value=True)
-    MITBuilding = st.checkbox("MIT Building", value=True)
-    losses = st.checkbox("Losses", value=False)
-    reliability_option = st.checkbox("Reliability Option", value=False)
-    mg_option = st.checkbox("Microgrid Option", value=False)
-    multi_objective_option = st.checkbox("Multi Objective Option", value=False)
-    n_line_type = st.number_input("Number of Line Types", value=1)
-    MV_coincidence = st.number_input("MV Coincidence", value=0.8)
-    mg_types = st.number_input("Microgrid Types", value=1)
-    Roads_option = st.checkbox("Roads Option", value=True)
-    Rivers_option = st.checkbox("Rivers Option", value=False)
-    triangulation_logic = st.checkbox("Triangulation Logic", value=True)
-    population_dataset_type = st.text_input("Population Dataset Type", 'buildings')
+    with st.expander("Parameters", expanded=False):
+        gisele_folder = st.text_input("Gisele Folder", '/mount/src/gisele')
+        country = st.text_input("Country", 'Uganda')
+        case_study = st.text_input("Case Study", 'awach555')
+        crs = st.number_input("CRS", value=21095)
+        resolution = st.number_input("Resolution", value=200)
+        voltage = st.number_input("Voltage (kV)", value=110)
+        LV_base_cost = st.number_input("LV Base Cost", value=10000)
+        load_capita = st.number_input("Load per Capita (kW)", value=0.6)
+        pop_per_household = st.number_input("Population per Household", value=5)
+        resolution_population = st.number_input("Resolution Population", value=30)
+        ss_data = st.text_input("SS Data File", 'ss_data_evn.csv')
+        coe = st.number_input("Cost of Energy (euro/MWh)", value=60)
+        grid_lifetime = st.number_input("Grid Lifetime (years)", value=40)
+        landcover_option = st.text_input("Landcover Option", 'ESA')
+
+        local_database = st.checkbox("Local Database", value=True)
+        MITBuilding = st.checkbox("MIT Building", value=True)
+        losses = st.checkbox("Losses", value=False)
+        reliability_option = st.checkbox("Reliability Option", value=False)
+        mg_option = st.checkbox("Microgrid Option", value=False)
+        multi_objective_option = st.checkbox("Multi Objective Option", value=False)
+        n_line_type = st.number_input("Number of Line Types", value=1)
+        MV_coincidence = st.number_input("MV Coincidence", value=0.8)
+        mg_types = st.number_input("Microgrid Types", value=1)
+        Roads_option = st.checkbox("Roads Option", value=True)
+        Rivers_option = st.checkbox("Rivers Option", value=False)
+        triangulation_logic = st.checkbox("Triangulation Logic", value=True)
+        population_dataset_type = st.text_input("Population Dataset Type", 'buildings')
+
+        road_coef = st.number_input("Road Coefficient", value=None)
+        LV_distance = st.number_input("LV Distance", value=500)
+        roads_weight = st.number_input("Roads Weight", value=None)
+        run_genetic = st.checkbox("Run Genetic Algorithm", value=True)
+        max_length_segment = st.number_input("Max Length Segment", value=None)
+        simplify_coef = st.number_input("Simplify Coefficient", value=None)
 
     return {
         "gisele_folder": gisele_folder,
@@ -93,7 +101,13 @@ def set_parameters():
         "Roads_option": Roads_option,
         "Rivers_option": Rivers_option,
         "triangulation_logic": triangulation_logic,
-        "population_dataset_type": population_dataset_type
+        "population_dataset_type": population_dataset_type,
+        "road_coef": road_coef,
+        "LV_distance": LV_distance,
+        "roads_weight": roads_weight,
+        "run_genetic": run_genetic,
+        "max_length_segment": max_length_segment,
+        "simplify_coef": simplify_coef
     }
 
 def run_routing(parameters):
