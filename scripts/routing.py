@@ -140,6 +140,9 @@ def new_case_study(parameters, output_path_clusters):
     case_study = parameters["case_study"]
     crs = parameters["crs"]
 
+    database = os.path.join(gisele_folder, 'scripts', 'routing_scripts', 'Database')
+    study_area_folder = os.path.join(database, country, 'Study_area', 'small_area_5.shp')
+
     case_study_path = os.path.join('Case studies', case_study)
     if not os.path.exists(case_study_path):
         # Create new folders for the study case
