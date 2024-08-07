@@ -140,7 +140,7 @@ def Merge_Roads_GridOfPoints(gisele_folder,case_study):
     weighted_grid_points['Type'] = 'Standard'
     road_points['Type'] = 'Road'
     road_points.drop(columns=['geometry'],inplace=True)
-    weighted_grid_points_with_roads = weighted_grid_points.append(road_points)
+    weighted_grid_points_with_roads = pd.concat([weighted_grid_points, road_points], ignore_index=True)
     # weighted_grid_points_with_roads[['X','Y','ID','Elevation','Type','Population','Weight','Elevation']].\
     #     to_csv(gisele_folder+'/Case studies/'+case_study+'/Intermediate/Geospatial_Data/weighted_grid_of_points_with_roads.csv') 
     weighted_grid_points_with_roads[['X','Y','ID','Elevation','Type','Weight','Elevation']].\
