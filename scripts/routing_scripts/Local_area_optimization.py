@@ -527,7 +527,7 @@ def optimize(crs,country, resolution, load_capita, pop_per_household, road_coef,
     #Clusters=Clusters[Clusters['cluster_ID']==18] 
     try: 
         # pdb.set_trace()
-        pop_path =  os.path.join(gisele_dir, "scripts", "routing_scripts", "Database", country, "OpenEnergyMap", "pixelOfStudy", "points")
+        pop_path =  os.path.join("scripts", "routing_scripts", "Database", country, "OpenEnergyMap", "pixelOfStudy", "points")
         Population = gpd.read_file(pop_path + '\points.shp')  
     except:                    
         Population = gpd.read_file(dir_input+'/Population_' + str(crs) + '.shp')  
