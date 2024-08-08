@@ -83,10 +83,10 @@ def show():
         st.session_state.map = create_map(st.session_state.data_gdf, draw_enabled=True)
 
     # Display the map
-    st_folium(st.session_state.map, width=1400, height=800)
+    map_key = f"map_{selected_subpage}"
+    map_output = st_folium(st.session_state.map, width=1400, height=800, key=map_key)
 
     # Save enhanced data if any
-    map_output = st.session_state.get('map_output', None)
     if map_output and 'last_active_drawing' in map_output and map_output['last_active_drawing']:
         drawn_data = map_output['last_active_drawing']['geometry']
         drawn_gdf = gpd.GeoDataFrame([drawn_data], columns=['geometry'], crs='EPSG:4326')
@@ -94,7 +94,7 @@ def show():
         save_enhanced_data(enhanced_gdf, DATA_PATHS[data_key])
         st.success(f"Enhanced data saved for {selected_subpage}")
 
-    st.session_state['map_output'] = st_folium(st.session_state.map, width=1400, height=800)
+    st.session_state['map_output'] = map_output
 
 if __name__ == "__main__":
     show()
