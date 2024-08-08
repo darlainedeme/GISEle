@@ -7,9 +7,9 @@ from scripts.data_retrieve_scripts._data_utils import initialize_earth_engine, z
 from scripts.data_retrieve_scripts.buildings import *
 from scripts.data_retrieve_scripts.airports import *
 from scripts.data_retrieve_scripts.cities import *
-from scripts.data_retrieve_scripts.elevation import *
-'''
 from scripts.data_retrieve_scripts.roads import *
+# from scripts.data_retrieve_scripts.elevation import *
+'''
 from scripts.data_retrieve_scripts.poi import *
 from scripts.data_retrieve_scripts.water_bodies import *
 from scripts.data_retrieve_scripts.ports import *
