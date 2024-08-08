@@ -222,7 +222,7 @@ def app():
             if collection == "Landsat TM-ETM-OLI Surface Reflectance":
                 sensor_start_year = 1984
                 timelapse_title = "Landsat Timelapse"
-                timelapse_speed = 5
+                timelapse_speed = 1
             elif collection == "Sentinel-2 MSI Surface Reflectance":
                 sensor_start_year = 2015
                 timelapse_title = "Sentinel-2 Timelapse"
@@ -373,6 +373,20 @@ def app():
 
                     # After the block that checks if out_gif and out_mp4 exist
                     if out_gif is not None and os.path.exists(out_gif):
+                        empty_text.text(
+                            "Right click the GIF to save it to your computer👇"
+                        )
+                        empty_image.image(out_gif)
+
+                        out_mp4 = out_gif.replace(".gif", ".mp4")
+                        if mp4 and os.path.exists(out_mp4):
+                            with empty_video:
+                                st.text(
+                                    "Right click the MP4 to save it to your computer👇"
+                                )
+                                st.video(out_gif.replace(".gif", ".mp4"))
+
+                        # Create zip file and provide download button
                         zip_file_path = create_zip_file(out_gif, out_mp4)
                         with open(zip_file_path, "rb") as f:
                             btn = st.download_button(
@@ -381,7 +395,6 @@ def app():
                                 file_name="timelapse.zip",
                                 mime="application/zip"
                             )
-
                     else:
                         empty_text.error(
                             "Something went wrong. You probably requested too much data. Try reducing the ROI or timespan."
