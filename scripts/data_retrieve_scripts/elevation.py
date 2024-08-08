@@ -5,13 +5,11 @@ import os
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
-import ee
-
-# Authenticate and initialize Earth Engine
-ee.Authenticate()
-ee.Initialize()
+from scripts.data_retrieve_scripts._data_utils import initialize_earth_engine
 
 def download_elevation_data(polygon):
+    initialize_earth_engine()
+    
     elevation_file = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.tif')
     os.makedirs(os.path.dirname(elevation_file), exist_ok=True)
     
