@@ -59,7 +59,7 @@ def show():
 
         polygon_gdf = gpd.GeoDataFrame(geometry=[polygon], crs=gdf.crs)
         projected_polygon = polygon_gdf.to_crs(epsg=3857)
-        buffer_polygon = projected_polygon.geometry.buffer(20000)
+        buffer_polygon = projected_polygon.geometry.buffer(2000)
         buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
         buffer_gdf = buffer_gdf.to_crs(epsg=4326)
     
