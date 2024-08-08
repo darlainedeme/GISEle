@@ -397,7 +397,8 @@ def app():
                             )
                     else:
                         empty_text.error(
-                            "Something went wrong.
+                            "Something went wrong. You probably requested too much data. Try reducing the ROI or timespan."
+                        )
 
 # Run the app
 if __name__ == "__main__":
