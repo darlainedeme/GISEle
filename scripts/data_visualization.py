@@ -42,8 +42,10 @@ def create_map(data_gdf=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
 
     if data_gdf is not None and not data_gdf.empty:
-        centroid = data_gdf.geometry.centroid.mean()
-        m.location = [centroid.y, centroid.x]
+        centroid = data_gdf.geometry.centroid
+        lon = centroid.x.mean()
+        lat = centroid.y.mean()
+        m.location = [lat, lon]
         m.zoom_start = 10
 
         folium.GeoJson(data_gdf).add_to(m)
