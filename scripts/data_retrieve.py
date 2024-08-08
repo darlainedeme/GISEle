@@ -58,7 +58,11 @@ def show():
         buffer_polygon = projected_polygon.geometry.buffer(20000)
         buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
         buffer_gdf = buffer_gdf.to_crs(epsg=4326)
-
+    
+        buffer_polygon_file = os.path.join('data', '3_user_generated_data', 'buffer_polygon.geojson')
+        
+        buffer_gdf.to_file(buffer_polygon_file, driver='GeoJSON')
+        
         buffer_polygon = buffer_gdf.geometry.unary_union
 
         initialize_earth_engine()
@@ -75,7 +79,7 @@ def show():
 
             if "Roads" in selected_datasets:
                 status_text.text("Downloading roads data...")
-                download_roads_data(buffer_polygon)
+                download_roads_data(buffer_polygon, buffer_polygon_file)
                 progress.progress(0.2)
                 st.write("Roads data downloaded.")
 
