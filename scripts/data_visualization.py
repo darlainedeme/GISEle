@@ -10,7 +10,7 @@ import pandas as pd
 # Define paths
 DATA_PATHS = {
     "major_cities": 'data/2_downloaded_input_data/cities/osm_cities.geojson',
-    "main_roads": 'data/2_downloaded_input_data/roads/osm_roads.geojson',
+    "roads": 'data/2_downloaded_input_data/roads/osm_roads.geojson',
     "airports": 'data/2_downloaded_input_data/airports/osm_airports.geojson',
     "ports": 'data/2_downloaded_input_data/ports/osm_ports.geojson',
     "national_grid": 'data/2_downloaded_input_data/grids/osm_grids.geojson',
@@ -19,7 +19,7 @@ DATA_PATHS = {
     "buildings": 'data/2_downloaded_input_data/buildings/combined_buildings.geojson',
     "points_of_interest": 'data/2_downloaded_input_data/poi/osm_pois.geojson',
     "roads": 'data/2_downloaded_input_data/roads/osm_roads.geojson',
-    "roads_buffer": 'data/2_downloaded_input_data/roads/osm_roads_buffer.geojson',
+    "main_roads": 'data/2_downloaded_input_data/roads/osm_roads_buffer.geojson',
     "water_bodies": 'data/2_downloaded_input_data/water_bodies/osm_water_bodies.geojson',
     "elevation": 'data/2_downloaded_input_data/elevation/elevation_data.tif',
     "solar": 'data/2_downloaded_input_data/solar/solar_potential.geojson',
@@ -64,7 +64,7 @@ def create_map(data_gdf=None, draw_enabled=False):
 
 def show():
     sections = {
-        "Out of the Study Area": ["Major Cities", "Main Roads", "Roads Buffer", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
+        "Out of the Study Area": ["Major Cities", "Main Roads", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
         "Within the Study Area": ["Buildings", "Points of Interest", "Access Status", "Relative Wealth Index", "Roads", "Elevation", "Crops and Biomass Potential", "Water Bodies and Hydro Potential", "Solar Potential", "Wind Potential", "Landcover", "Available Land for Infrastructure"]
     }
 
