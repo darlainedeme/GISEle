@@ -63,7 +63,13 @@ def show():
         
         buffer_polygon = buffer_gdf.geometry.unary_union
         
-        buffer_gdf.to_file(buffer_polygon_file, driver='GeoJSON')
+        # Ensure the geometry is valid
+        buffer_gdf = buffer_gdf.buffer(0)
+        if buffer_gdf.is_valid.all():
+            # Save the buffer polygon to a file
+            buffer_gdf.to_file(buffer_polygon_file, driver='GeoJSON')
+        else:
+            st.error("Buffer polygon contains invalid geometries and cannot be saved.")
 
         initialize_earth_engine()
 
