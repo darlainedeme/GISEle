@@ -64,7 +64,7 @@ def create_map(data_gdf=None, draw_enabled=False):
 
 def show():
     sections = {
-        "Out of the Study Area": ["Major Cities", "Main Roads", "Roads Buffer", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
+        "Out of the Study Area": ["Major Cities", "Main Roads", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
         "Within the Study Area": ["Buildings", "Points of Interest", "Access Status", "Relative Wealth Index", "Roads", "Elevation", "Crops and Biomass Potential", "Water Bodies and Hydro Potential", "Solar Potential", "Wind Potential", "Landcover", "Available Land for Infrastructure"]
     }
 
