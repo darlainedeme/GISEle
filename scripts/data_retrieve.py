@@ -63,7 +63,7 @@ def show():
         buffer_gdf = gpd.GeoDataFrame(geometry=buffer_polygon, crs=projected_polygon.crs)
         buffer_gdf = buffer_gdf.to_crs(epsg=4326)
     
-        buffer_polygon_file = os.path.join('data', '3_user_generated_data', 'buffer_polygon.geojson')
+        # buffer_polygon_file = os.path.join('data', '3_user_generated_data', 'buffer_polygon.geojson')
         
         buffer_polygon = buffer_gdf.geometry.unary_union
         
