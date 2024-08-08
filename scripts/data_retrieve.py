@@ -23,9 +23,9 @@ from scripts.data_retrieve_scripts.access_status import *
 add worldpop raster
 '''
 
-def save_geojson(data, filename):
-    with open(filename, 'w') as f:
-        json.dump(data, f)
+def save_geojson(gdf, filename):
+    gdf.to_file(filename, driver='GeoJSON')
+
 
 def show():
     datasets = sorted([
@@ -67,8 +67,7 @@ def show():
         
         buffer_polygon = buffer_gdf.geometry.unary_union
         
-        
-        save_geojson(buffer_gdf, 'data/3_user_uploaded_data/buffer_polygon.geojson')
+        save_geojson(buffer_gdf, buffer_polygon_file)
         
         initialize_earth_engine()
 
