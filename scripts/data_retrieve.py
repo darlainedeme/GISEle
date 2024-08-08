@@ -46,7 +46,7 @@ def show():
         "Wind Potential"
     ])
 
-    selected_datasets = st.multiselect("Select datasets to download", datasets) #, default=[datasets[0]])
+    selected_datasets = st.multiselect("Select datasets to download", datasets, default=datasets)
 
     if st.button("Retrieve Data"):
         st.write("Downloading data...")
