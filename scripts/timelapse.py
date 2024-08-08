@@ -43,15 +43,6 @@ def uploaded_file_to_gdf(data):
 def app():
     today = date.today()
 
-    st.title("Create Satellite Timelapse")
-
-    st.markdown(
-        """
-        An interactive web app for creating [Landsat](https://developers.google.com/earth-engine/datasets/catalog/landsat)/[GOES](https://jstnbraaten.medium.com/goes-in-earth-engine-53fbc8783c16) timelapse for any location around the globe.
-        The app was built using [streamlit](https://streamlit.io), [geemap](https://geemap.org), and [Google Earth Engine](https://earthengine.google.com). For more info, check out my streamlit [blog post](https://blog.streamlit.io/creating-satellite-timelapse-with-streamlit-and-earth-engine).
-    """
-    )
-
     row1_col1, row1_col2 = st.columns([2, 1])
 
     if st.session_state.get("zoom_level") is None:
@@ -120,7 +111,7 @@ def app():
                 assets = geemap.search_ee_data(keyword)
                 ee_assets = []
                 for asset in assets:
-                    if asset["ee_id_snippet"].startswith("ee.ImageCollection"):
+                    if "ee_id_snippet" in asset and asset["ee_id_snippet"].startswith("ee.ImageCollection"):
                         ee_assets.append(asset)
 
                 asset_titles = [x["title"] for x in ee_assets]
@@ -302,78 +293,74 @@ def app():
                     end_date = str(months[1]).zfill(2) + "-30"
                     bands = RGB.split("/")
 
-                    try:
-                        if collection == "Landsat TM-ETM-OLI Surface Reflectance":
-                            out_gif = geemap.landsat_timelapse(
-                                roi=roi,
-                                out_gif=out_gif,
-                                start_year=start_year,
-                                end_year=end_year,
-                                start_date=start_date,
-                                end_date=end_date,
-                                bands=bands,
-                                apply_fmask=apply_fmask,
-                                frames_per_second=speed,
-                                dimensions=768,
-                                overlay_data=None,
-                                overlay_color="black",
-                                overlay_width=1,
-                                overlay_opacity=1,
-                                frequency=frequency,
-                                date_format=None,
-                                title=title,
-                                title_xy=("2%", "90%"),
-                                add_text=True,
-                                text_xy=("2%", "2%"),
-                                text_sequence=None,
-                                font_type=font_type,
-                                font_size=font_size,
-                                font_color=font_color,
-                                add_progress_bar=True,
-                                progress_bar_color=progress_bar_color,
-                                progress_bar_height=5,
-                                loop=0,
-                                mp4=mp4,
-                                fading=fading,
-                            )
-                        elif collection == "Sentinel-2 MSI Surface Reflectance":
-                            out_gif = geemap.sentinel2_timelapse(
-                                roi=roi,
-                                out_gif=out_gif,
-                                start_year=start_year,
-                                end_year=end_year,
-                                start_date=start_date,
-                                end_date=end_date,
-                                bands=bands,
-                                apply_fmask=apply_fmask,
-                                frames_per_second=speed,
-                                dimensions=768,
-                                overlay_data=None,
-                                overlay_color="black",
-                                overlay_width=1,
-                                overlay_opacity=1,
-                                frequency=frequency,
-                                date_format=None,
-                                title=title,
-                                title_xy=("2%", "90%"),
-                                add_text=True,
-                                text_xy=("2%", "2%"),
-                                text_sequence=None,
-                                font_type=font_type,
-                                font_size=font_size,
-                                font_color=font_color,
-                                add_progress_bar=True,
-                                progress_bar_color=progress_bar_color,
-                                progress_bar_height=5,
-                                loop=0,
-                                mp4=mp4,
-                                fading=fading,
-                            )
-                    except:
-                        empty_text.error(
-                            "An error occurred while computing the timelapse. You probably requested too much data. Try reducing the ROI or timespan."
+                    if collection == "Landsat TM-ETM-OLI Surface Reflectance":
+                        out_gif = geemap.landsat_timelapse(
+                            roi=roi,
+                            out_gif=out_gif,
+                            start_year=start_year,
+                            end_year=end_year,
+                            start_date=start_date,
+                            end_date=end_date,
+                            bands=bands,
+                            apply_fmask=apply_fmask,
+                            frames_per_second=speed,
+                            dimensions=768,
+                            overlay_data=None,
+                            overlay_color="black",
+                            overlay_width=1,
+                            overlay_opacity=1,
+                            frequency=frequency,
+                            date_format=None,
+                            title=title,
+                            title_xy=("2%", "90%"),
+                            add_text=True,
+                            text_xy=("2%", "2%"),
+                            text_sequence=None,
+                            font_type=font_type,
+                            font_size=font_size,
+                            font_color=font_color,
+                            add_progress_bar=True,
+                            progress_bar_color=progress_bar_color,
+                            progress_bar_height=5,
+                            loop=0,
+                            mp4=mp4,
+                            fading=fading,
                         )
-                        st.stop()
+                    elif collection == "Sentinel-2 MSI Surface Reflectance":
+                        out_gif = geemap.sentinel2_timelapse(
+                            roi=roi,
+                            out_gif=out_gif,
+                            start_year=start_year,
+                            end_year=end_year,
+                            start_date=start_date,
+                            end_date=end_date,
+                            bands=bands,
+                            apply_fmask=apply_fmask,
+                            frames_per_second=speed,
+                            dimensions=768,
+                            overlay_data=None,
+                            overlay_color="black",
+                            overlay_width=1,
+                            overlay_opacity=1,
+                            frequency=frequency,
+                            date_format=None,
+                            title=title,
+                            title_xy=("2%", "90%"),
+                            add_text=True,
+                            text_xy=("2%", "2%"),
+                            text_sequence=None,
+                            font_type=font_type,
+                            font_size=font_size,
+                            font_color=font_color,
+                            add_progress_bar=True,
+                            progress_bar_color=progress_bar_color,
+                            progress_bar_height=5,
+                            loop=0,
+                            mp4=mp4,
+                            fading=fading,
+                        )
+
+                    st.stop()
 
                     if out_gif is not None and os.path.exists(out_gif):
                         empty_text.text(
