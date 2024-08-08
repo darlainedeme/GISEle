@@ -61,9 +61,9 @@ def show():
     
         buffer_polygon_file = os.path.join('data', '3_user_generated_data', 'buffer_polygon.geojson')
         
-        buffer_gdf.to_file(buffer_polygon_file, driver='GeoJSON')
-        
         buffer_polygon = buffer_gdf.geometry.unary_union
+        
+        buffer_gdf.to_file(buffer_polygon_file, driver='GeoJSON')
 
         initialize_earth_engine()
 
