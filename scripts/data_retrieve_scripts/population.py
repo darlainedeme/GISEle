@@ -90,6 +90,14 @@ def download_population_data(polygon, year):
     geojson_path = os.path.join('data', '2_downloaded_input_data', 'population', 'selected_area.geojson')
     gdf.to_file(geojson_path, driver="GeoJSON")
     
+    # Validate the GeoJSON file
+    try:
+        with open(geojson_path, 'r') as file:
+            geojson_data = json.load(file)
+        st.write("GeoJSON file is valid.")
+    except Exception as e:
+        st.error(f"Invalid GeoJSON file: {e}")
+        return
+    
     # Call the function to download the WorldPop data
     download_worldpop_age_structure(geojson_path, year, population_file)
-
