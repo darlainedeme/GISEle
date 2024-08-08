@@ -83,6 +83,10 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
+    results_zip = 'data/output/results.zip'
+    if os.path.exists(results_zip):
+        os.remove(results_zip)
+        
 def zip_results(source_dir, zip_file):
     with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(source_dir):
