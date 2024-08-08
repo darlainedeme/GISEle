@@ -7,6 +7,7 @@ import pandas as pd
 from shapely.geometry import Point
 from scripts.data_retrieve_scripts._data_utils import initialize_earth_engine
 import json
+import time
 
 def download_elevation_data(polygon):
     initialize_earth_engine()
@@ -14,8 +15,8 @@ def download_elevation_data(polygon):
     elevation_file = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.tif')
     os.makedirs(os.path.dirname(elevation_file), exist_ok=True)
     
-    # Convert the polygon to an Earth Engine object
-    geo_json = json.loads(polygon.to_json())
+    # Convert the polygon GeoDataFrame to GeoJSON
+    geo_json = json.loads(gpd.GeoDataFrame(geometry=[polygon]).to_json())
     ee_polygon = ee.Geometry.Polygon(geo_json['features'][0]['geometry']['coordinates'])
     
     # Load the elevation dataset
@@ -50,5 +51,7 @@ def download_elevation_data(polygon):
         st.write("Download the file from your Google Drive.")
     else:
         st.error("Error exporting elevation data: {}".format(task.status()))
-    
-# If necessary, add any additional setup or import statements here
+
+# Example usage: Assuming `polygon` is a shapely geometry object.
+# polygon = some_shapely_polygon
+# download_elevation_data(polygon)
