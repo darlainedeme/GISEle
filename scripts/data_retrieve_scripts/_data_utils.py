@@ -57,12 +57,19 @@ def clear_output_directories():
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
 
-def zip_results(files, zip_file_path):
-    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
-        for file_path in files:
-            st.write(file_path)
-            zipf.write(file_path, os.path.basename(file_path))
-            
+def zip_results(source_dir, zip_file):
+    with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(source_dir):
+            # Add directory (needed for empty dirs)
+            for dir in dirs:
+                dir_path = os.path.join(root, dir)
+                if any(os.scandir(dir_path)):
+                    zipf.write(dir_path, os.path.relpath(dir_path, source_dir))
+            # Add files
+            for file in files:
+                file_path = os.path.join(root, file)
+                if os.path.exists(file_path):
+                    zipf.write(file_path, os.path.relpath(file_path, source_dir))
 
 def create_map(latitude, longitude, geojson_data=None, combined_buildings=None, osm_roads=None, osm_pois=None):
     m = folium.Map(location=[latitude, longitude], zoom_start=15)

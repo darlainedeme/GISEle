@@ -163,13 +163,11 @@ def show():
                     st.session_state.missing_layers = []
 
                     create_map(centroid.y, centroid.x, geojson_data)
-                    st.success("Predefined area loaded successfully!")
 
                     # Save the GeoJSON content to the desired location
                     save_path = os.path.join('data', '3_user_uploaded_data', 'selected_area.geojson')
                     save_geojson(geojson_data, save_path)
                     
-                    st.success(f"Selected area saved to {save_path}")
             except Exception as e:
                 st.error(f"Error loading predefined area: {e}")
                 st.write(e)
