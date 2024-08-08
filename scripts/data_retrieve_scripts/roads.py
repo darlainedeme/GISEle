@@ -22,7 +22,7 @@ def download_osm_data(polygon, tags, file_path):
 def download_roads_data(polygon):
     roads_file = os.path.join('data', '2_downloaded_input_data', 'roads', 'osm_roads.geojson')
     os.makedirs(os.path.dirname(roads_file), exist_ok=True)
-    return download_osm_data(polygon, {'highway': ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link']}, roads_file)
+    return download_osm_data(polygon, {'highway': True}, roads_file)
 
 def download_roads_buffer_data(buffer_polygon):
     roads_buffer_file = os.path.join('data', '2_downloaded_input_data', 'roads', 'osm_roads_buffer.geojson')
