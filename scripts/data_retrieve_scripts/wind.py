@@ -7,6 +7,7 @@ import pandas as pd
 import geopandas as gpd
 import streamlit as st
 import os
+import time
 
 def import_wind_data(lat, lon, wt):
     token = 'c511d32b578b4ec19c3d43c1a3fffb4cad5dc4d2'
