@@ -90,15 +90,14 @@ def app():
         collection = st.selectbox(
             "Select a satellite image collection: ",
             [
-                "Any Earth Engine ImageCollection",
-                '''
+                # "Any Earth Engine ImageCollection",
                 "Landsat TM-ETM-OLI Surface Reflectance",
-                "Sentinel-2 MSI Surface Reflectance",
-                "Geostationary Operational Environmental Satellites (GOES)",
-                "MODIS Vegetation Indices (NDVI/EVI) 16-Day Global 1km",
-                "MODIS Gap filled Land Surface Temperature Daily",
-                "MODIS Ocean Color SMI",
-                "USDA National Agriculture Imagery Program (NAIP)",'''
+                # "Sentinel-2 MSI Surface Reflectance",
+                # "Geostationary Operational Environmental Satellites (GOES)",
+                # "MODIS Vegetation Indices (NDVI/EVI) 16-Day Global 1km",
+                # "MODIS Gap filled Land Surface Temperature Daily",
+                # "MODIS Ocean Color SMI",
+                # "USDA National Agriculture Imagery Program (NAIP)",
             ],
             index=1,
         )
