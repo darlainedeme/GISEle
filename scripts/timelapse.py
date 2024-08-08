@@ -12,6 +12,7 @@ import geemap.foliumap as geemap
 from datetime import date
 from shapely.geometry import Polygon
 
+st.set_page_config(layout="wide")
 warnings.filterwarnings("ignore")
 
 # Authenticate and initialize Earth Engine
@@ -111,27 +112,7 @@ def app():
             index=1,
         )
 
-        if collection in [
-            "Landsat TM-ETM-OLI Surface Reflectance",
-            "Sentinel-2 MSI Surface Reflectance",
-        ]:
-            roi_options = ["Uploaded GeoJSON"] + list(landsat_rois.keys())
-
-        elif collection == "Geostationary Operational Environmental Satellites (GOES)":
-            roi_options = ["Uploaded GeoJSON"] + list(goes_rois.keys())
-
-        elif collection in [
-            "MODIS Vegetation Indices (NDVI/EVI) 16-Day Global 1km",
-            "MODIS Gap filled Land Surface Temperature Daily",
-        ]:
-            roi_options = ["Uploaded GeoJSON"] + list(modis_rois.keys())
-        elif collection == "MODIS Ocean Color SMI":
-            roi_options = ["Uploaded GeoJSON"] + list(ocean_rois.keys())
-        else:
-            roi_options = ["Uploaded GeoJSON"]
-
         roi = geemap.gdf_to_ee(gdf, geodesic=False) if gdf is not None else None
-
         st.session_state["roi"] = roi
 
         if collection == "Any Earth Engine ImageCollection":
@@ -245,7 +226,6 @@ def app():
                 sensor_start_year = 2015
                 timelapse_title = "Sentinel-2 Timelapse"
                 timelapse_speed = 5
-            video_empty.video("https://youtu.be/VVRK_-dEjR4")
 
             with st.form("submit_landsat_form"):
                 roi = st.session_state.get("roi")
@@ -315,110 +295,105 @@ def app():
                 empty_video = st.container()
                 submitted = st.form_submit_button("Submit")
                 if submitted:
-                    if sample_roi == "Uploaded GeoJSON" and data is None:
-                        empty_text.warning(
-                            "Steps to create a timelapse: Draw a rectangle on the map -> Export it as a GeoJSON -> Upload it back to the app -> Click the Submit button. Alternatively, you can select a sample ROI from the dropdown list."
+                    empty_text.text("Computing... Please wait...")
+
+                    start_year = years[0]
+                    end_year = years[1]
+                    start_date = str(months[0]).zfill(2) + "-01"
+                    end_date = str(months[1]).zfill(2) + "-30"
+                    bands = RGB.split("/")
+
+                    try:
+                        if collection == "Landsat TM-ETM-OLI Surface Reflectance":
+                            out_gif = geemap.landsat_timelapse(
+                                roi=roi,
+                                out_gif=out_gif,
+                                start_year=start_year,
+                                end_year=end_year,
+                                start_date=start_date,
+                                end_date=end_date,
+                                bands=bands,
+                                apply_fmask=apply_fmask,
+                                frames_per_second=speed,
+                                dimensions=768,
+                                overlay_data=None,
+                                overlay_color="black",
+                                overlay_width=1,
+                                overlay_opacity=1,
+                                frequency=frequency,
+                                date_format=None,
+                                title=title,
+                                title_xy=("2%", "90%"),
+                                add_text=True,
+                                text_xy=("2%", "2%"),
+                                text_sequence=None,
+                                font_type=font_type,
+                                font_size=font_size,
+                                font_color=font_color,
+                                add_progress_bar=True,
+                                progress_bar_color=progress_bar_color,
+                                progress_bar_height=5,
+                                loop=0,
+                                mp4=mp4,
+                                fading=fading,
+                            )
+                        elif collection == "Sentinel-2 MSI Surface Reflectance":
+                            out_gif = geemap.sentinel2_timelapse(
+                                roi=roi,
+                                out_gif=out_gif,
+                                start_year=start_year,
+                                end_year=end_year,
+                                start_date=start_date,
+                                end_date=end_date,
+                                bands=bands,
+                                apply_fmask=apply_fmask,
+                                frames_per_second=speed,
+                                dimensions=768,
+                                overlay_data=None,
+                                overlay_color="black",
+                                overlay_width=1,
+                                overlay_opacity=1,
+                                frequency=frequency,
+                                date_format=None,
+                                title=title,
+                                title_xy=("2%", "90%"),
+                                add_text=True,
+                                text_xy=("2%", "2%"),
+                                text_sequence=None,
+                                font_type=font_type,
+                                font_size=font_size,
+                                font_color=font_color,
+                                add_progress_bar=True,
+                                progress_bar_color=progress_bar_color,
+                                progress_bar_height=5,
+                                loop=0,
+                                mp4=mp4,
+                                fading=fading,
+                            )
+                    except:
+                        empty_text.error(
+                            "An error occurred while computing the timelapse. You probably requested too much data. Try reducing the ROI or timespan."
                         )
+                        st.stop()
+
+                    if out_gif is not None and os.path.exists(out_gif):
+                        empty_text.text(
+                            "Right click the GIF to save it to your computer👇"
+                        )
+                        empty_image.image(out_gif)
+
+                        out_mp4 = out_gif.replace(".gif", ".mp4")
+                        if mp4 and os.path.exists(out_mp4):
+                            with empty_video:
+                                st.text(
+                                    "Right click the MP4 to save it to your computer👇"
+                                )
+                                st.video(out_gif.replace(".gif", ".mp4"))
+
                     else:
-                        empty_text.text("Computing... Please wait...")
-
-                        start_year = years[0]
-                        end_year = years[1]
-                        start_date = str(months[0]).zfill(2) + "-01"
-                        end_date = str(months[1]).zfill(2) + "-30"
-                        bands = RGB.split("/")
-
-                        try:
-                            if collection == "Landsat TM-ETM-OLI Surface Reflectance":
-                                out_gif = geemap.landsat_timelapse(
-                                    roi=roi,
-                                    out_gif=out_gif,
-                                    start_year=start_year,
-                                    end_year=end_year,
-                                    start_date=start_date,
-                                    end_date=end_date,
-                                    bands=bands,
-                                    apply_fmask=apply_fmask,
-                                    frames_per_second=speed,
-                                    dimensions=768,
-                                    overlay_data=None,
-                                    overlay_color="black",
-                                    overlay_width=1,
-                                    overlay_opacity=1,
-                                    frequency=frequency,
-                                    date_format=None,
-                                    title=title,
-                                    title_xy=("2%", "90%"),
-                                    add_text=True,
-                                    text_xy=("2%", "2%"),
-                                    text_sequence=None,
-                                    font_type=font_type,
-                                    font_size=font_size,
-                                    font_color=font_color,
-                                    add_progress_bar=True,
-                                    progress_bar_color=progress_bar_color,
-                                    progress_bar_height=5,
-                                    loop=0,
-                                    mp4=mp4,
-                                    fading=fading,
-                                )
-                            elif collection == "Sentinel-2 MSI Surface Reflectance":
-                                out_gif = geemap.sentinel2_timelapse(
-                                    roi=roi,
-                                    out_gif=out_gif,
-                                    start_year=start_year,
-                                    end_year=end_year,
-                                    start_date=start_date,
-                                    end_date=end_date,
-                                    bands=bands,
-                                    apply_fmask=apply_fmask,
-                                    frames_per_second=speed,
-                                    dimensions=768,
-                                    overlay_data=None,
-                                    overlay_color="black",
-                                    overlay_width=1,
-                                    overlay_opacity=1,
-                                    frequency=frequency,
-                                    date_format=None,
-                                    title=title,
-                                    title_xy=("2%", "90%"),
-                                    add_text=True,
-                                    text_xy=("2%", "2%"),
-                                    text_sequence=None,
-                                    font_type=font_type,
-                                    font_size=font_size,
-                                    font_color=font_color,
-                                    add_progress_bar=True,
-                                    progress_bar_color=progress_bar_color,
-                                    progress_bar_height=5,
-                                    loop=0,
-                                    mp4=mp4,
-                                    fading=fading,
-                                )
-                        except:
-                            empty_text.error(
-                                "An error occurred while computing the timelapse. You probably requested too much data. Try reducing the ROI or timespan."
-                            )
-                            st.stop()
-
-                        if out_gif is not None and os.path.exists(out_gif):
-                            empty_text.text(
-                                "Right click the GIF to save it to your computer👇"
-                            )
-                            empty_image.image(out_gif)
-
-                            out_mp4 = out_gif.replace(".gif", ".mp4")
-                            if mp4 and os.path.exists(out_mp4):
-                                with empty_video:
-                                    st.text(
-                                        "Right click the MP4 to save it to your computer👇"
-                                    )
-                                    st.video(out_gif.replace(".gif", ".mp4"))
-
-                        else:
-                            empty_text.error(
-                                "Something went wrong. You probably requested too much data. Try reducing the ROI or timespan."
-                            )
+                        empty_text.error(
+                            "Something went wrong. You probably requested too much data. Try reducing the ROI or timespan."
+                        )
 
 # Run the app
 if __name__ == "__main__":
@@ -426,4 +401,3 @@ if __name__ == "__main__":
         app()
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
