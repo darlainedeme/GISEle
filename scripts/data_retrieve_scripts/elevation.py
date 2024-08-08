@@ -4,8 +4,12 @@ import geopandas as gpd
 from shapely.geometry import mapping
 import os
 
-def download_elevation_data(polygon, file_path):
+def download_elevation_data(polygon):
     try:
+        # Define the file path for saving elevation data
+        file_path = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.tif')
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
         # Get the bounds of the polygon
         bounds = polygon.bounds
         minx, miny, maxx, maxy = bounds
@@ -42,9 +46,7 @@ if __name__ == "__main__":
     }], crs="EPSG:4326")
 
     if st.button("Download Elevation Data"):
-        file_path = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.tif')
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        download_elevation_data(example_polygon.unary_union, file_path)
+        download_elevation_data(example_polygon.unary_union)
 
     if st.button("Clean Elevation Cache"):
         clean_elevation_cache()
