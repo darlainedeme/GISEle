@@ -83,7 +83,7 @@ def show():
 
             if "Roads" in selected_datasets:
                 status_text.text("Downloading roads data...")
-                download_roads_data(buffer_polygon, buffer_polygon_file)
+                download_roads_data(polygon, buffer_polygon)
                 progress.progress(0.2)
                 st.write("Roads data downloaded.")
 
