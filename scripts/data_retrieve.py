@@ -68,8 +68,8 @@ def show():
         buffer_polygon = buffer_gdf.geometry.unary_union
         
         
-        save_geojson(buffer_polygon, buffer_polygon_file)
-
+        save_geojson(buffer_polygon, 'data/3_user_uploaded_data/buffer_polygon.geojson')
+        
         initialize_earth_engine()
 
         progress = st.progress(0)
