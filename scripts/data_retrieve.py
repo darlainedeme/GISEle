@@ -154,7 +154,8 @@ def show():
 
             if "Population" in selected_datasets:
                 status_text.text("Downloading population data...")
-                download_population_data(selected_area_path, 2020)
+                population_file = os.path.join('data', '2_downloaded_input_data', 'population', 'age_structure_output.csv')
+                download_worldpop_age_structure(selected_area_path, 2020, population_file)
                 progress.progress(1.5)
                 st.write("Population data downloaded.")
 
