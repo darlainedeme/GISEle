@@ -19,7 +19,7 @@ from scripts.data_retrieve_scripts.wind import *
 from scripts.data_retrieve_scripts.elevation import *
 '''
 from scripts.data_retrieve_scripts.satellite import *
-from scripts.data_retrieve_scripts.night_time_lights import *
+from scripts.data_retrieve_scripts.access_status import *
 add worldpop raster
 '''
 
@@ -145,8 +145,8 @@ def show():
                 progress.progress(0.95)
                 st.write("Satellite data downloaded.")
 
-            if "Nighttime Lights" in selected_datasets:
-                status_text.text("Downloading nighttime lights data...")
+            if "Access Status" in selected_datasets:
+                status_text.text("Downloading access_status
                 download_nighttime_lights_data(polygon)
                 progress.progress(1)
                 st.write("Nighttime lights data downloaded.")
