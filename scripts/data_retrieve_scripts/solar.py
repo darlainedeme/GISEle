@@ -20,8 +20,8 @@ def import_pv_data(lat, lon, tilt_angle):
     args = {
         'lat': lat,
         'lon': lon,
-        'date_from': '2019-01-01',
-        'date_to': '2019-12-31',
+        'date_from': '2023-01-01',
+        'date_to': '2023-12-31',
         'dataset': 'merra2',
         'local_time': True,
         'capacity': 1.0,

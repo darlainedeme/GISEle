@@ -20,8 +20,8 @@ def import_wind_data(lat, lon, wt):
     args = {
         'lat': lat,
         'lon': lon,
-        'date_from': '2019-01-01',
-        'date_to': '2019-12-31',
+        'date_from': '2023-01-01',
+        'date_to': '2023-12-31',
         'capacity': 1.0,
         'height': 50,
         'turbine': str(wt),
