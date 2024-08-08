@@ -6,6 +6,9 @@ import ee
 import os
 import osmnx as ox
 import pandas as pd
+import pystac
+import planetary_computer
+from shapely.geometry import shape, Polygon
 
 def download_google_buildings(polygon, file_path):
     try:
@@ -45,24 +48,26 @@ def download_osm_data(polygon, tags, file_path):
         st.error(f"Error downloading OSM data: {e}")
         return None
 
-def download_microsoft_buildings(polygon, country_iso3, file_path):
+def download_microsoft_buildings(polygon, file_path):
     try:
-        geom = ee.Geometry.Polygon(polygon.exterior.coords[:])
-        collection_name = f'MICROSOFT/Buildings/{country_iso3}/CompleteBuildings'
-        buildings = ee.FeatureCollection(collection_name) \
-            .filter(ee.Filter.intersects('.geo', geom))
+        # Use the planetary_computer API to fetch Microsoft buildings data
+        item_url = "https://planetarycomputer.microsoft.com/api/stac/v1/collections/ms-buildings/items/Africa_2022-07-06"
+        item = pystac.Item.from_file(item_url)
+        signed_item = planetary_computer.sign(item)
         
-        download_url = buildings.getDownloadURL('geojson')
-        response = requests.get(download_url)
+        buildings_asset = signed_item.assets['data']
+        data_url = buildings_asset.href
+
+        response = requests.get(data_url)
         if response.status_code != 200:
-            st.write(f"No Microsoft buildings found in the selected area for country code {country_iso3}.")
+            st.write("No Microsoft buildings found in the selected area.")
             return None
 
         with open(file_path, 'w') as f:
             json.dump(response.json(), f)
-        
+
         microsoft_buildings = gpd.read_file(file_path)
-        st.write(f"{len(microsoft_buildings)} Microsoft buildings identified for country code {country_iso3}")
+        st.write(f"{len(microsoft_buildings)} Microsoft buildings identified")
         return file_path
     except Exception as e:
         st.error(f"Error downloading Microsoft buildings: {e}")
@@ -79,17 +84,15 @@ def create_combined_buildings_layer(osm_buildings, google_buildings_geojson, mic
     google_buildings['source'] = 'google'
     microsoft_buildings['source'] = 'microsoft'
 
-    # Remove Google and Microsoft buildings that touch OSM buildings
-    osm_dissolved = osm_buildings.geometry.unary_union
-
-    # Filter Google buildings that do not intersect with OSM buildings
-    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
+    # Remove Google buildings that intersect with OSM buildings
+    google_buildings = google_buildings[~google_buildings.geometry.intersects(osm_buildings.unary_union)]
     
-    # Filter Microsoft buildings that do not intersect with OSM buildings
-    filtered_microsoft = microsoft_buildings[~microsoft_buildings.intersects(osm_dissolved)]
+    # Remove Microsoft buildings that intersect with OSM buildings or Google buildings
+    microsoft_buildings = microsoft_buildings[~microsoft_buildings.geometry.intersects(osm_buildings.unary_union)]
+    microsoft_buildings = microsoft_buildings[~microsoft_buildings.geometry.intersects(google_buildings.unary_union)]
 
-    # Combine OSM buildings and filtered Google and Microsoft buildings
-    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google, filtered_microsoft], ignore_index=True))
+    # Combine OSM, Google, and Microsoft buildings
+    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, google_buildings, microsoft_buildings], ignore_index=True))
 
     return combined_buildings
 
@@ -114,13 +117,7 @@ def download_buildings_data(polygon):
 
     osm_buildings_path = download_osm_data(polygon, {'building': True}, osm_buildings_file)
     google_buildings_path = download_google_buildings(polygon, google_buildings_file)
-    
-    country_iso3 = get_country_iso3(polygon)
-    microsoft_buildings_path = None
-    if country_iso3:
-        microsoft_buildings_path = download_microsoft_buildings(polygon, country_iso3, microsoft_buildings_file)
-    else:
-        st.write("Could not determine the country ISO3 code for Microsoft buildings data download.")
+    microsoft_buildings_path = download_microsoft_buildings(polygon, microsoft_buildings_file)
 
     if osm_buildings_path and google_buildings_path and microsoft_buildings_path:
         with open(google_buildings_path) as f:
