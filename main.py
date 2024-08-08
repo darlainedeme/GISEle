@@ -3,14 +3,14 @@ import streamlit as st
 # Set page configuration at the top level
 st.set_page_config(page_title="Local GISEle", page_icon="🗺️", layout="wide")
 
-from scripts import home, area_selection, data_retrieve, buildings_mapping, clustering_modes, data_visualization, costs, summary_analysis, demand_estimation, routing, results
+from scripts import home, area_selection, data_retrieve, buildings_mapping, clustering_modes, data_visualization, costs, summary_analysis, demand_estimation, routing, results, timelapse
 
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=200)  # Adjust the width as needed
 
 # Define navigation
 main_nav = st.sidebar.radio("Navigation", [
-    "Home", "Area Selection", "Data Retrieve", "Buildings", 
+    "Home", "Area Selection", "Satellite Timelapse", "Data Retrieve", "Buildings", 
     "Clustering", "Data Visualization and Enhancement", 
     "Summary Analysis", "Costs", "Demand Estimation", 
     "Routing", "Results"
@@ -20,6 +20,7 @@ main_nav = st.sidebar.radio("Navigation", [
 pages = {
     "Home": home.show,
     "Area Selection": area_selection.show,
+    "Satellite Timelapse": timelapse.app,
     "Data Retrieve": data_retrieve.show,
     "Buildings": buildings_mapping.show,
     "Clustering": clustering_modes.show,
