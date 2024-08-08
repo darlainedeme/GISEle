@@ -42,13 +42,12 @@ def create_map(data_gdf=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
 
     if data_gdf is not None and not data_gdf.empty:
-        centroid = data_gdf.geometry.centroid
-        lon = centroid.x.mean()
-        lat = centroid.y.mean()
-        m.location = [lat, lon]
-        m.zoom_start = 10
+        bounds = data_gdf.geometry.total_bounds
+        m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
 
         folium.GeoJson(data_gdf).add_to(m)
+    else:
+        st.warning("This layer is not available for the selected area.")
 
     if draw_enabled:
         draw = Draw(
