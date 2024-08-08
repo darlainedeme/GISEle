@@ -12,7 +12,6 @@ import geemap.foliumap as geemap
 from datetime import date
 from shapely.geometry import Polygon
 
-st.set_page_config(layout="wide")
 warnings.filterwarnings("ignore")
 
 # Authenticate and initialize Earth Engine
