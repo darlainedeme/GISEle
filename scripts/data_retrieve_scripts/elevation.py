@@ -4,6 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 import os
+import numpy as np
 
 def get_elevation_data(locations):
     url = "https://api.ellipsis-drive.com/v3/path/77239b78-ff95-4c30-a90e-0428964a0f00/raster/timestamp/83a6860b-3c34-4a53-9d3f-d123019eff7c/location"
@@ -21,15 +22,23 @@ def get_elevation_data(locations):
         st.error(f"Error fetching elevation data: {e}")
         return None
 
+def create_grid_within_polygon(polygon, spacing=100):
+    minx, miny, maxx, maxy = polygon.bounds
+    x_coords = np.arange(minx, maxx, spacing * 1e-5)  # Adjusting spacing to degrees
+    y_coords = np.arange(miny, maxy, spacing * 1e-5)  # Adjusting spacing to degrees
+    points = [Point(x, y) for x in x_coords for y in y_coords]
+    points_within_polygon = [point for point in points if polygon.contains(point)]
+    return points_within_polygon
+
 def download_elevation_data(polygon):
     elevation_file = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.csv')
     os.makedirs(os.path.dirname(elevation_file), exist_ok=True)
     
-    # Generate a list of locations (lon, lat) from the polygon's bounding box or centroid
-    centroid = polygon.centroid
-    locations = [[centroid.x, centroid.y]]
+    # Create a grid of points within the polygon
+    points_within_polygon = create_grid_within_polygon(polygon)
+    locations = [[point.x, point.y] for point in points_within_polygon]
 
-    st.write(f"Fetching elevation data for locations: {locations}")
+    st.write(f"Fetching elevation data for {len(locations)} locations")
     elevations = get_elevation_data(locations)
 
     if elevations:
