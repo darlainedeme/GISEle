@@ -11,9 +11,6 @@ import geemap.colormaps as cm
 import geemap.foliumap as geemap
 from datetime import date
 from shapely.geometry import Polygon
-import shutil
-import tempfile
-from zipfile import ZipFile
 
 warnings.filterwarnings("ignore")
 
@@ -21,14 +18,6 @@ warnings.filterwarnings("ignore")
 @st.cache_data
 def ee_authenticate(token_name="EARTHENGINE_TOKEN"):
     geemap.ee_initialize(token_name=token_name)
-
-def create_zip_file(out_gif, out_mp4, mp4):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp_file:
-        with ZipFile(tmp_file, 'w') as zipf:
-            zipf.write(out_gif, os.path.basename(out_gif))
-            if mp4 and os.path.exists(out_mp4):
-                zipf.write(out_mp4, os.path.basename(out_mp4))
-        return tmp_file.name
 
 @st.cache_data
 def uploaded_file_to_gdf(data):
@@ -226,7 +215,7 @@ def app():
             elif collection == "Sentinel-2 MSI Surface Reflectance":
                 sensor_start_year = 2015
                 timelapse_title = "Sentinel-2 Timelapse"
-                timelapse_speed = 5
+                timelapse_speed = 1
 
             with st.form("submit_landsat_form"):
                 roi = st.session_state.get("roi")
@@ -371,7 +360,6 @@ def app():
                             fading=fading,
                         )
 
-                    # After the block that checks if out_gif and out_mp4 exist
                     if out_gif is not None and os.path.exists(out_gif):
                         empty_text.text(
                             "Right click the GIF to save it to your computer👇"
@@ -386,15 +374,6 @@ def app():
                                 )
                                 st.video(out_gif.replace(".gif", ".mp4"))
 
-                        # Create zip file and provide download button
-                        zip_file_path = create_zip_file(out_gif, out_mp4, mp4)
-                        with open(zip_file_path, "rb") as f:
-                            btn = st.download_button(
-                                label="Download ZIP",
-                                data=f,
-                                file_name="timelapse.zip",
-                                mime="application/zip"
-                            )
                     else:
                         empty_text.error(
                             "Something went wrong. You probably requested too much data. Try reducing the ROI or timespan."
