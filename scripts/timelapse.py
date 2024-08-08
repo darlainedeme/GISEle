@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore")
 def ee_authenticate(token_name="EARTHENGINE_TOKEN"):
     geemap.ee_initialize(token_name=token_name)
 
-def create_zip_file(out_gif, out_mp4):
+def create_zip_file(out_gif, out_mp4, mp4):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp_file:
         with ZipFile(tmp_file, 'w') as zipf:
             zipf.write(out_gif, os.path.basename(out_gif))
@@ -387,7 +387,7 @@ def app():
                                 st.video(out_gif.replace(".gif", ".mp4"))
 
                         # Create zip file and provide download button
-                        zip_file_path = create_zip_file(out_gif, out_mp4)
+                        zip_file_path = create_zip_file(out_gif, out_mp4, mp4)
                         with open(zip_file_path, "rb") as f:
                             btn = st.download_button(
                                 label="Download ZIP",
@@ -397,8 +397,7 @@ def app():
                             )
                     else:
                         empty_text.error(
-                            "Something went wrong. You probably requested too much data. Try reducing the ROI or timespan."
-                        )
+                            "Something went wrong.
 
 # Run the app
 if __name__ == "__main__":
