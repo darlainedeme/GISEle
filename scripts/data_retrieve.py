@@ -16,9 +16,9 @@ from scripts.data_retrieve_scripts.substations import *
 from scripts.data_retrieve_scripts.population import *
 from scripts.data_retrieve_scripts.solar import *
 from scripts.data_retrieve_scripts.wind import *
-
+from scripts.data_retrieve_scripts.elevation import *
 '''
-# from scripts.data_retrieve_scripts.elevation import *
+
 from scripts.data_retrieve_scripts.satellite import *
 from scripts.data_retrieve_scripts.night_time_lights import *
 '''
