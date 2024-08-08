@@ -19,7 +19,7 @@ DATA_PATHS = {
     "buildings": 'data/2_downloaded_input_data/buildings/combined_buildings.geojson',
     "points_of_interest": 'data/2_downloaded_input_data/poi/osm_pois.geojson',
     "roads": 'data/2_downloaded_input_data/roads/osm_roads.geojson',
-    "main_roads": 'data/2_downloaded_input_data/roads/osm_roads_buffer.geojson',
+    "main_roads_buffer": 'data/2_downloaded_input_data/roads/osm_roads_buffer.geojson',
     "water_bodies": 'data/2_downloaded_input_data/water_bodies/osm_water_bodies.geojson',
     "elevation": 'data/2_downloaded_input_data/elevation/elevation_data.tif',
     "solar": 'data/2_downloaded_input_data/solar/solar_potential.geojson',
@@ -64,7 +64,7 @@ def create_map(data_gdf=None, draw_enabled=False):
 
 def show():
     sections = {
-        "Out of the Study Area": ["Major Cities", "Main Roads", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
+        "Out of the Study Area": ["Major Cities", "Main Roads Buffer", "Airports", "Ports", "National Grid", "Substations", "Night Time Lights"],
         "Within the Study Area": ["Buildings", "Points of Interest", "Access Status", "Relative Wealth Index", "Roads", "Elevation", "Crops and Biomass Potential", "Water Bodies and Hydro Potential", "Solar Potential", "Wind Potential", "Landcover", "Available Land for Infrastructure"]
     }
 
@@ -83,15 +83,18 @@ def show():
         st.session_state.map = create_map(st.session_state.data_gdf, draw_enabled=True)
 
     # Display the map
-    map_output = st_folium(st.session_state.map, width=1400, height=800)
+    st_folium(st.session_state.map, width=1400, height=800)
 
     # Save enhanced data if any
+    map_output = st.session_state.get('map_output', None)
     if map_output and 'last_active_drawing' in map_output and map_output['last_active_drawing']:
         drawn_data = map_output['last_active_drawing']['geometry']
         drawn_gdf = gpd.GeoDataFrame([drawn_data], columns=['geometry'], crs='EPSG:4326')
         enhanced_gdf = pd.concat([st.session_state.data_gdf, drawn_gdf], ignore_index=True)
         save_enhanced_data(enhanced_gdf, DATA_PATHS[data_key])
         st.success(f"Enhanced data saved for {selected_subpage}")
+
+    st.session_state['map_output'] = st_folium(st.session_state.map, width=1400, height=800)
 
 if __name__ == "__main__":
     show()
