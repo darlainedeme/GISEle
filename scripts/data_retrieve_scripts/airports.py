@@ -1,6 +1,7 @@
 import osmnx as ox
 import streamlit as st
 import geopandas as gpd
+import os
 
 def download_osm_data(polygon, tags, file_path):
     try:
