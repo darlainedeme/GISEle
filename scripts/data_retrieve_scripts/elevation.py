@@ -23,10 +23,10 @@ def get_elevation_data(locations):
         st.error(f"Error fetching elevation data: {e}")
         return None
 
-def create_grid_within_polygon(polygon, spacing=100):
+def create_grid_within_polygon(polygon, spacing=0.00027):  # Approximately 30 meters in degrees
     minx, miny, maxx, maxy = polygon.bounds
-    x_coords = np.arange(minx, maxx, spacing * 1e-5)  # Adjusting spacing to degrees
-    y_coords = np.arange(miny, maxy, spacing * 1e-5)  # Adjusting spacing to degrees
+    x_coords = np.arange(minx, maxx, spacing)
+    y_coords = np.arange(miny, maxy, spacing)
     points = [Point(x, y) for x in x_coords for y in y_coords]
     points_within_polygon = [point for point in points if polygon.contains(point)]
     return points_within_polygon
@@ -55,3 +55,5 @@ def download_elevation_data(polygon):
         st.write(f"Elevation data saved to {elevation_file}")
     else:
         st.write("No elevation data available for the selected area.")
+
+# If necessary, add any additional setup or import statements here
