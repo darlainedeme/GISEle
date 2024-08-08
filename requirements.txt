@@ -28,3 +28,4 @@ pyomo
 func-timeout
 geemap
 scipy
+ffmpeg
