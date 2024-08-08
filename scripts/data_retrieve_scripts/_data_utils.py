@@ -47,10 +47,36 @@ def initialize_earth_engine():
     
 def clear_output_directories():
     output_dirs = [
-        'data/output/buildings', 'data/output/roads', 'data/output/poi',
-        'data/output/water_bodies', 'data/output/cities', 'data/output/airports',
-        'data/output/ports', 'data/output/power_lines', 'data/output/substations',
-        'data/output/elevation', 'data/output/solar', 'data/output/wind', 'data/output/satellite', 'data/output/nighttime_lights', 'data/output/population'
+        'data/2_downloaded_input_data/airports',
+        'data/2_downloaded_input_data/buildings',
+        'data/2_downloaded_input_data/cities',
+        'data/2_downloaded_input_data/elevation',
+        'data/2_downloaded_input_data/grids',
+        'data/2_downloaded_input_data/national_grid',
+        'data/2_downloaded_input_data/night_time_lights',
+        'data/2_downloaded_input_data/poi',
+        'data/2_downloaded_input_data/ports',
+        'data/2_downloaded_input_data/roads',
+        'data/2_downloaded_input_data/satellite',
+        'data/2_downloaded_input_data/solar',
+        'data/2_downloaded_input_data/substations',
+        'data/2_downloaded_input_data/water_bodies',
+        'data/2_downloaded_input_data/wind',
+        'data/output/buildings', 
+        'data/output/roads', 
+        'data/output/poi',
+        'data/output/water_bodies', 
+        'data/output/cities', 
+        'data/output/airports',
+        'data/output/ports', 
+        'data/output/power_lines', 
+        'data/output/substations',
+        'data/output/elevation', 
+        'data/output/solar', 
+        'data/output/wind', 
+        'data/output/satellite', 
+        'data/output/nighttime_lights', 
+        'data/output/population'
     ]
     for dir_path in output_dirs:
         if os.path.exists(dir_path):
