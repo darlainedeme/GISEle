@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 
 # Authenticate and initialize Earth Engine
 @st.cache_data
-def ee_authenticate(token_name="EARTHENGINE_TOKEN"):
+def ee_authenticate(token_name="json_data"):
     geemap.ee_initialize(token_name=token_name)
 
 @st.cache_data
