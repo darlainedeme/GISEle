@@ -146,7 +146,7 @@ def show():
                 st.write("Satellite data downloaded.")
 
             if "Access Status" in selected_datasets:
-                status_text.text("Downloading access_status
+                status_text.text("Downloading access_status")
                 download_nighttime_lights_data(polygon)
                 progress.progress(1)
                 st.write("Nighttime lights data downloaded.")
