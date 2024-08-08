@@ -67,7 +67,7 @@ def show():
         
         buffer_polygon = buffer_gdf.geometry.unary_union
         
-        save_geojson(buffer_gdf, buffer_polygon_file)
+        # save_geojson(buffer_gdf, buffer_polygon_file)
         
         initialize_earth_engine()
 
