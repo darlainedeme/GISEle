@@ -360,8 +360,6 @@ def app():
                             fading=fading,
                         )
 
-                    st.stop()
-
                     if out_gif is not None and os.path.exists(out_gif):
                         empty_text.text(
                             "Right click the GIF to save it to your computer👇"
