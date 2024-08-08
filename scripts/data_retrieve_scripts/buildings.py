@@ -8,7 +8,7 @@ import osmnx as ox
 import pandas as pd
 import pystac
 import planetary_computer
-from shapely.geometry import shape, Polygon
+import rioxarray
 
 def download_google_buildings(polygon, file_path):
     try:
@@ -58,13 +58,13 @@ def download_microsoft_buildings(polygon, file_path):
         buildings_asset = signed_item.assets['data']
         data_url = buildings_asset.href
 
-        response = requests.get(data_url)
-        if response.status_code != 200:
-            st.write("No Microsoft buildings found in the selected area.")
-            return None
-
-        with open(file_path, 'w') as f:
-            json.dump(response.json(), f)
+        # Use rioxarray to read the data into a GeoDataFrame
+        buildings_data = rioxarray.open_rasterio(data_url)
+        buildings_data = buildings_data.to_pandas()
+        buildings_gdf = gpd.GeoDataFrame(buildings_data, geometry=gpd.points_from_xy(buildings_data['longitude'], buildings_data['latitude']))
+        
+        # Save to GeoJSON file
+        buildings_gdf.to_file(file_path, driver='GeoJSON')
 
         microsoft_buildings = gpd.read_file(file_path)
         st.write(f"{len(microsoft_buildings)} Microsoft buildings identified")
