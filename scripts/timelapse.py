@@ -99,7 +99,7 @@ def app():
                 # "MODIS Ocean Color SMI",
                 # "USDA National Agriculture Imagery Program (NAIP)",
             ],
-            index=1,
+            index=0,
         )
 
         roi = geemap.gdf_to_ee(gdf, geodesic=False) if gdf is not None else None
