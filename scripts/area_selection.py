@@ -134,40 +134,26 @@ def show():
                 st.error(f"Error processing file: {e}")
                 st.write(e)
 
-    elif which_mode == 'Predefined areas':
+    if which_mode == 'Predefined areas':
         predefined_areas_path = 'data/_precompiled_case_studies/areas'
-        area_files = [f.split('.')[0] for f in os.listdir(predefined_areas_path) if f.endswith('.geojson')]
-        selected_area = st.sidebar.selectbox('Select a predefined area', area_files)
-        save_geojson(selected_area, 'data/3_user_uploaded_data/selected_area.geojson')
+        area_files = [f for f in os.listdir(predefined_areas_path) if f.endswith('.geojson')]
+        selected_area_filename = st.sidebar.selectbox('Select a predefined area', area_files)
         
-        
-        if selected_area:
+        if st.sidebar.button('Select case study'):
             try:
-                with st.spinner('Loading predefined area...'):
-                    area_filepath = os.path.join(predefined_areas_path, f'{selected_area}.geojson')
-                    with open(area_filepath) as f:
-                        geojson_data = json.load(f)
-                    gdf = gpd.read_file(area_filepath)
-
-                    if gdf.empty:
-                        st.error("Selected area file is empty or not valid GeoJSON.")
-                    
-                    centroid = gdf.geometry.unary_union.centroid
-                    st.session_state.latitude = centroid.y
-                    st.session_state.longitude = centroid.x
-                    st.session_state.geojson_data = geojson_data
-                    st.session_state.combined_buildings = None
-                    st.session_state.osm_roads = None
-                    st.session_state.osm_pois = None
-                    st.session_state.missing_layers = []
-
-                    create_map(centroid.y, centroid.x, geojson_data)
-                    st.success("Predefined area loaded successfully!")
+                selected_area_path = os.path.join(predefined_areas_path, selected_area_filename)
+                
+                # Read the GeoJSON content
+                with open(selected_area_path, 'r') as f:
+                    selected_area = json.load(f)
+                
+                # Save the GeoJSON content to the desired location
+                save_path = os.path.join('data', '3_user_uploaded_data', 'selected_area.geojson')
+                save_geojson(selected_area, save_path)
+                
+                st.success(f"Selected area saved to {save_path}")
             except Exception as e:
-                st.error(f"Error loading predefined area: {e}")
-                st.write(e)
-       
-    st.session_state['selected_area'] = selected_area
+                st.error(f"Error saving the selected area: {e}")
 
 # Display the area selection page
 if __name__ == "__main__":
