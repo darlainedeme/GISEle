@@ -1,8 +1,9 @@
 import elevation
 import streamlit as st
 import geopandas as gpd
-from shapely.geometry import mapping, box
+from shapely.geometry import box
 import rasterio
+from rasterio.merge import merge
 import os
 
 def download_elevation_data(polygon):
@@ -15,7 +16,7 @@ def download_elevation_data(polygon):
         bounds = polygon.bounds
         minx, miny, maxx, maxy = bounds
 
-        # Clip the elevation data for the given bounds
+        # Clip the elevation data for the given bounds using elevation.clip
         elevation.clip(bounds=(minx, miny, maxx, maxy), output=file_path)
         
         # Reproject and save the clipped elevation data using rasterio
