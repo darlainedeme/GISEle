@@ -1,60 +1,44 @@
-import elevation
-import streamlit as st
+import requests
+import json
 import geopandas as gpd
-from shapely.geometry import box
-import rasterio
-from rasterio.merge import merge
+import streamlit as st
 import os
 
-def download_elevation_data(polygon):
+def get_elevation_data(locations):
+    url = "https://api.ellipsis-drive.com/v3/path/77239b78-ff95-4c30-a90e-0428964a0f00/raster/timestamp/83a6860b-3c34-4a53-9d3f-d123019eff7c/location"
+    params = {
+        'locations': json.dumps(locations),
+        'epsg': '4326'
+    }
+
     try:
-        # Define the file path for saving elevation data
-        file_path = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.tif')
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-        # Get the bounds of the polygon
-        bounds = polygon.bounds
-        minx, miny, maxx, maxy = bounds
-
-        # Clip the elevation data for the given bounds using elevation.clip
-        elevation.clip(bounds=(minx, miny, maxx, maxy), output=file_path)
-        
-        # Reproject and save the clipped elevation data using rasterio
-        with rasterio.open(file_path) as src:
-            meta = src.meta.copy()
-            meta.update({
-                'driver': 'GTiff',
-                'height': src.height,
-                'width': src.width,
-                'transform': src.transform,
-                'crs': 'EPSG:4326'
-            })
-            
-            with rasterio.open(file_path, 'w', **meta) as dst:
-                dst.write(src.read())
-        
-        st.write(f"Elevation data saved to {file_path}")
-        return file_path
-    except Exception as e:
-        st.error(f"Error downloading elevation data: {e}")
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        elevations = response.json()
+        return elevations
+    except requests.RequestException as e:
+        st.error(f"Error fetching elevation data: {e}")
         return None
 
-def clean_elevation_cache():
-    try:
-        elevation.clean()
-        st.write("Elevation cache cleaned.")
-    except Exception as e:
-        st.error(f"Error cleaning elevation cache: {e}")
+def download_elevation_data(polygon):
+    elevation_file = os.path.join('data', '2_downloaded_input_data', 'elevation', 'elevation_data.csv')
+    os.makedirs(os.path.dirname(elevation_file), exist_ok=True)
+    
+    # Generate a list of locations (lon, lat) from the polygon's bounding box or centroid
+    centroid = polygon.centroid
+    locations = [[centroid.x, centroid.y]]
 
-# Example usage within Streamlit
-if __name__ == "__main__":
-    st.title("Download Elevation Data")
+    st.write(f"Fetching elevation data for locations: {locations}")
+    elevations = get_elevation_data(locations)
 
-    # Assume `polygon` is provided as input; this is just an example
-    example_polygon = gpd.GeoSeries([box(12.35, 41.8, 12.65, 42.0)], crs="EPSG:4326")
-
-    if st.button("Download Elevation Data"):
-        download_elevation_data(example_polygon.unary_union)
-
-    if st.button("Clean Elevation Cache"):
-        clean_elevation_cache()
+    if elevations:
+        elevation_data = {
+            'longitude': [loc[0] for loc in locations],
+            'latitude': [loc[1] for loc in locations],
+            'elevation': elevations
+        }
+        df = pd.DataFrame(elevation_data)
+        df.to_csv(elevation_file, index=False)
+        st.write(f"Elevation data saved to {elevation_file}")
+    else:
+        st.write("No elevation data available for the selected area.")
