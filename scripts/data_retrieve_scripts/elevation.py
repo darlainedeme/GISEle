@@ -3,6 +3,7 @@ import json
 import geopandas as gpd
 import streamlit as st
 import os
+import pandas as pd
 
 def get_elevation_data(locations):
     url = "https://api.ellipsis-drive.com/v3/path/77239b78-ff95-4c30-a90e-0428964a0f00/raster/timestamp/83a6860b-3c34-4a53-9d3f-d123019eff7c/location"
