@@ -10,9 +10,9 @@ st.sidebar.image("data/logo.png", width=200)  # Adjust the width as needed
 
 # Define navigation
 main_nav = st.sidebar.radio("Navigation", [
-    "Home", "Area Selection", "Satellite Timelapse", "Data Retrieve", "Buildings", 
-    "Clustering", "Data Visualization and Enhancement", 
-    "Summary Analysis", "Costs", "Demand Estimation", 
+    "Home", "Area Selection", "Satellite Timelapse", "Data Retrieve", "Data Visualization and Enhancement", 
+    "Buildings", 
+    "Clustering", "Summary Analysis", "Costs", "Demand Estimation", 
     "Routing", "Results"
 ])
 
@@ -22,9 +22,9 @@ pages = {
     "Area Selection": area_selection.show,
     "Satellite Timelapse": timelapse.app,
     "Data Retrieve": data_retrieve.show,
+    "Data Visualization and Enhancement": data_visualization.show,
     "Buildings": buildings_mapping.show,
     "Clustering": clustering_modes.show,
-    "Data Visualization and Enhancement": data_visualization.show,
     "Summary Analysis": summary_analysis.show,
     "Costs": costs.show,
     "Demand Estimation": demand_estimation.show,
