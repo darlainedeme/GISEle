@@ -6,6 +6,7 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
 from scripts.data_retrieve_scripts._data_utils import initialize_earth_engine
+import json
 
 def download_elevation_data(polygon):
     initialize_earth_engine()
