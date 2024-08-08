@@ -113,50 +113,50 @@ def show():
             if "Power Lines" in selected_datasets:
                 status_text.text("Downloading power lines data...")
                 download_power_lines_data(buffer_polygon)
-                progress.progress(0.8)
+                progress.progress(0.75)
                 st.write("Power lines data downloaded.")
 
             if "Transformers and Substations" in selected_datasets:
                 status_text.text("Downloading transformers and substations data...")
                 download_substations_data(buffer_polygon)
-                progress.progress(0.9)
+                progress.progress(0.8)
                 st.write("Transformers and substations data downloaded.")
 
             if "Elevation" in selected_datasets:
                 status_text.text("Downloading elevation data...")
                 download_elevation_data(polygon)
-                progress.progress(1.0)
+                progress.progress(0.85)
                 st.write("Elevation data downloaded.")
 
             if "Solar Potential" in selected_datasets:
                 status_text.text("Downloading solar data...")
                 download_solar_data(polygon)
-                progress.progress(1.1)
+                progress.progress(0.9)
                 st.write("Solar data downloaded.")
 
             if "Wind Potential" in selected_datasets:
                 status_text.text("Downloading wind data...")
                 download_wind_data(polygon)
-                progress.progress(1.2)
+                progress.progress(0.9)
                 st.write("Wind data downloaded.")
 
             if "Satellite" in selected_datasets:
                 status_text.text("Downloading satellite data...")
                 download_satellite_data(polygon)
-                progress.progress(1.3)
+                progress.progress(0.95)
                 st.write("Satellite data downloaded.")
 
             if "Nighttime Lights" in selected_datasets:
                 status_text.text("Downloading nighttime lights data...")
                 download_nighttime_lights_data(polygon)
-                progress.progress(1.4)
+                progress.progress(1)
                 st.write("Nighttime lights data downloaded.")
 
             if "Population" in selected_datasets:
                 status_text.text("Downloading population data...")
                 population_file = os.path.join('data', '2_downloaded_input_data', 'population', 'age_structure_output.csv')
-                download_worldpop_age_structure(selected_area_path, 2020, population_file)
-                progress.progress(1.5)
+                download_population_data(selected_area_path, 2020, population_file)
+                progress.progress(1)
                 st.write("Population data downloaded.")
 
             status_text.text("Zipping results...")

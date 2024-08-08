@@ -4,7 +4,7 @@ import os
 import geopandas as gpd
 import pandas as pd
 
-def download_worldpop_age_structure(geojson_path, year, output_csv):
+def download_population_data(geojson_path, year, output_csv):
     print("Starting download process...")
     # Read the GeoJSON file
     gdf = gpd.read_file(geojson_path)
