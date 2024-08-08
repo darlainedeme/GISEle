@@ -5,22 +5,9 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 
-def download_worldpop_age_structure(geojson_path, year, output_csv):
+def download_worldpop_age_structure(geojson_str, year, output_csv):
     try:
         st.write("Starting download process...")
-        
-        # Read the GeoJSON file
-        gdf = gpd.read_file(geojson_path)
-        
-        # Ensure the GeoDataFrame contains only one feature
-        if len(gdf) > 1:
-            st.write("GeoJSON contains more than one feature. Using the first feature.")
-            gdf = gdf.iloc[[0]]
-        
-        # Convert the GeoDataFrame to a GeoJSON string
-        geojson_str = gdf.to_json()
-        
-        st.write(f"GeoJSON constructed from file: {geojson_str}")
 
         # Define the WorldPop API endpoint for age structure
         api_url = f"https://api.worldpop.org/v1/services/stats"
@@ -85,19 +72,27 @@ def download_population_data(polygon, year):
     population_file = os.path.join('data', '2_downloaded_input_data', 'population', 'age_structure_output.csv')
     os.makedirs(os.path.dirname(population_file), exist_ok=True)
     
-    # Convert polygon to GeoDataFrame and save as GeoJSON
+    # Convert polygon to GeoDataFrame and save as GeoJSON string
     gdf = gpd.GeoDataFrame(geometry=[polygon], crs="EPSG:4326")
-    geojson_path = os.path.join('data', '2_downloaded_input_data', 'population', 'selected_area.geojson')
-    gdf.to_file(geojson_path, driver="GeoJSON")
+    geojson_str = gdf.to_json()
     
-    # Validate the GeoJSON file
+    # Validate the GeoJSON string
     try:
-        with open(geojson_path, 'r') as file:
-            geojson_data = json.load(file)
-        st.write("GeoJSON file is valid.")
+        geojson_data = json.loads(geojson_str)
+        st.write("GeoJSON string is valid.")
     except Exception as e:
-        st.error(f"Invalid GeoJSON file: {e}")
+        st.error(f"Invalid GeoJSON string: {e}")
         return
     
     # Call the function to download the WorldPop data
-    download_worldpop_age_structure(geojson_path, year, population_file)
+    download_worldpop_age_structure(geojson_str, year, population_file)
+
+# Example usage within Streamlit
+if __name__ == "__main__":
+    st.title("Download Population Data")
+
+    # Assume `polygon` is provided as input; this is just an example
+    example_polygon = gpd.GeoSeries([box(12.35, 41.8, 12.65, 42.0)], crs="EPSG:4326")
+
+    if st.button("Download Population Data"):
+        download_population_data(example_polygon.unary_union, 2020)
