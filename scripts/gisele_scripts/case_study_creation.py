@@ -549,7 +549,7 @@ def show():
     st.title("Case Study Creation and Weighted Grid of Points")
 
     # Step 1: Create the Case Study
-    with st.expander("Case Study Parameters", expanded=True):
+    with st.expander("Case Study Parameters", expanded=False):
         st.write("Initialize the parameters for creating a new case study.")
         
         # Parameters for case study creation
@@ -569,7 +569,7 @@ def show():
             st.write("Substations:", Substations.drop(columns='geometry'))
 
     # Step 2: Create the Weighted Grid of Points
-    with st.expander("Weighted Grid Parameters", expanded=True):
+    with st.expander("Weighted Grid Parameters", expanded=False):
         st.write("Define the parameters for creating a weighted grid of points.")
         
         resolution = st.number_input("Grid Resolution (meters)", value=100)
