@@ -93,7 +93,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     
     protected_areas_file = os.path.join(geospatial_data_path, 'protected_areas', 'protected_areas.shp')
     roads_file = os.path.join(geospatial_data_path, 'roads', 'roads.shp')
-    elevation_file = os.path.join(geospatial_data_path, 'elevation', 'elevation.tif')
+    elevation_file = os.path.join(geospatial_data_path, 'elevation', 'Elevation.tif')
     slope_file = os.path.join(geospatial_data_path, 'slope', 'slope.tif')
     landcover_file = os.path.join(database, 'data', '2_downloaded_input_data', 'landcover', 'landcover.tif')
 
@@ -350,6 +350,7 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
     New_Nodes.to_file(os.path.join(geospatial_data_path, 'Roads_points', 'Roads_points.shp'))
 
     return New_Nodes, New_Lines
+
 
 def Merge_Roads_GridOfPoints(gisele_folder):
     geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'Geospatial_Data')
