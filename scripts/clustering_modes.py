@@ -215,7 +215,9 @@ def show():
 
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
-
+    
+    map_completed = False
+    
     with st.expander("Parameters", expanded=False):
         # Input fields for the user to specify paths, CRS, etc.
         crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
