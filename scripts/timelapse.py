@@ -54,7 +54,7 @@ def show():
     st.session_state["vis_params"] = None
 
     with row1_col1:
-        ee_authenticate(token_name="json_data")
+        ee_authenticate()
         m = geemap.Map(
             basemap="HYBRID",
             plugin_Draw=True,
