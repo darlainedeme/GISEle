@@ -40,7 +40,7 @@ def uploaded_file_to_gdf(data):
 
     return gdf
 
-def app():
+def show():
     today = date.today()
 
     row1_col1, row1_col2 = st.columns([2, 1])
