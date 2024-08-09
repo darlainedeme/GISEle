@@ -535,6 +535,7 @@ def create_grid(crs, resolution, study_area):
 
     # Create a GeoDataFrame from the grid points
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
+    st.write(f"Number of grid points created: {len(grid_gdf)}")
 
     # Add X and Y columns
     grid_gdf['X'] = grid_gdf.geometry.x
