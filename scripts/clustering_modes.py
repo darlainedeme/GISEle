@@ -277,21 +277,29 @@ def show():
         # Display map in Streamlit
         # st_data = st_folium(m, width=1400, height=800)
 
-        # Add a button to export the clusters and points as a ZIP file
-        if st.button("Export Clusters and Points"):
-            # File paths for export
-            zip_path = "exported_data.zip"
+        # Ensure clustering was performed before attempting to export
+        if st.session_state["clusters_gdf"] is not None and st.session_state["buildings_df"] is not None:
+            if "output_path_clusters" in locals() and "output_path_points_clipped" in locals():
+                # Add a button to export the clusters and points as a ZIP file
+                if st.button("Export Clusters and Points"):
+                    # File paths for export
+                    zip_path = "exported_data.zip"
 
-            # Create a ZIP file containing the Shapefile
-            with zipfile.ZipFile(zip_path, 'w') as zipf:
-                zipf.write(output_path_clusters, os.path.basename(output_path_clusters))
-                for file in os.listdir(os.path.dirname(output_path_clusters)):
-                    if file.startswith("Communities_boundaries"):
-                        zipf.write(os.path.join(os.path.dirname(output_path_clusters), file), file)
-                zipf.write(output_path_points_clipped, os.path.basename(output_path_points_clipped))
+                    # Create a ZIP file containing the Shapefile
+                    with zipfile.ZipFile(zip_path, 'w') as zipf:
+                        zipf.write(output_path_clusters, os.path.basename(output_path_clusters))
+                        for file in os.listdir(os.path.dirname(output_path_clusters)):
+                            if file.startswith("Communities_boundaries"):
+                                zipf.write(os.path.join(os.path.dirname(output_path_clusters), file), file)
+                        zipf.write(output_path_points_clipped, os.path.basename(output_path_points_clipped))
+                        for file in os.listdir(os.path.dirname(output_path_points_clipped)):
+                            if file.startswith("points_clipped"):
+                                zipf.write(os.path.join(os.path.dirname(output_path_points_clipped), file), file)
 
-            st.success(f"Export completed! Files saved in '{zip_path}'.")
+                    st.success(f"Export completed! Files saved in '{zip_path}'.")
 
-            # Provide a download button for the ZIP file
-            with open(zip_path, "rb") as f:
-                st.download_button('Download Exported Data', f, file_name=zip_path)
+                    # Provide a download button for the ZIP file
+                    with open(zip_path, "rb") as f:
+                        st.download_button('Download Exported Data', f, file_name=zip_path)
+            else:
+                st.error("Error: Clustering data not found. Please run the clustering process first.")
