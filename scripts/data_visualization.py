@@ -48,6 +48,30 @@ def generate_color_map(unique_values):
 def create_map(data_gdf=None, data_key=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
 
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    
     if data_gdf is not None and not data_gdf.empty:
         bounds = data_gdf.total_bounds
         m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
@@ -84,7 +108,14 @@ def create_map(data_gdf=None, data_key=None, draw_enabled=False):
             m.get_root().html.add_child(folium.Element(legend_html))
         else:
             # For other layers, just add with a tooltip
-            fields = [col for col in data_gdf.columns if col != 'geometry']
+            fields = [col for col in data_gdf.columns if col != 'geometry' and not col.startswith('hull')]
+
+            # Update the folium.GeoJson call
+            folium.GeoJson(
+                data_gdf,
+                tooltip=folium.GeoJsonTooltip(fields=fields, labels=True)
+            ).add_to(m)
+
             folium.GeoJson(
                 data_gdf,
                 tooltip=folium.GeoJsonTooltip(fields=fields, labels=True)

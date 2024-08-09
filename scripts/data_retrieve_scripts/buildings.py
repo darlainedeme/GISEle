@@ -23,7 +23,6 @@ def download_google_buildings(polygon, file_path):
             json.dump(response.json(), f)
         
         google_buildings = gpd.read_file(file_path)
-        google_buildings['source'] = 'google'
         st.write(f"{len(google_buildings)} Google buildings identified")
         return file_path
     except Exception as e:
@@ -41,17 +40,29 @@ def download_osm_data(polygon, tags, file_path):
         tag_key = list(tags.keys())[0]
         if tag_key == 'building':
             st.write(f"{len(data)} buildings identified")
-        data['source'] = 'osm'
         return file_path
     except Exception as e:
         st.error(f"Error downloading OSM data: {e}")
         return None
 
 def create_combined_buildings_layer(osm_buildings, google_buildings_geojson):
-    google_buildings = gpd.GeoDataFrame.from_features(google_buildings_geojson['features'])
-    google_buildings['source'] = 'google'
+    # Ensure both GeoDataFrames are in the same CRS
+    osm_buildings = osm_buildings.to_crs(epsg=4326)
+    google_buildings = gpd.GeoDataFrame.from_features(google_buildings_geojson["features"]).set_crs(epsg=4326)
+
+    # Label sources
     osm_buildings['source'] = 'osm'
-    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, google_buildings], ignore_index=True))
+    google_buildings['source'] = 'google'
+
+    # Remove Google buildings that touch OSM buildings
+    osm_dissolved = osm_buildings.geometry.unary_union
+
+    # Filter Google buildings that do not intersect with OSM buildings
+    filtered_google = google_buildings[~google_buildings.intersects(osm_dissolved)]
+
+    # Combine OSM buildings and filtered Google buildings
+    combined_buildings = gpd.GeoDataFrame(pd.concat([osm_buildings, filtered_google], ignore_index=True))
+
     return combined_buildings
 
 def download_buildings_data(polygon):
@@ -70,6 +81,6 @@ def download_buildings_data(polygon):
         osm_buildings = gpd.read_file(osm_buildings_path)
         combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
         combined_buildings.to_file(combined_buildings_file, driver='GeoJSON')
-        st.write(f"Combined buildings dataset extracted")
+        st.write(f"Combined buildings dataset saved to {combined_buildings_file}")
     else:
         st.write("Skipping buildings combination due to missing data.")
