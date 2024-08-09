@@ -42,7 +42,7 @@ def building_to_cluster_v1(crs, flag):
         buildings_df['geometry'] = buildings_df.geometry.centroid
         buildings_df = gpd.clip(buildings_df, studyregion)
         buildings_df = buildings_df.reset_index(drop=True)
-        area_lower_bound = 30
+        area_lower_bound = 50
         buildings_df = buildings_df[buildings_df['area'] > area_lower_bound]
         buildings_df['ID'] = [*range(len(buildings_df))]
         buildings_df.reset_index(inplace=True, drop=True)
