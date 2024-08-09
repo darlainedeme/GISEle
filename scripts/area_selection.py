@@ -6,6 +6,9 @@ import os
 import geopandas as gpd
 
 def save_geojson(data, filename):
+    
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    
     with open(filename, 'w') as f:
         json.dump(data, f)
 
