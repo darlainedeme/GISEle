@@ -510,7 +510,7 @@ def create_grid(crs, resolution, study_area):
     
     Parameters:
     - crs: Coordinate Reference System (integer).
-    - resolution: Resolution for the grid (integer).
+    - resolution: Resolution for the grid (in degrees for EPSG:4326).
     - study_area: GeoDataFrame representing the study area.
     
     Returns:
@@ -524,18 +524,11 @@ def create_grid(crs, resolution, study_area):
     if resolution <= 0:
         raise ValueError("Resolution must be a positive number.")
 
-    # Check the bounding box values
-    if min_x >= max_x or min_y >= max_y:
-        raise ValueError(f"Invalid bounding box values: min_x={min_x}, max_x={max_x}, min_y={min_y}, max_y={max_y}")
-
     # Create the grid points
-    try:
-        lon = np.arange(min_x, max_x, resolution)
-        lat = np.arange(min_y, max_y, resolution)
-        grid_points = [Point(x, y) for x in lon for y in lat]
-        st.write(f"Number of grid points generated: {len(grid_points)}")
-    except Exception as e:
-        raise ValueError(f"Error creating grid points: {e}")
+    lon = np.arange(min_x, max_x, resolution)
+    lat = np.arange(min_y, max_y, resolution)
+    grid_points = [Point(x, y) for x in lon for y in lat]
+    st.write(f"Number of grid points generated: {len(grid_points)}")
 
     # Create a GeoDataFrame from the grid points
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
