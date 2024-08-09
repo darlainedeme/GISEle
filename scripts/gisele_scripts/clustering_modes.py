@@ -283,10 +283,14 @@ def create_clustering_map(clustered_gdf=None, buffered_gdf=None):
 
 def show():
     # Define paths
+    
     COMBINED_BUILDINGS_FILE = os.path.join('data', '2_downloaded_input_data', 'buildings', 'combined_buildings.geojson')
     CLUSTERED_POINTS_FILE = os.path.join('data', '4_intermediate_output', 'clustering', 'clustered_points.geojson')
     BUFFERED_POLYGONS_FILE = os.path.join('data', '4_intermediate_output', 'clustering', 'buffered_polygons.geojson')
 
+    # Ensure the directory (folder) for the file exists, creating it if necessary
+    os.makedirs(os.path.dirname(CLUSTERED_POINTS_FILE), exist_ok=True)
+    
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
     
