@@ -296,12 +296,10 @@ def show():
         if st.button("Export Clusters and Points"):
             # File paths for export
             clusters_path = "clusters_export.geojson"
-            points_path = "points_export.geojson"
             zip_path = "exported_data.zip"
 
             # Export the GeoDataFrames to GeoJSON
             clusters_gdf.to_file(clusters_path, driver='GeoJSON')
-            buildings_df.to_file(points_path, driver='GeoJSON')
 
             # Create a ZIP file containing the GeoJSON files
             with zipfile.ZipFile(zip_path, 'w') as zipf:
