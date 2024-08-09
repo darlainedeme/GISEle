@@ -229,7 +229,7 @@ def show():
                 st_folium(m, width=1400, height=800)
 
     else:
-    st.write("Standard method not yet implemented.")
+        st.write("Standard method not yet implemented.")
 
     
 
