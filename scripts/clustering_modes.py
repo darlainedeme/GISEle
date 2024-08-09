@@ -226,8 +226,9 @@ def show():
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        # st_folium(m, width=1400, height=800)
+        st_folium(m, width=1400, height=800)
 
+        '''
         # Ensure clustering was performed before attempting to export
         if st.session_state["output_path_clusters"] and st.session_state["output_path_points_clipped"]:
             # Add a button to export the clusters and points as a ZIP file
@@ -249,3 +250,4 @@ def show():
                     st.download_button('Download Exported Data', f, file_name=zip_path)
         else:
             st.error("Error: Clustering data not found. Please run the clustering process first.")
+        '''
