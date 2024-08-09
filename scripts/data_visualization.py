@@ -38,14 +38,75 @@ def save_enhanced_data(gdf, file_path):
     gdf.to_file(file_path, driver='GeoJSON')
 
 # Create map function
-def create_map(data_gdf=None, draw_enabled=False):
+def create_map(data_gdf=None, data_key=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
+    
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
 
     if data_gdf is not None and not data_gdf.empty:
         bounds = data_gdf.geometry.total_bounds
         m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
 
-        folium.GeoJson(data_gdf).add_to(m)
+        if data_key == "buildings":
+            # Add building layers with different colors based on the "source"
+            unique_sources = data_gdf["source"].unique()
+            colors = folium.colors.linear.Set1_09.scale(0, len(unique_sources))
+            source_color_map = dict(zip(unique_sources, colors))
+
+            for _, row in data_gdf.iterrows():
+                folium.GeoJson(
+                    row['geometry'],
+                    tooltip=f"Source: {row['source']}",
+                    style_function=lambda feature, color=source_color_map[row['source']]: {
+                        'fillColor': color,
+                        'color': color,
+                        'weight': 1,
+                        'fillOpacity': 0.6
+                    }
+                ).add_to(m)
+
+            # Add a legend for building sources
+            legend_html = """
+            <div style="position: fixed; 
+                        bottom: 50px; left: 50px; width: 200px; height: auto; 
+                        background-color: white; z-index:9999; font-size:14px;
+                        border:2px solid grey; padding: 10px;">
+            <b>Buildings by Source</b><br>
+            """
+            for source, color in source_color_map.items():
+                legend_html += f"<i style='background:{color}'></i> {source}<br>"
+            legend_html += "</div>"
+
+            m.get_root().html.add_child(folium.Element(legend_html))
+        else:
+            # For other layers, just add with a tooltip
+            folium.GeoJson(
+                data_gdf,
+                tooltip=folium.GeoJsonTooltip(fields=data_gdf.columns.to_list(), labels=True)
+            ).add_to(m)
     else:
         st.warning("This layer is not available for the selected area.")
 
@@ -79,7 +140,7 @@ def show():
     data_gdf = load_data(DATA_PATHS[data_key])
 
     # Create map centered on the data if available
-    m = create_map(data_gdf, draw_enabled=True)
+    m = create_map(data_gdf, data_key=data_key, draw_enabled=True)
     map_output = st_folium(m, width=1400, height=800)
 
     # Save enhanced data if any
