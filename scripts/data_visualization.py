@@ -5,9 +5,9 @@ import geopandas as gpd
 import json
 import os
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from folium.plugins import Draw, Fullscreen, MeasureControl
 import pandas as pd
-
 
 # Define paths
 DATA_PATHS = {
@@ -42,13 +42,12 @@ def save_enhanced_data(gdf, file_path):
 # Function to generate a color map using matplotlib
 def generate_color_map(unique_values):
     cmap = plt.get_cmap('Set1', len(unique_values))
-    return {value: plt.colors.rgb2hex(cmap(i)) for i, value in enumerate(unique_values)}
-
+    return {value: mcolors.to_hex(cmap(i)) for i, value in enumerate(unique_values)}
 
 # Create map function
 def create_map(data_gdf=None, data_key=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
-    
+
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
     folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
     folium.TileLayer(
@@ -72,7 +71,7 @@ def create_map(data_gdf=None, data_key=None, draw_enabled=False):
         overlay=False,
         control=True
     ).add_to(m)
-
+    
     if data_gdf is not None and not data_gdf.empty:
         bounds = data_gdf.geometry.total_bounds
         m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
@@ -150,12 +149,4 @@ def show():
     map_output = st_folium(m, width=1400, height=800)
 
     # Save enhanced data if any
-    if map_output and 'last_active_drawing' in map_output and map_output['last_active_drawing']:
-        drawn_data = map_output['last_active_drawing']['geometry']
-        drawn_gdf = gpd.GeoDataFrame([drawn_data], columns=['geometry'], crs='EPSG:4326')
-        enhanced_gdf = pd.concat([data_gdf, drawn_gdf], ignore_index=True)
-        save_enhanced_data(enhanced_gdf, DATA_PATHS[data_key])
-        st.success(f"Enhanced data saved for {selected_subpage}")
-
-if __name__ == "__main__":
-    show()
+    if map_output and 'las
