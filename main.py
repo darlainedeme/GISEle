@@ -1,5 +1,7 @@
 import streamlit as st
 
+st.set_page_config(layout="wide")
+
 # Import your other pages
 from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, clustering_modes, demand_estimation, minigrid_sizing, routing, results
 
