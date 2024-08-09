@@ -14,8 +14,9 @@ main_sections = {
     "🏠 Home": ["Home"],
     "📍 Area Identification": ["Area Selection", "Satellite Timelapse"],
     "📊 VANIA": ["Data Retrieve", "Data Visualization and Enhancement", "VANIA Report"],
-    "⚙️ GISELE": ["Modelling Parameters", "Clustering", "Demand Estimation", "Mini-grid Sizing", "Routing", "Results"]
+    "⚙️ GISELE": ["Modelling Parameters", "Clustering", "Case Study", "Demand Estimation", "Mini-grid Sizing", "Routing", "Results"]
 }
+
 
 # Select the main section
 main_section = st.sidebar.radio("Navigation", list(main_sections.keys()))
