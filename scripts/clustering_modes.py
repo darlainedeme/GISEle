@@ -93,6 +93,7 @@ def building_to_cluster_v1(crs, flag):
 
     buildings_df = buildings_df.reset_index(drop=True)
     x_interp = [min_urbanity, max_urbanity]  # Automatically calculated from the raster
+    x_interp = [55, 150]
     y_interp = [60, 25]
 
     interpolator = interp1d(x_interp, y_interp, kind='linear', fill_value='extrapolate')
