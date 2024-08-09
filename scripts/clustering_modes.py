@@ -206,7 +206,7 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
 # Main execution
 if __name__ == "__main__":
-    path = r"data\_precompiled_case_studies\uganda_gulu\3_user_generated_data\study_region.shp"  # New path
+    path = st.text_input("Path to Study Region GeoJSON", r"data\_precompiled_case_studies\uganda_gulu\3_user_generated_data\study_region.geojson")
     crs = 21095  # Replace with your CRS
     radius = 200  # Example value for radius
     dens_filter = 100  # Example value for density filter
