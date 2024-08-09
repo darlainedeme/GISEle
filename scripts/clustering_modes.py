@@ -145,6 +145,7 @@ def building_to_cluster_v1(crs, flag):
 
     return clusters_gdf, buildings_df, output_path_clusters, output_path_points_clipped
 
+@st.cache_resource
 def create_map(clusters_gdf):
     # Ensure the GeoDataFrame is in EPSG 4326 for Folium
     clusters_gdf = clusters_gdf.to_crs(epsg=4326)
