@@ -547,8 +547,6 @@ def create_grid(crs, resolution, study_area):
     return grid_gdf
 
 def show():
-    st.title("Case Study Creation and Weighted Grid of Points")
-
     # Step 1: Create the Case Study
     with st.expander("Case Study Parameters", expanded=False):
         st.write("Initialize the parameters for creating a new case study.")
