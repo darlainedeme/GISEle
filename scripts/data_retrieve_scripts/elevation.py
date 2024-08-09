@@ -26,7 +26,7 @@ def get_elevation_data(locations):
         st.error(f"Error fetching elevation data: {e}")
         return None
 
-def create_grid_within_polygon(polygon, spacing=0.00027*4):  # Approximately 30 meters in degrees
+def create_grid_within_polygon(polygon, spacing=0.00027*10):  # Approximately 30 meters in degrees
     minx, miny, maxx, maxy = polygon.bounds
     x_coords = np.arange(minx, maxx, spacing)
     y_coords = np.arange(miny, maxy, spacing)
