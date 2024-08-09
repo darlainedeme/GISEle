@@ -215,7 +215,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
             raise ValueError(f"Column {col} not found in DataFrame")
 
     # Perform the weighting of the grid of points
-    df_weighted = initialization.weighting(df, resolution, landcover_option)
+    df_weighted = weighting(df, resolution, landcover_option)
     df_weighted.to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'), index=False)
 
     # Delete leftover files
@@ -449,6 +449,65 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
     geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
 
     return df, geo_df
+
+def weighting(df, resolution, landcover_option):
+    """
+    Assign weights to all points of a dataframe according to the terrain
+    characteristics and the distance to the nearest road.
+    :param df: From which part of GISEle the user is starting
+    :param resolution: resolution of the dataframe df
+    :return df_weighted: Point dataframe with weight attributes assigned
+    """
+    df_weighted = df.dropna(subset=['Elevation'])
+    df_weighted.reset_index(drop=True)
+    df_weighted.Slope.fillna(value=0, inplace=True)
+    df_weighted.Land_cover.fillna(method='bfill', inplace=True)
+    df_weighted['Land_cover'] = df_weighted['Land_cover'].round(0)
+    # df_weighted.Population.fillna(value=0, inplace=True)
+    df_weighted['Weight'] = 0
+    print('Weighting the Dataframe..')
+    os.chdir(r'general_input//')
+    landcover_csv = pd.read_csv('Landcover.csv')
+    os.chdir(r'..//')
+    del df
+    # Weighting section
+    # Slope conditions
+    df_weighted['Weight'] = math.e**(
+        0.01732867951 * df_weighted['Slope'])
+    # Land cover using the column Other or GLC to compute the weight
+    for i,row in landcover_csv.iterrows():
+        if landcover_option == 'GLC':
+            df_weighted.loc[
+                df_weighted['Land_cover'] == row['GLC2000'], 'Weight'] += \
+            landcover_csv.loc[i, 'WeightGLC']
+        elif landcover_option == 'ESACCI':
+            df_weighted.loc[df_weighted['Land_cover'] == row['ESACCI'],'Weight'] +=landcover_csv.loc[i,'WeightESACCI']
+        else:
+            df_weighted.loc[
+                df_weighted['Land_cover'] == row['Other'], 'Weight'] += \
+            landcover_csv.loc[i, 'WeightOther']
+    # Road distance conditions
+    df_weighted.loc[df_weighted['Road_dist'] < 1000, 'Weight'] += \
+        5 * df_weighted.loc[
+                  df_weighted[
+                      'Road_dist'] < 1000, 'Road_dist'] / 1000
+
+    df_weighted.loc[df_weighted['Road_dist'] >= 1000,'Weight'] += 5
+    df_weighted.loc[df_weighted['Road_dist'] < resolution / 2, 'Weight'] = 1.5
+    #Protected areas condition
+    df_weighted.loc[df_weighted['Protected_area'] == True, 'Weight'] += 5
+
+    # valid_fields = ['ID', 'X', 'Y', 'Population', 'Elevation', 'Weight'] 
+    valid_fields = ['ID', 'X', 'Y', 'Elevation', 'Weight']
+    blacklist = []
+    for x in df_weighted.columns:
+        if x not in valid_fields:
+            blacklist.append(x)
+    df_weighted.drop(blacklist, axis=1, inplace=True)
+    df_weighted.drop_duplicates(['ID'], keep='last', inplace=True)
+    print("Cleaning and weighting process completed")
+    s()
+    return df_weighted
 
 def create_grid(crs, resolution, study_area):
     """

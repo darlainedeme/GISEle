@@ -241,6 +241,18 @@ def delete_leftover_files(dir, crs):
     os.remove(folder + 'LandCover.tif')
     os.remove(folder + 'Slope.tif')
 
+def delete_leftover_files(dir, crs):
+    """
+    Delete leftover files from the resampling and reprojecting process.
+
+    Parameters:
+    - dir: Directory where data is stored.
+    - crs: CRS used for the files.
+    """
+    folder = dir + '/Intermediate/Geospatial_Data/'
+    os.remove(folder + 'Elevation.tif')
+    os.remove(folder + 'LandCover.tif')
+    os.remove(folder + 'Slope.tif')
 
 def create_input_csv(crs, resolution, resolution_population, landcover_option, country, case_study, database, study_area):
     """
