@@ -199,7 +199,9 @@ def create_map(clusters_gdf):
 
     # Add layer control
     folium.LayerControl().add_to(m)
-
+    folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
+                              force_separate_button=False).add_to(m)
+                              
     # Display the map in Streamlit
     st_folium(m, width=1400, height=800)
     
