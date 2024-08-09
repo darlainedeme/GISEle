@@ -82,7 +82,7 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     # Update paths as per the new directory structure
     base_dir = os.path.dirname(path)
-    building_path = os.path.join(base_dir, "selected_area.geojson")
+    building_path = os.path.join("data", "2_downloaded_input_data", "buildings", "mit")
     urbanity = os.path.join("data", "2_downloaded_input_data", "urbanity", "urbanity.tif")
     output_folder_points = os.path.join("data", "4_intermediate_output", "points")
     output_folder_pointsclipped = os.path.join("data", "4_intermediate_output", "points")
@@ -208,6 +208,9 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 def show():
     st.title("Clustering Mode")
 
+    # Radio button for method selection
+    method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
+
     # Input fields for the user to specify paths, CRS, etc.
     path = st.text_input("Path to Study Region GeoJSON", os.path.join("data", "3_user_uploaded_data", "selected_area.geojson"))
     crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
@@ -215,8 +218,11 @@ def show():
     dens_filter = st.number_input("Density Filter", value=100)
     flag = st.checkbox("Skip Processing", value=False)
 
-    if st.button("Run Clustering"):
-        output_path_points, output_path_clusters = building_to_cluster_v1(path, crs, radius, dens_filter, flag)
-        st.success("Clustering completed.")
-        st.write(f"Points saved at: {output_path_points}")
-        st.write(f"Clusters saved at: {output_path_clusters}")
+    if method == 'MIT':
+        if st.button("Run Clustering"):
+            output_path_points, output_path_clusters = building_to_cluster_v1(path, crs, radius, dens_filter, flag)
+            st.success("Clustering completed.")
+            st.write(f"Points saved at: {output_path_points}")
+            st.write(f"Clusters saved at: {output_path_clusters}")
+    else:
+        st.write("Standard method not yet implemented.")
