@@ -90,10 +90,11 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     crs_str = 'epsg:' + str(crs)
     
     geospatial_data_path = os.path.join('mount', 'src', 'gisele', 'data', '2_downloaded_input_data')
-    protected_areas_file = os.path.join(geospatial_data_path, 'Protected_areas', 'protected_areas.shp')
-    roads_file = os.path.join(geospatial_data_path, 'Roads', 'roads.shp')
-    elevation_file = os.path.join(geospatial_data_path, 'Elevation', 'elevation.tif')
-    slope_file = os.path.join(geospatial_data_path, 'Slope', 'slope.tif')
+    
+    protected_areas_file = os.path.join(geospatial_data_path, 'protected_areas', 'protected_areas.shp')
+    roads_file = os.path.join(geospatial_data_path, 'roads', 'roads.shp')
+    elevation_file = os.path.join(geospatial_data_path, 'elevation', 'elevation.tif')
+    slope_file = os.path.join(geospatial_data_path, 'slope', 'slope.tif')
     landcover_file = os.path.join(database, 'data', '2_downloaded_input_data', 'landcover', 'landcover.tif')
 
     # Define the necessary paths
