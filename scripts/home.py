@@ -9,55 +9,56 @@ def show():
 
     st.markdown("## Features")
 
-    with st.expander("🔍 **Area Selection**"):
-        st.markdown("Choose an area by address, coordinates, or upload a GeoJSON file.")
+    with st.expander("📍 **Area Identification**"):
+        st.markdown("""
+        ### 2.1. Area Selection
+        This step allows you to define your area of interest. You can select the area by entering an address, using coordinates, or uploading a GeoJSON file that represents the region you're focusing on.
 
-    with st.expander("🌐 **Data Retrieval**"):
-        st.markdown("Download and visualize data such as buildings, roads, points of interest, and more.")
+        ### 2.2. Satellite Timelapse
+        Generate and visualize satellite timelapse for your selected area, giving you insight into changes over time within the region.
+        """)
 
-    with st.expander("🏠 **Buildings Analysis**"):
-        st.markdown("Enhance building datasets using multiple sources.")
+    with st.expander("📊 **VANIA**"):
+        st.markdown("""
+        ### 3.1. Data Retrieve
+        In this step, you'll download all the necessary datasets for your selected area. The datasets include information about buildings, roads, points of interest, and more. You'll be able to monitor the download progress and save the results.
 
-    with st.expander("📊 **Clustering**"):
-        st.markdown("Identify and evaluate clusters within the target area.")
+        ### 3.2. Data Visualization and Enhancement
+        After retrieving the data, visualize the datasets on a map. This section also allows you to manually enhance the datasets by adding or modifying features directly on the map.
 
-    with st.expander("🎨 **Data Visualization and Enhancement**"):
-        st.markdown("Visualize and manually enhance various datasets.")
+        ### 3.3. VANIA Report
+        Generate comprehensive reports based on the visualized and enhanced data. These reports are crucial for in-depth analysis and decision-making.
+        """)
 
-    with st.expander("💸 **Cost Inputs**"):
-        st.markdown("Define various cost inputs for your analysis.")
+    with st.expander("⚙️ **GISELE**"):
+        st.markdown("""
+        ### 4.1. Modelling Parameters
+        Define various input parameters required for your analysis, including cost inputs, demand estimation assumptions, and other key factors that influence your GIS project.
 
-    with st.expander("📋 **Summary Analysis**"):
-        st.markdown("Combine all information into a comprehensive summary with maps and charts.")
+        ### 4.2. Clustering
+        Perform clustering analysis to identify significant patterns and groupings within the target area. This helps in understanding the distribution of various features and optimizing resources.
 
-    with st.expander("⚡ **Demand Estimation**"):
-        st.markdown("Estimate energy demand using different methodologies.")
+        ### 4.3. Demand Estimation
+        Estimate the energy demand within your area of interest using different methodologies. This step is essential for planning energy distribution and infrastructure.
 
-    with st.expander("🔌 **Mini-grid Sizing**"):
-        st.markdown("Optimize mini-grid designs.")
+        ### 4.4. Mini-grid Sizing
+        Based on the estimated demand, optimize the design and size of mini-grids to ensure efficient energy distribution.
 
-    with st.expander("🔋 **Grid Extension**"):
-        st.markdown("Estimate the extension of the national grid to the study area.")
+        ### 4.5. Routing
+        Plan the optimal routes for infrastructure such as roads, power lines, and pipelines, taking into account the geographical features and the existing infrastructure.
 
-    with st.expander("📈 **Results**"):
-        st.markdown("View and download comprehensive results.")
+        ### 4.6. Results
+        View and download the final results of your analysis, including maps, charts, and detailed reports that summarize all the steps and findings of your GIS project.
+        """)
 
     st.markdown("## How to Use")
 
     with st.expander("📘 **User Guide**"):
         st.markdown("""
-        1. **Home**: This is the welcome page where you can get an overview of the application.
-        2. **Area Selection**: Navigate to the 'Area Selection' page to select your area of interest by address, coordinates, or by uploading a GeoJSON file.
-        3. **Data Retrieve**: Use this page to download all necessary datasets for your selected area. Visualize the progress and download the results as a zip file.
-        4. **Buildings**: Analyze and enhance building data using OSM as the reference dataset and Google data for enhancements.
-        5. **Clustering**: Perform clustering analysis to identify clusters within the target area.
-        6. **Data Visualization and Enhancement**: Visualize and manually enhance the downloaded datasets.
-        7. **Costs**: Define various cost inputs required for your analysis.
-        8. **Summary Analysis**: View a comprehensive summary of all data with maps and charts.
-        9. **Demand Estimation**: Estimate the energy demand using different methodologies.
-        10. **Mini-grid Sizing**: Optimize the mini-grid design based on user inputs.
-        11. **Grid**: Estimate the grid extension needed to connect the study area to the national grid.
-        12. **Results**: View and download the final results of your analysis.
+        - **Home**: The starting point where you can learn about the tool and its features.
+        - **Area Identification**: Begin by selecting the area of interest and generating satellite timelapses.
+        - **VANIA**: Retrieve data, visualize, and enhance it. Generate reports for comprehensive analysis.
+        - **GISELE**: Set up your analysis parameters, perform clustering, estimate demand, design mini-grids, plan routing, and finally view your results.
         """)
 
     st.markdown("## Resources 🌐")
