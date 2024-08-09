@@ -5,6 +5,7 @@ import rasterio
 from shapely.geometry import MultiPoint, MultiLineString
 import streamlit as st
 from rasterio.enums import Resampling
+import numpy as np
 
 def new_case_study(parameters, output_path_clusters):
     try:
