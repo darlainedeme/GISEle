@@ -204,24 +204,11 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     return output_path_points, output_path_clusters
 
-# Main execution
-if __name__ == "__main__":
-    path = st.text_input("Path to Study Region GeoJSON", r"data\_precompiled_case_studies\uganda_gulu\3_user_generated_data\study_region.geojson")
-    crs = 21095  # Replace with your CRS
-    radius = 200  # Example value for radius
-    dens_filter = 100  # Example value for density filter
-    flag = False  # Set to True if you want to skip processing
-
-    output_path_points, output_path_clusters = building_to_cluster_v1(path, crs, radius, dens_filter, flag)
-    print("Clustering completed.")
-    print(f"Points saved at: {output_path_points}")
-    print(f"Clusters saved at: {output_path_clusters}")
-
 def show():
     st.title("Clustering Mode")
 
     # Input fields for the user to specify paths, CRS, etc.
-    path = st.text_input("Path to Study Region Shapefile", r"data\_precompiled_case_studies\uganda_gulu\3_user_generated_data\study_region.shp")
+    path = st.text_input("Path to Study Region GeoJSON", r"data\_precompiled_case_studies\uganda_gulu\3_user_generated_data\study_region.geojson")
     crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
     radius = st.number_input("Radius", value=200)
     dens_filter = st.number_input("Density Filter", value=100)
