@@ -18,6 +18,17 @@ import zipfile
 from rasterio.enums import Resampling
 import branca.colormap as cm
 
+import os
+import numpy as np
+import geopandas as gpd
+import pandas as pd
+from shapely.geometry import MultiPoint
+from sklearn.cluster import DBSCAN
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
+from shapely.ops import unary_union
+
 # Main function to perform the building clustering
 def building_to_cluster_v1(crs, flag):
     # Hardcoded path to the study region
@@ -204,7 +215,72 @@ def create_map(clusters_gdf):
                               
     # Display the map in Streamlit
     st_folium(m, width=1400, height=800)
-    
+
+# Load combined buildings
+def load_combined_buildings():
+    if os.path.exists(COMBINED_BUILDINGS_FILE):
+        return gpd.read_file(COMBINED_BUILDINGS_FILE)
+    return gpd.GeoDataFrame({'geometry': [], 'source': []}, crs='EPSG:4326')
+
+# Save clustered points
+def save_clustered_points(gdf):
+    gdf.to_file(CLUSTERED_POINTS_FILE, driver='GeoJSON')
+
+# Save buffered polygons
+def save_buffered_polygons(gdf):
+    gdf.to_file(BUFFERED_POLYGONS_FILE, driver='GeoJSON')
+
+# Create clustering map
+def create_clustering_map(clustered_gdf=None, buffered_gdf=None):
+    m = folium.Map(location=[clustered_gdf.geometry.centroid.y.mean(), 
+                             clustered_gdf.geometry.centroid.x.mean()], zoom_start=15)
+
+    # Add map tiles
+    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+
+    # Add clustered points
+    if clustered_gdf is not None and not clustered_gdf.empty:
+        clustered_gdf_4326 = clustered_gdf.to_crs(epsg=4326)
+        for idx, row in clustered_gdf_4326.iterrows():
+            folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color='black').add_to(m)
+
+    # Add buffered polygons
+    if buffered_gdf is not None and not buffered_gdf.empty:
+        buffered_gdf_4326 = buffered_gdf.to_crs(epsg=4326)
+        folium.GeoJson(
+            buffered_gdf_4326,
+            style_function=lambda x: {
+                'fillColor': 'blue',
+                'color': 'blue',
+                'weight': 1,
+                'fillOpacity': 0.4,
+            }
+        ).add_to(m)
+
+    return m
+
 def show():
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
@@ -245,10 +321,6 @@ def show():
         # Create and display the map using the new create_map function
         create_map(clusters_gdf)
 
-    else:
-        st.write("No clustering data available. Please run the clustering process first.")
-
-
         '''
         # Ensure clustering was performed before attempting to export
         if st.session_state["output_path_clusters"] and st.session_state["output_path_points_clipped"]:
@@ -272,3 +344,76 @@ def show():
         else:
             st.error("Error: Clustering data not found. Please run the clustering process first.")
         '''
+        
+    else:
+    
+    # Ensure output directory exists
+        os.makedirs('data\4_intermediate_output\clustering', exist_ok=True)
+        
+        # Define paths
+        COMBINED_BUILDINGS_FILE = 'data/2_downloaded_input_data/buildings/combined_buildings.geojson'
+        CLUSTERED_POINTS_FILE = 'data\4_intermediate_output\clustering\clustered_points.geojson'
+        BUFFERED_POLYGONS_FILE = 'data\4_intermediate_output\clustering\buffered_polygons.geojson'
+
+        # Load combined buildings
+        combined_buildings = load_combined_buildings()
+        combined_buildings = combined_buildings.to_crs(epsg=3857)  # Reproject to meters
+
+        # Get building centroids
+        building_centroids = combined_buildings.copy()
+        building_centroids['geometry'] = building_centroids['geometry'].centroid
+
+        # Streamlit UI
+        st.title("Building Clustering")
+
+        # DBSCAN parameters
+        eps = st.number_input("EPS (meters)", min_value=1, value=100)
+        min_samples = st.number_input("Min Samples", min_value=1, value=5)
+
+        # Initialize session state for clustering results
+        if 'clustered_gdf' not in st.session_state:
+            st.session_state.clustered_gdf = None
+        if 'buffered_gdf' not in st.session_state:
+            st.session_state.buffered_gdf = None
+
+        # Cluster button
+        if st.button("Cluster"):
+            coords = building_centroids.geometry.apply(lambda geom: (geom.x, geom.y)).tolist()
+            db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
+            labels = db.labels_
+            building_centroids['cluster'] = labels
+
+            # Print table with cluster id and number of points
+            cluster_summary = building_centroids['cluster'].value_counts().reset_index()
+            cluster_summary.columns = ['Cluster ID', 'Number of Points']
+            st.write(cluster_summary)
+
+            # Create buffered polygons instead of convex hulls
+            buffered_polygons = []
+            for cluster_id in cluster_summary['Cluster ID']:
+                if cluster_id != -1:
+                    cluster_points = building_centroids[building_centroids['cluster'] == cluster_id]
+                    buffer = cluster_points.buffer(eps)
+                    merged_polygon = unary_union(buffer)
+                    buffered_polygons.append({'cluster': cluster_id, 'geometry': merged_polygon})
+
+            buffered_gdf = gpd.GeoDataFrame(buffered_polygons, crs=building_centroids.crs)
+            
+            # Store results in session state
+            st.session_state.clustered_gdf = building_centroids
+            st.session_state.buffered_gdf = buffered_gdf
+
+            save_clustered_points(building_centroids)
+            save_buffered_polygons(buffered_gdf)
+
+            st.success("Clustering completed. You can now review the results.")
+
+        # Display map
+        if st.session_state.clustered_gdf is not None and st.session_state.buffered_gdf is not None:
+            m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.buffered_gdf)
+            st_folium(m, width=1400, height=800)
+        else:
+            st.warning("Please perform clustering first.")
+
+if __name__ == "__main__":
+    show()
