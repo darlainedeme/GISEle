@@ -211,7 +211,6 @@ def building_to_cluster_v1(crs, radius, dens_filter, flag):
     return clusters_gdf, buildings_df
 
 def show():
-
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
     
@@ -231,6 +230,11 @@ def show():
     if method == 'MIT':
         if st.button("Run Clustering"):
             clusters_gdf, buildings_df = building_to_cluster_v1(crs, radius, dens_filter, flag)
+            
+            # Ensure that the output GeoDataFrames are in the correct CRS
+            clusters_gdf = clusters_gdf.to_crs(epsg=crs)
+            buildings_df = buildings_df.to_crs(epsg=crs)
+            
             st.session_state["clusters_gdf"] = clusters_gdf
             st.session_state["buildings_df"] = buildings_df
             st.success("Clustering completed.")
