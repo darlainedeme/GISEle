@@ -351,7 +351,6 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
 
     return New_Nodes, New_Lines
 
-
 def Merge_Roads_GridOfPoints(gisele_folder):
     geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'Geospatial_Data')
 
@@ -366,6 +365,37 @@ def Merge_Roads_GridOfPoints(gisele_folder):
     weighted_grid_points_with_roads = pd.concat([weighted_grid_points, road_points], ignore_index=True)
     weighted_grid_points_with_roads[['X', 'Y', 'ID', 'Elevation', 'Type', 'Weight', 'Elevation']].\
         to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points_with_roads.csv'))
+
+def reproject_raster(input_raster, output_raster, dst_crs):
+    """
+    Reproject a raster to a different CRS using rasterio.
+
+    Parameters:
+    - input_raster: Path to the input raster file.
+    - output_raster: Path to the output raster file.
+    - dst_crs: Desired CRS as an EPSG code (string).
+    """
+    with rasterio.open(input_raster) as src:
+        transform, width, height = rasterio.warp.calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds)
+        kwargs = src.meta.copy()
+        kwargs.update({
+            'crs': dst_crs,
+            'transform': transform,
+            'width': width,
+            'height': height
+        })
+
+        with rasterio.open(output_raster, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                rasterio.warp.reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.nearest)
 
 def show():
     st.title("Case Study Creation and Weighted Grid of Points")
