@@ -88,7 +88,7 @@ def building_to_cluster_v1(crs, radius, dens_filter, flag):
 
     # Update paths as per the new directory structure
     base_dir = os.path.dirname(path)
-    building_path = os.path.join("data", "2_downloaded_input_data", "buildings", "mit")
+    building_path = os.path.join("data", "2_downloaded_input_data", "buildings", "mit", "merged.shp")
     urbanity = os.path.join("data", "2_downloaded_input_data", "urbanity", "urbanity.tif")
     output_folder_points = os.path.join("data", "2_downloaded_input_data", "buildings", "mit")
     output_folder_pointsclipped = os.path.join("data", "2_downloaded_input_data", "buildings", "mit", "points")
@@ -240,7 +240,7 @@ def show():
             st.success("Clustering completed.")
     else:
         st.write("Standard method not yet implemented.")
-
+ 
     # Display map if clustering has been run
     if st.session_state["clusters_gdf"] is not None and st.session_state["buildings_df"] is not None:
         clusters_gdf = st.session_state["clusters_gdf"]
