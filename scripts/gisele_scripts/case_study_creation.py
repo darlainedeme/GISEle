@@ -219,9 +219,6 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     df_weighted = weighting(df, resolution, landcover_option)
     df_weighted.to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'), index=False)
 
-    # Delete leftover files
-    delete_leftover_files(geospatial_data_path, crs)
-
     return df_weighted
 
 def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
@@ -547,19 +544,6 @@ def create_grid(crs, resolution, study_area):
     grid_gdf = gpd.clip(grid_gdf, study_area)
 
     return grid_gdf
-
-def delete_leftover_files(dir, crs):
-    """
-    Delete leftover files from the resampling and reprojecting process.
-
-    Parameters:
-    - dir: Directory where data is stored.
-    - crs: CRS used for the files.
-    """
-    folder = dir + '/Intermediate/Geospatial_Data/'
-    os.remove(folder + 'Elevation.tif')
-    os.remove(folder + 'LandCover.tif')
-    os.remove(folder + 'Slope.tif')
 
 def show():
     st.title("Case Study Creation and Weighted Grid of Points")
