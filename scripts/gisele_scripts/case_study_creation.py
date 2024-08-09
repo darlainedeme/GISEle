@@ -87,7 +87,9 @@ def create_study():
         raise
 
 def create_input_csv(crs, resolution, resolution_population, landcover_option, database, study_area):
-    """
+    st.write("Starting create_input_csv function...")
+    st.write(f"CRS: {crs}, Resolution: {resolution}, Population Resolution: {resolution_population}, Landcover Option: {landcover_option}")
+    st.write(f"Database Path: {database}")    """
     Create a weighted grid of points for the area of interest.
     """
     crs_str = 'epsg:' + str(crs)
@@ -102,13 +104,24 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
 
     # Open the roads, protected areas, and rivers
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
+    protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
+    st.write("Protected areas loaded and reprojected:")
+    st.write(protected_areas.head())
 
     streets = gpd.read_file(roads_file).to_crs(crs)
-
+    streets = gpd.read_file(roads_file).to_crs(crs)
+    st.write("Roads loaded and reprojected:")
+    st.write(streets.head())
+    
     study_area_crs = study_area.to_crs(crs)
+    study_area_crs = study_area.to_crs(crs)
+    st.write("Study area reprojected:")
+    st.write(study_area_crs)
 
     # Create a small buffer to avoid issues
     study_area_buffered = study_area.buffer((resolution * 0.1 / 11250) / 2)
+    st.write("Study area buffered:")
+    st.write(study_area_buffered)
 
     # Clip the protected areas and streets
     protected_areas_clipped = gpd.clip(protected_areas, study_area_crs)
