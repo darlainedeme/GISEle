@@ -81,12 +81,12 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
     study_area_buffered = studyregion_original.buffer((2500 * 0.1 / 11250))
 
     # Update paths as per the new directory structure
-    building_path = r"data\3_user_uploaded_data\selected_area.geojson"
-    urbanity = r"data\2_downloaded_input_data\urbanity\urbanity.tif"
-    output_folder_points = r"data\4_intermediate_output\points"
-    output_folder_pointsclipped = r"data\4_intermediate_output\points"
-    output_folder_clusters = r"data\4_intermediate_output\clustering"
-    output_path_clusters = r"data\4_intermediate_output\clustering\Communities_boundaries.shp"
+    building_path = "data\3_user_uploaded_data\selected_area.geojson"
+    urbanity = "data\2_downloaded_input_data\urbanity\urbanity.tif"
+    output_folder_points = "data\4_intermediate_output\points"
+    output_folder_pointsclipped = "data\4_intermediate_output\points"
+    output_folder_clusters = "data\4_intermediate_output\clustering"
+    output_path_clusters = "data\4_intermediate_output\clustering\Communities_boundaries.shp"
     
     output_path_points = os.path.join(output_folder_points, 'points.shp')
     output_path_points_clipped = os.path.join(output_folder_pointsclipped, 'points_clipped.shp')
@@ -208,7 +208,7 @@ def show():
     st.title("Clustering Mode")
 
     # Input fields for the user to specify paths, CRS, etc.
-    path = st.text_input("Path to Study Region GeoJSON", r"data\3_user_uploaded_data\selected_area.geojson")
+    path = st.text_input("Path to Study Region GeoJSON", "data\3_user_uploaded_data\selected_area.geojson")
     crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
     radius = st.number_input("Radius", value=200)
     dens_filter = st.number_input("Density Filter", value=100)
