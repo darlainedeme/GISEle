@@ -146,7 +146,7 @@ def building_to_cluster_v1(crs, flag):
     return clusters_gdf, buildings_df, output_path_clusters, output_path_points_clipped
 
 def show():
-    st.session_state["clusters_gdf"] = False
+    st.session_state["clusters_gdf"] = None
     
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
