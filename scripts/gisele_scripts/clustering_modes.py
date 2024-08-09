@@ -223,11 +223,11 @@ def load_combined_buildings(COMBINED_BUILDINGS_FILE):
     return gpd.GeoDataFrame({'geometry': [], 'source': []}, crs='EPSG:4326')
 
 # Save clustered points
-def save_clustered_points(gdf):
+def save_clustered_points(gdf, CLUSTERED_POINTS_FILE):
     gdf.to_file(CLUSTERED_POINTS_FILE, driver='GeoJSON')
 
 # Save buffered polygons
-def save_buffered_polygons(gdf):
+def save_buffered_polygons(gdf, CLUSTERED_POINTS_FILE):
     gdf.to_file(BUFFERED_POLYGONS_FILE, driver='GeoJSON')
 
 def create_clustering_map(clustered_gdf=None, buffered_gdf=None, check_access=False):
@@ -426,12 +426,11 @@ def show():
             st.session_state.clustered_gdf = building_centroids
             st.session_state.buffered_gdf = buffered_gdf
 
-            save_clustered_points(building_centroids)
-            save_buffered_polygons(buffered_gdf)
+            save_clustered_points(building_centroids, CLUSTERED_POINTS_FILE)
+            save_buffered_polygons(buffered_gdf, CLUSTERED_POINTS_FILE)
 
             st.success("Clustering completed. You can now review the results.")
 
-        # Display map
         # Display map
         if st.session_state.clustered_gdf is not None and st.session_state.buffered_gdf is not None:
             m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.buffered_gdf, check_access=False)
