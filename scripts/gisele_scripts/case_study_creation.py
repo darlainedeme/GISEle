@@ -45,7 +45,7 @@ def new_case_study(parameters, output_path_clusters):
         # Save the study area file
         study_area = gpd.read_file(study_area_folder)
         st.write("ciao")
-        st.write(study_area.drop(columns='geometry').head())
+        st.write(study_area.area)
 
         # Process and save the clusters data
         Clusters = gpd.read_file(output_path_clusters)
