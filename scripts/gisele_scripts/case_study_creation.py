@@ -417,14 +417,13 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
     road_dist_data = []
     protected_area_data = []
 
-    # Add actual logic to read elevation, slope, land cover, road distance, and protected area values for each point
+    # Replace these placeholder values with actual logic to read data for each coordinate
     for x, y in coords:
-        # Replace these placeholder values with actual logic to read data for each coordinate
-        elevation_value = 100  # Example static value for elevation
-        slope_value = 10  # Example static value for slope
-        land_cover_value = 2  # Example static value for land cover
-        road_dist_value = 500  # Example static value for road distance
-        protected_area_value = False  # Example static value for protected area
+        elevation_value = get_elevation_at_point(x, y)  # Actual logic needed
+        slope_value = get_slope_at_point(x, y)  # Actual logic needed
+        land_cover_value = get_land_cover_at_point(x, y)  # Actual logic needed
+        road_dist_value = get_road_distance_at_point(x, y)  # Actual logic needed
+        protected_area_value = is_point_in_protected_area(x, y)  # Actual logic needed
 
         elevation_data.append(elevation_value)
         slope_data.append(slope_value)
@@ -445,6 +444,9 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
     }
     df = pd.DataFrame(data)
     geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
+
+    # Check the generated data
+    st.write(df.head())  # Debugging line to verify data
 
     return df, geo_df
 
