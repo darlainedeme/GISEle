@@ -229,6 +229,9 @@ def show():
             st.success("Clustering completed.")
             map_completed = True
 
+    else:
+        st.write("Standard method not yet implemented.")
+
     if map_completed:
         # Initialize map centered on the first cluster's centroid
         m = folium.Map(location=[clusters_gdf.geometry.centroid.y.mean(), clusters_gdf.geometry.centroid.x.mean()],
@@ -281,5 +284,3 @@ def show():
         # Display map in Streamlit
         st_data = st_folium(m, width=1400, height=800)
 
-        else:
-            st.write("Standard method not yet implemented.")
