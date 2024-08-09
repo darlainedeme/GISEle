@@ -552,6 +552,18 @@ def create_grid(crs, resolution, study_area):
 
     return grid_gdf
 
+def delete_leftover_files(dir, crs):
+    """
+    Delete leftover files from the resampling and reprojecting process.
+
+    Parameters:
+    - dir: Directory where data is stored.
+    - crs: CRS used for the files.
+    """
+    folder = dir + '/Intermediate/Geospatial_Data/'
+    os.remove(folder + 'Elevation.tif')
+    os.remove(folder + 'LandCover.tif')
+    os.remove(folder + 'Slope.tif')
 
 def show():
     st.title("Case Study Creation and Weighted Grid of Points")
