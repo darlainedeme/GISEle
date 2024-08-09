@@ -236,12 +236,11 @@ def show():
             st.session_state["output_path_points_clipped"] = output_path_points_clipped
             st.success("Clustering completed.")
 
-            # Display map if clustering has been run
-            if st.session_state["clusters_gdf"] is not None:
-                clusters_gdf = st.session_state["clusters_gdf"]
-                
-                # Create and display the map using the new create_map function
-                create_map(clusters_gdf)
+
+            clusters_gdf = st.session_state["clusters_gdf"]
+            
+            # Create and display the map using the new create_map function
+            create_map(clusters_gdf)
 
     else:
         st.write("Standard method not yet implemented.")
