@@ -378,13 +378,13 @@ def show():
 
         # Cluster button
         if st.button("Cluster"):
+            coords = building_centroids.geometry.apply(lambda geom: (geom.x, geom.y)).tolist()
             if coords:
                 db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
                 labels = db.labels_
                 building_centroids['cluster'] = labels
             else:
                 st.error("No building centroids found. Ensure that the buildings data is correctly loaded and processed.")
-
 
             # Print table with cluster id and number of points
             cluster_summary = building_centroids['cluster'].value_counts().reset_index()
