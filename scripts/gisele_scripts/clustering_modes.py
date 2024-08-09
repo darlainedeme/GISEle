@@ -382,13 +382,11 @@ def show():
         building_centroids = combined_buildings.copy()
         building_centroids['geometry'] = building_centroids['geometry'].centroid
 
-        # Streamlit UI
-        st.title("Building Clustering")
-
-        # DBSCAN parameters
-        eps = st.number_input("EPS (meters)", min_value=1, value=100)
-        min_samples = st.number_input("Min Samples", min_value=1, value=5)
-
+        # DBSCAN parameters inside an expander
+        with st.expander("DBSCAN Parameters", expanded=False):
+            eps = st.number_input("EPS (meters)", min_value=1, value=100)
+            min_samples = st.number_input("Min Samples", min_value=1, value=5)
+            
         # Initialize session state for clustering results
         if 'clustered_gdf' not in st.session_state:
             st.session_state.clustered_gdf = None
@@ -411,14 +409,13 @@ def show():
             cluster_summary.columns = ['Cluster ID', 'Number of Points']
             st.write(cluster_summary)
 
-            # Create buffered polygons instead of convex hulls
+            # Create buffered polygons for all clusters, including outliers
             buffered_polygons = []
-            for cluster_id in cluster_summary['Cluster ID']:
-                if cluster_id != -1:
-                    cluster_points = building_centroids[building_centroids['cluster'] == cluster_id]
-                    buffer = cluster_points.buffer(eps)
-                    merged_polygon = unary_union(buffer)
-                    buffered_polygons.append({'cluster': cluster_id, 'geometry': merged_polygon})
+            for cluster_id in building_centroids['cluster'].unique():
+                cluster_points = building_centroids[building_centroids['cluster'] == cluster_id]
+                buffer = cluster_points.buffer(eps)
+                merged_polygon = unary_union(buffer)
+                buffered_polygons.append({'cluster': cluster_id, 'geometry': merged_polygon})
 
             buffered_gdf = gpd.GeoDataFrame(buffered_polygons, crs=building_centroids.crs)
 
