@@ -3,7 +3,8 @@ import streamlit as st
 st.set_page_config(layout="wide")
 
 # Import your other pages
-from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, clustering_modes, demand_estimation, minigrid_sizing, routing, results
+from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, demand_estimation, minigrid_sizing, routing, results
+from scrips.gisele_scripts import clustering_modes
 
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
