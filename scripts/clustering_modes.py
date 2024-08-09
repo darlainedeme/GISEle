@@ -211,12 +211,9 @@ def building_to_cluster_v1(crs, radius, dens_filter, flag):
     return clusters_gdf, buildings_df
 
 def show():
-    st.title("Clustering Mode")
 
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
-    
-    map_completed = False
     
     with st.expander("Parameters", expanded=False):
         # Input fields for the user to specify paths, CRS, etc.
@@ -225,16 +222,26 @@ def show():
         dens_filter = st.number_input("Density Filter", value=100)
         flag = st.checkbox("Skip Processing", value=False)
 
+    # Initialize session state for clusters and buildings
+    if "clusters_gdf" not in st.session_state:
+        st.session_state["clusters_gdf"] = None
+    if "buildings_df" not in st.session_state:
+        st.session_state["buildings_df"] = None
+
     if method == 'MIT':
         if st.button("Run Clustering"):
             clusters_gdf, buildings_df = building_to_cluster_v1(crs, radius, dens_filter, flag)
+            st.session_state["clusters_gdf"] = clusters_gdf
+            st.session_state["buildings_df"] = buildings_df
             st.success("Clustering completed.")
-            map_completed = True
-
     else:
         st.write("Standard method not yet implemented.")
 
-    if map_completed:
+    # Display map if clustering has been run
+    if st.session_state["clusters_gdf"] is not None and st.session_state["buildings_df"] is not None:
+        clusters_gdf = st.session_state["clusters_gdf"]
+        buildings_df = st.session_state["buildings_df"]
+
         # Initialize map centered on the first cluster's centroid
         m = folium.Map(location=[clusters_gdf.geometry.centroid.y.mean(), clusters_gdf.geometry.centroid.x.mean()],
                        zoom_start=12)
@@ -285,4 +292,3 @@ def show():
 
         # Display map in Streamlit
         st_data = st_folium(m, width=1400, height=800)
-
