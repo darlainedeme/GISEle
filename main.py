@@ -6,41 +6,48 @@ from scripts import home, area_selection, timelapse, data_retrieve, data_visuali
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=200)  # Adjust the width as needed
 
-# Define the main sections
+# Define the main sections with emojis
 main_sections = {
-    "Home": ["Home"],
-    "Area Identification": ["Area Selection", "Satellite Timelapse"],
-    "VANIA": ["Data Retrieve", "Data Visualization and Enhancement", "VANIA Report"],
-    "GISELE": ["Modelling Parameters", "Clustering", "Demand Estimation", "Mini-grid Sizing", "Routing", "Results"]
+    "🏠 Home": ["Home"],
+    "📍 Area Identification": ["Area Selection", "Satellite Timelapse"],
+    "📊 VANIA": ["Data Retrieve", "Data Visualization and Enhancement", "VANIA Report"],
+    "⚙️ GISELE": ["Modelling Parameters", "Clustering", "Demand Estimation", "Mini-grid Sizing", "Routing", "Results"]
 }
 
 # Select the main section
 main_section = st.sidebar.radio("Navigation", list(main_sections.keys()))
 
-# Subpage selection based on the main section
-if main_section == "Home":
+# Visual separation and styling for subpages
+if main_section == "🏠 Home":
+    st.sidebar.markdown("**🏠 Home**", unsafe_allow_html=True)
+    subpage = "Home"
     pages = {
         "Home": home.show
     }
-    subpage = "Home"
 
-elif main_section == "Area Identification":
-    subpage = st.sidebar.radio("Area Identification", main_sections[main_section])
+elif main_section == "📍 Area Identification":
+    st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
+    st.sidebar.markdown("**📍 Area Identification**", unsafe_allow_html=True)
+    subpage = st.sidebar.radio("Area Identification", main_sections[main_section], index=0, key="area_id")
     pages = {
         "Area Selection": area_selection.show,
         "Satellite Timelapse": timelapse.show
     }
 
-elif main_section == "VANIA":
-    subpage = st.sidebar.radio("VANIA", main_sections[main_section])
+elif main_section == "📊 VANIA":
+    st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
+    st.sidebar.markdown("**📊 VANIA**", unsafe_allow_html=True)
+    subpage = st.sidebar.radio("VANIA", main_sections[main_section], index=0, key="vania")
     pages = {
         "Data Retrieve": data_retrieve.show,
         "Data Visualization and Enhancement": data_visualization.show,
         "VANIA Report": vania.show
     }
 
-elif main_section == "GISELE":
-    subpage = st.sidebar.radio("GISELE", main_sections[main_section])
+elif main_section == "⚙️ GISELE":
+    st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
+    st.sidebar.markdown("**⚙️ GISELE**", unsafe_allow_html=True)
+    subpage = st.sidebar.radio("GISELE", main_sections[main_section], index=0, key="gisele")
     pages = {
         "Modelling Parameters": modelling_parameters.show,
         "Clustering": clustering_modes.show,
