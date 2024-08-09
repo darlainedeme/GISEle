@@ -17,7 +17,6 @@ def new_case_study(parameters, output_path_clusters):
         final_output_folder = os.path.join(database, 'data', '5_final_output')
 
         # Create necessary directories for the case study
-        st.write("Creating directories...")
         os.makedirs(os.path.join(intermediate_output_folder, 'Communities'), exist_ok=True)
         os.makedirs(os.path.join(intermediate_output_folder, 'Microgrid'), exist_ok=True)
         os.makedirs(os.path.join(intermediate_output_folder, 'Optimization', 'MILP_output'), exist_ok=True)
@@ -26,12 +25,10 @@ def new_case_study(parameters, output_path_clusters):
         os.makedirs(os.path.join(intermediate_output_folder, 'Optimization', 'all_data', 'Lines_marked'), exist_ok=True)
 
         # Copy the configuration file to the destination directory
-        st.write("Copying configuration file...")
         configuration_path = os.path.join(database, 'data', '0_configuration_files', 'Configuration.csv')
         pd.read_csv(configuration_path).to_csv(os.path.join(intermediate_output_folder, 'Configuration.csv'), index=False)
 
         # Process and save substations data
-        st.write("Processing substations data...")
         substations_path = os.path.join(database, 'data', '4_intermediate_output', 'connection_points', 'con_points.shp')
         Substations = gpd.read_file(substations_path)
         Substations = Substations.to_crs(crs)
@@ -40,12 +37,10 @@ def new_case_study(parameters, output_path_clusters):
         Substations.to_file(os.path.join(database, 'data', '2_downloaded_input_data', 'substations', 'substations.shp'))
 
         # Save the study area file
-        st.write("Saving study area file...")
         study_area = gpd.read_file(study_area_folder)
         study_area.to_file(os.path.join(intermediate_output_folder, 'Study_area.geojson'))
 
         # Process and save the clusters data
-        st.write("Processing clusters data...")
         Clusters = gpd.read_file(output_path_clusters)
         Clusters = Clusters.to_crs(crs)
         Clusters['cluster_ID'] = range(1, Clusters.shape[0] + 1)
@@ -61,7 +56,7 @@ def new_case_study(parameters, output_path_clusters):
         st.error(f"An error occurred during case study creation: {e}")
         raise
 
-def case_study_creation_function():
+def create():
     try:
         st.write("Initializing case study creation...")
 
@@ -75,11 +70,11 @@ def case_study_creation_function():
         # Call the new_case_study function
         Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
 
-        # Display the results
+        # Display the results excluding the geometry column
         st.write("Case study created successfully.")
-        st.write("Clusters:", Clusters)
-        st.write("Study Area:", study_area)
-        st.write("Substations:", Substations)
+        st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
+        st.write("Study Area:", study_area.drop(columns='geometry'))  # Exclude geometry column
+        st.write("Substations:", Substations.drop(columns='geometry'))  # Exclude geometry column
 
     except Exception as e:
         st.error(f"An error occurred during the case study creation process: {e}")
