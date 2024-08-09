@@ -282,6 +282,11 @@ def create_clustering_map(clustered_gdf=None, buffered_gdf=None):
     return m
 
 def show():
+    # Define paths
+    COMBINED_BUILDINGS_FILE = 'data/2_downloaded_input_data/buildings/combined_buildings.geojson'
+    CLUSTERED_POINTS_FILE = 'data\4_intermediate_output\clustering\clustered_points.geojson'
+    BUFFERED_POLYGONS_FILE = 'data\4_intermediate_output\clustering\buffered_polygons.geojson'
+
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
     
@@ -350,11 +355,6 @@ def show():
     # Ensure output directory exists
         os.makedirs('data\4_intermediate_output\clustering', exist_ok=True)
         
-        # Define paths
-        COMBINED_BUILDINGS_FILE = 'data/2_downloaded_input_data/buildings/combined_buildings.geojson'
-        CLUSTERED_POINTS_FILE = 'data\4_intermediate_output\clustering\clustered_points.geojson'
-        BUFFERED_POLYGONS_FILE = 'data\4_intermediate_output\clustering\buffered_polygons.geojson'
-
         # Load combined buildings
         combined_buildings = load_combined_buildings()
         combined_buildings = combined_buildings.to_crs(epsg=3857)  # Reproject to meters
