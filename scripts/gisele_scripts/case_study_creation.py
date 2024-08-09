@@ -503,7 +503,6 @@ def weighting(df, resolution, landcover_option):
     df_weighted.drop_duplicates(['ID'], keep='last', inplace=True)
 
     print("Cleaning and weighting process completed")
-    s()  # Assuming s() is a function elsewhere in your code.
     return df_weighted
 
 def create_grid(crs, resolution, study_area):
