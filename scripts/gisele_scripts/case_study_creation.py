@@ -97,9 +97,6 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     slope_file = os.path.join(geospatial_data_path, 'slope', 'slope.tif')
     landcover_file = os.path.join(database, 'data', '2_downloaded_input_data', 'landcover', 'landcover.tif')
 
-    # Define the necessary paths
-    geospatial_data_path = os.path.join(database, 'data', '4_intermediate_output', 'Geospatial_Data')
-    
     # Open the roads, protected areas, and rivers
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
 
@@ -225,7 +222,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     return df_weighted
 
 def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
-    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'Geospatial_Data')
+    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output')
 
     weighted_grid_of_points = pd.read_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'))
     starting_ID = weighted_grid_of_points['ID'].max() + 1
