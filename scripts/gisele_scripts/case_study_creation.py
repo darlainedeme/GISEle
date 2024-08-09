@@ -89,7 +89,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     """
     crs_str = 'epsg:' + str(crs)
     
-    geospatial_data_path = os.path.join('mount', 'src', 'gisele', 'data', '2_downloaded_input_data')
+    geospatial_data_path = os.path.join('data', '2_downloaded_input_data')
     
     protected_areas_file = os.path.join(geospatial_data_path, 'protected_areas', 'protected_areas.shp')
     roads_file = os.path.join(geospatial_data_path, 'roads', 'roads.shp')
