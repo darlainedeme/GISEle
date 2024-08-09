@@ -88,15 +88,19 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     Create a weighted grid of points for the area of interest.
     """
     crs_str = 'epsg:' + str(crs)
+    
+    protected_areas_file = os.path.join(geospatial_data_path, 'Protected_areas', 'protected_areas.shp')
+    roads_file = os.path.join(geospatial_data_path, 'Roads', 'roads.shp')
+    elevation_file = os.path.join(geospatial_data_path, 'Elevation', 'elevation.tif')
+    slope_file = os.path.join(geospatial_data_path, 'Slope', 'slope.tif')
+    landcover_file = os.path.join(database, 'data', '2_downloaded_input_data', 'landcover', 'landcover.tif')
 
     # Define the necessary paths
     geospatial_data_path = os.path.join(database, 'data', '4_intermediate_output', 'Geospatial_Data')
     
     # Open the roads, protected areas, and rivers
-    protected_areas_file = locate_file(geospatial_data_path, folder='Protected_areas', extension='.shp')
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
 
-    roads_file = locate_file(geospatial_data_path, folder='Roads', extension='.shp')
     streets = gpd.read_file(roads_file).to_crs(crs)
 
     study_area_crs = study_area.to_crs(crs)
@@ -115,7 +119,6 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
         protected_areas_clipped.to_file(os.path.join(geospatial_data_path, 'protected_area.shp'))
 
     # Clip the elevation and then change the CRS
-    elevation_file = locate_file(geospatial_data_path, folder='Elevation', extension='.tif')
     with rasterio.open(elevation_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -134,7 +137,6 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     reproject_raster(input_raster, output_raster, crs_str)
 
     # Clip the slope and then change the CRS
-    slope_file = locate_file(geospatial_data_path, folder='Slope', extension='.tif')
     with rasterio.open(slope_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
@@ -153,7 +155,6 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     reproject_raster(input_raster, output_raster, crs_str)
 
     # Clip the land cover and then change the CRS
-    landcover_file = locate_file(geospatial_data_path, folder='LandCover', extension='.tif')
     with rasterio.open(landcover_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
 
