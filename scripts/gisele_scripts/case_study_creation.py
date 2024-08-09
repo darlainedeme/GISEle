@@ -103,7 +103,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     # Open the roads, protected areas, and rivers
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
     st.write("Protected areas loaded and reprojected:")
-    st.write(protected_areas.head())
+    st.write(protected_areas.drop(columns='geometry').head())
 
     streets = gpd.read_file(roads_file).to_crs(crs)
     st.write("Roads loaded and reprojected:")
