@@ -377,11 +377,35 @@ def show():
         
         # Load combined buildings
         combined_buildings = load_combined_buildings(COMBINED_BUILDINGS_FILE)
-        combined_buildings = combined_buildings.to_crs(epsg=3857)  # Reproject to meters
+        combined_buildings = combined_buildings.to_crs(epsg=3857)  # Ensure CRS is in meters (projected CRS)
 
         # Get building centroids
         building_centroids = combined_buildings.copy()
         building_centroids['geometry'] = building_centroids['geometry'].centroid
+
+        # Perform clustering and buffering in EPSG:3857 (projected CRS)
+        coords = building_centroids.geometry.apply(lambda geom: (geom.x, geom.y)).tolist()
+        if coords:
+            db = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
+            labels = db.labels_
+            building_centroids['cluster'] = labels
+        else:
+            st.error("No building centroids found. Ensure that the buildings data is correctly loaded and processed.")
+
+        # Create buffered polygons instead of convex hulls
+        buffered_polygons = []
+        for cluster_id in cluster_summary['Cluster ID']:
+            if cluster_id != -1:
+                cluster_points = building_centroids[building_centroids['cluster'] == cluster_id]
+                buffer = cluster_points.buffer(eps)
+                merged_polygon = unary_union(buffer)
+                buffered_polygons.append({'cluster': cluster_id, 'geometry': merged_polygon})
+
+        buffered_gdf = gpd.GeoDataFrame(buffered_polygons, crs=building_centroids.crs)
+
+        # Reproject the GeoDataFrame to EPSG:4326 for Folium plotting
+        buffered_gdf = buffered_gdf.to_crs(epsg=4326)
+        building_centroids = building_centroids.to_crs(epsg=4326)
 
         # Streamlit UI
         st.title("Building Clustering")
