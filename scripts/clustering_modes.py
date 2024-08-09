@@ -281,7 +281,7 @@ def show():
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        st_folium(m, width=1400, height=800)
+        # st_folium(m, width=1400, height=800)
 
         # Ensure clustering was performed before attempting to export
         if st.session_state["output_path_clusters"] and st.session_state["output_path_points_clipped"]:
