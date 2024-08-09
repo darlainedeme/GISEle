@@ -219,7 +219,7 @@ def show():
         # Input fields for the user to specify paths, CRS, etc.
         crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
         radius = st.number_input("Radius", value=200)
-        dens_filter = st.number_input("Density Filter", value=100)
+        dens_filter = st.number_input("Density Filter", value=75)
         flag = st.checkbox("Skip Processing", value=False)
 
     # Initialize session state for clusters and buildings
@@ -290,7 +290,7 @@ def show():
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        st_data = st_folium(m, width=1400, height=800)
+        # st_data = st_folium(m, width=1400, height=800)
 
         # Add a button to export the clusters and points as a ZIP file
         if st.button("Export Clusters and Points"):
