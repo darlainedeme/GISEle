@@ -463,50 +463,46 @@ def weighting(df, resolution, landcover_option):
     df_weighted.Slope.fillna(value=0, inplace=True)
     df_weighted.Land_cover.fillna(method='bfill', inplace=True)
     df_weighted['Land_cover'] = df_weighted['Land_cover'].round(0)
-    # df_weighted.Population.fillna(value=0, inplace=True)
     df_weighted['Weight'] = 0
     print('Weighting the Dataframe..')
-    os.chdir(r'general_input//')
-    landcover_csv = pd.read_csv('Landcover.csv')
-    os.chdir(r'..//')
+
+    # Directly load the Landcover.csv file without changing directories
+    landcover_csv_path = os.path.join('data', '0_configuration_files', 'Landcover.csv')
+    landcover_csv = pd.read_csv(landcover_csv_path)
+
     del df
+
     # Weighting section
     # Slope conditions
-    df_weighted['Weight'] = math.e**(
-        0.01732867951 * df_weighted['Slope'])
+    df_weighted['Weight'] = math.e**(0.01732867951 * df_weighted['Slope'])
+
     # Land cover using the column Other or GLC to compute the weight
-    for i,row in landcover_csv.iterrows():
+    for i, row in landcover_csv.iterrows():
         if landcover_option == 'GLC':
-            df_weighted.loc[
-                df_weighted['Land_cover'] == row['GLC2000'], 'Weight'] += \
-            landcover_csv.loc[i, 'WeightGLC']
+            df_weighted.loc[df_weighted['Land_cover'] == row['GLC2000'], 'Weight'] += landcover_csv.loc[i, 'WeightGLC']
         elif landcover_option == 'ESACCI':
-            df_weighted.loc[df_weighted['Land_cover'] == row['ESACCI'],'Weight'] +=landcover_csv.loc[i,'WeightESACCI']
+            df_weighted.loc[df_weighted['Land_cover'] == row['ESACCI'], 'Weight'] += landcover_csv.loc[i, 'WeightESACCI']
         else:
-            df_weighted.loc[
-                df_weighted['Land_cover'] == row['Other'], 'Weight'] += \
-            landcover_csv.loc[i, 'WeightOther']
+            df_weighted.loc[df_weighted['Land_cover'] == row['Other'], 'Weight'] += landcover_csv.loc[i, 'WeightOther']
+
     # Road distance conditions
     df_weighted.loc[df_weighted['Road_dist'] < 1000, 'Weight'] += \
-        5 * df_weighted.loc[
-                  df_weighted[
-                      'Road_dist'] < 1000, 'Road_dist'] / 1000
+        5 * df_weighted.loc[df_weighted['Road_dist'] < 1000, 'Road_dist'] / 1000
 
-    df_weighted.loc[df_weighted['Road_dist'] >= 1000,'Weight'] += 5
+    df_weighted.loc[df_weighted['Road_dist'] >= 1000, 'Weight'] += 5
     df_weighted.loc[df_weighted['Road_dist'] < resolution / 2, 'Weight'] = 1.5
-    #Protected areas condition
+
+    # Protected areas condition
     df_weighted.loc[df_weighted['Protected_area'] == True, 'Weight'] += 5
 
-    # valid_fields = ['ID', 'X', 'Y', 'Population', 'Elevation', 'Weight'] 
+    # Cleaning up the dataframe
     valid_fields = ['ID', 'X', 'Y', 'Elevation', 'Weight']
-    blacklist = []
-    for x in df_weighted.columns:
-        if x not in valid_fields:
-            blacklist.append(x)
+    blacklist = [x for x in df_weighted.columns if x not in valid_fields]
     df_weighted.drop(blacklist, axis=1, inplace=True)
     df_weighted.drop_duplicates(['ID'], keep='last', inplace=True)
+
     print("Cleaning and weighting process completed")
-    s()
+    s()  # Assuming s() is a function elsewhere in your code.
     return df_weighted
 
 def create_grid(crs, resolution, study_area):
