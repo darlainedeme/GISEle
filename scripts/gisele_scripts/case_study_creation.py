@@ -18,7 +18,7 @@ def new_case_study(parameters, output_path_clusters):
 
         # Define paths
         database = gisele_folder
-        study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data', 'selected_area.geojson')
+        study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data')
         intermediate_output_folder = os.path.join(database, 'data', '4_intermediate_output')
         final_output_folder = os.path.join(database, 'data', '5_final_output')
 
