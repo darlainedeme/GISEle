@@ -95,7 +95,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     roads_file = os.path.join(geospatial_data_path, 'roads', 'roads.shp')
     elevation_file = os.path.join(geospatial_data_path, 'elevation', 'Elevation.tif')
     slope_file = os.path.join(geospatial_data_path, 'slope', 'slope.tif')
-    landcover_file = os.path.join(database, 'data', '2_downloaded_input_data', 'landcover', 'landcover.tif')
+    landcover_file = os.path.join(database, 'data', '2_downloaded_input_data', 'landcover', 'LandCover.tif')
 
     # Open the roads, protected areas, and rivers
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
