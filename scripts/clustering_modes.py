@@ -208,7 +208,7 @@ def show():
     st.title("Clustering Mode")
 
     # Input fields for the user to specify paths, CRS, etc.
-    path = st.text_input("Path to Study Region GeoJSON", r"data\3_user_generated_data\study_region.geojson")
+    path = st.text_input("Path to Study Region GeoJSON", r"data\3_user_generated_data\selected_area.geojson")
     crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
     radius = st.number_input("Radius", value=200)
     dens_filter = st.number_input("Density Filter", value=100)
