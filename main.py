@@ -4,7 +4,7 @@ import streamlit as st
 from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, clustering_modes, demand_estimation, minigrid_sizing, routing, results
 
 # Display logo at the very top of the sidebar
-st.sidebar.image("data/logo.png", width=200)  # Adjust the width as needed
+st.sidebar.image("data/logo.png", width=50)  # Adjust the width as needed
 
 # Define the main sections with emojis
 main_sections = {
