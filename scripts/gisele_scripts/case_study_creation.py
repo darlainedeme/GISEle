@@ -397,6 +397,58 @@ def reproject_raster(input_raster, output_raster, dst_crs):
                     dst_crs=dst_crs,
                     resampling=Resampling.nearest)
 
+def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clipped, streets_multipoint, resolution_population):
+    """
+    Convert rasters and other inputs into a grid of points.
+    """
+    # Create the grid
+    pointData = create_grid(crs, resolution, study_area_crs)
+
+    # Ensure pointData has 'X' and 'Y' columns
+    if 'X' not in pointData.columns or 'Y' not in pointData.columns:
+        raise ValueError("pointData does not have 'X' and 'Y' columns")
+
+    coords = [(x, y) for x, y in zip(pointData['X'], pointData['Y'])]
+
+    # Placeholder for reading elevation data
+    elevation_data = []
+    slope_data = []
+    land_cover_data = []
+    road_dist_data = []
+    protected_area_data = []
+
+    # Add actual logic to read elevation, slope, land cover, road distance, and protected area values for each point
+    for x, y in coords:
+        # Replace these placeholder values with actual logic to read data for each coordinate
+        elevation_value = 100  # Example static value for elevation
+        slope_value = 10  # Example static value for slope
+        land_cover_value = 2  # Example static value for land cover
+        road_dist_value = 500  # Example static value for road distance
+        protected_area_value = False  # Example static value for protected area
+
+        elevation_data.append(elevation_value)
+        slope_data.append(slope_value)
+        land_cover_data.append(land_cover_value)
+        road_dist_data.append(road_dist_value)
+        protected_area_data.append(protected_area_value)
+
+    # Create the DataFrame with necessary columns
+    data = {
+        'ID': range(len(coords)),
+        'X': [coord[0] for coord in coords],
+        'Y': [coord[1] for coord in coords],
+        'Elevation': elevation_data,
+        'Slope': slope_data,
+        'Land_cover': land_cover_data,
+        'Road_dist': road_dist_data,
+        'Protected_area': protected_area_data
+    }
+    df = pd.DataFrame(data)
+    geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
+
+    return df, geo_df
+
+
 def show():
     st.title("Case Study Creation and Weighted Grid of Points")
 
