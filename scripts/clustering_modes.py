@@ -71,6 +71,13 @@ def building_to_cluster_v1(crs, flag):
 
             with rasterio.open(output_modified_raster, "w", **meta) as dest:
                 dest.write(result, 1)
+                
+        with rasterio.open(urbanity) as src:
+            out_image, out_transform = mask(src, study_area_buffered.to_crs(src.crs), crop=True)
+
+        # Calculate min and max urbanity values from the raster
+        min_urbanity = np.min(out_image[out_image > 0])  # Ignoring zeros which might represent no data
+        max_urbanity = np.max(out_image)
 
         Urbanity_final = rasterio.open(output_modified_raster)
         coords = [(point.x, point.y) for point in buildings_df['geometry']]
