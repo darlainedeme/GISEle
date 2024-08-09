@@ -45,8 +45,7 @@ def new_case_study(parameters, output_path_clusters):
         # Save the study area file
         study_area = gpd.read_file(study_area_folder)
         st.write(study_area.drop(columns='geometry').head())
-        study_area.to_file(os.path.join(study_area_folder, 'Study_area.geojson'))
-
+        
         # Process and save the clusters data
         Clusters = gpd.read_file(output_path_clusters)
         Clusters = Clusters.to_crs(crs)
