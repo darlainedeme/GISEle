@@ -87,7 +87,6 @@ def create_study():
         raise
 
 def create_input_csv(crs, resolution, resolution_population, landcover_option, database, study_area):
-    st.write(f"Database Path: {database}")    """
     Create a weighted grid of points for the area of interest.
     """
     crs_str = 'epsg:' + str(crs)
