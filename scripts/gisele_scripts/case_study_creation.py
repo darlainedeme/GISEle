@@ -116,7 +116,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     # Create a small buffer to avoid issues
     study_area_buffered = study_area.buffer((resolution * 0.1 / 11250) / 2)
     st.write("Study area buffered:")
-    st.write(study_area_buffered.drop(columns='geometry').head())
+    st.write(study_area_buffered)
 
     # Clip the protected areas and streets
     protected_areas_clipped = gpd.clip(protected_areas, study_area_crs)
