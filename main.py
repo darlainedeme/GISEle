@@ -36,7 +36,7 @@ elif main_section == "📍 Area Identification":
 
 elif main_section == "📊 VANIA":
     st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
-    st.sidebar.markdown("**📊 VANIA**", unsafe_allow_html=True)
+    # st.sidebar.markdown("**📊 VANIA**", unsafe_allow_html=True)
     subpage = st.sidebar.radio("VANIA", main_sections[main_section], index=0, key="vania")
     pages = {
         "Data Retrieve": data_retrieve.show,
@@ -46,7 +46,7 @@ elif main_section == "📊 VANIA":
 
 elif main_section == "⚙️ GISELE":
     st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
-    st.sidebar.markdown("**⚙️ GISELE**", unsafe_allow_html=True)
+    # st.sidebar.markdown("**⚙️ GISELE**", unsafe_allow_html=True)
     subpage = st.sidebar.radio("GISELE", main_sections[main_section], index=0, key="gisele")
     pages = {
         "Modelling Parameters": modelling_parameters.show,
