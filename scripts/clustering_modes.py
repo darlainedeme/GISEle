@@ -207,11 +207,15 @@ def show():
         crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
         flag = st.checkbox("Skip Processing", value=False)
 
-    # Initialize session state for clusters and buildings
+    # Initialize session state for clusters, buildings, and paths
     if "clusters_gdf" not in st.session_state:
         st.session_state["clusters_gdf"] = None
     if "buildings_df" not in st.session_state:
         st.session_state["buildings_df"] = None
+    if "output_path_clusters" not in st.session_state:
+        st.session_state["output_path_clusters"] = None
+    if "output_path_points_clipped" not in st.session_state:
+        st.session_state["output_path_points_clipped"] = None
 
     if method == 'MIT':
         if st.button("Run Clustering"):
@@ -223,6 +227,8 @@ def show():
             
             st.session_state["clusters_gdf"] = clusters_gdf
             st.session_state["buildings_df"] = buildings_df
+            st.session_state["output_path_clusters"] = output_path_clusters
+            st.session_state["output_path_points_clipped"] = output_path_points_clipped
             st.success("Clustering completed.")
     else:
         st.write("Standard method not yet implemented.")
@@ -275,10 +281,10 @@ def show():
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        # st_data = st_folium(m, width=1400, height=800)
+        st_folium(m, width=1400, height=800)
 
         # Ensure clustering was performed before attempting to export
-        if "output_path_clusters" in locals() and "output_path_points_clipped" in locals():
+        if st.session_state["output_path_clusters"] and st.session_state["output_path_points_clipped"]:
             # Add a button to export the clusters and points as a ZIP file
             if st.button("Export Clusters and Points"):
                 # File paths for export
@@ -286,14 +292,14 @@ def show():
 
                 # Create a ZIP file containing the Shapefile
                 with zipfile.ZipFile(zip_path, 'w') as zipf:
-                    zipf.write(output_path_clusters, os.path.basename(output_path_clusters))
-                    for file in os.listdir(os.path.dirname(output_path_clusters)):
+                    zipf.write(st.session_state["output_path_clusters"], os.path.basename(st.session_state["output_path_clusters"]))
+                    for file in os.listdir(os.path.dirname(st.session_state["output_path_clusters"])):
                         if file.startswith("Communities_boundaries"):
-                            zipf.write(os.path.join(os.path.dirname(output_path_clusters), file), file)
-                    zipf.write(output_path_points_clipped, os.path.basename(output_path_points_clipped))
-                    for file in os.listdir(os.path.dirname(output_path_points_clipped)):
+                            zipf.write(os.path.join(os.path.dirname(st.session_state["output_path_clusters"]), file), file)
+                    zipf.write(st.session_state["output_path_points_clipped"], os.path.basename(st.session_state["output_path_points_clipped"]))
+                    for file in os.listdir(os.path.dirname(st.session_state["output_path_points_clipped"])):
                         if file.startswith("points_clipped"):
-                            zipf.write(os.path.join(os.path.dirname(output_path_points_clipped), file), file)
+                            zipf.write(os.path.join(os.path.dirname(st.session_state["output_path_points_clipped"]), file), file)
 
                 st.success(f"Export completed! Files saved in '{zip_path}'.")
 
