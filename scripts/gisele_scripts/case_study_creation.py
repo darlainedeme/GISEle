@@ -18,7 +18,7 @@ def new_case_study(parameters, output_path_clusters):
 
         # Define paths
         database = gisele_folder
-        study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data')
+        study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data', 'selected_area.geojson')
         intermediate_output_folder = os.path.join(database, 'data', '4_intermediate_output')
         final_output_folder = os.path.join(database, 'data', '5_final_output')
 
@@ -45,7 +45,7 @@ def new_case_study(parameters, output_path_clusters):
         # Save the study area file
         study_area = gpd.read_file(study_area_folder)
         st.write(study_area.drop(columns='geometry').head())
-        
+
         # Process and save the clusters data
         Clusters = gpd.read_file(output_path_clusters)
         Clusters = Clusters.to_crs(crs)
