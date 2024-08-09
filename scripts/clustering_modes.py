@@ -235,15 +235,17 @@ def show():
             st.session_state["output_path_clusters"] = output_path_clusters
             st.session_state["output_path_points_clipped"] = output_path_points_clipped
             st.success("Clustering completed.")
-
-
-            clusters_gdf = st.session_state["clusters_gdf"]
-            
-            # Create and display the map using the new create_map function
-            create_map(clusters_gdf)
+    
+    # Check if clusters_gdf exists in session state before trying to create the map
+    if st.session_state["clusters_gdf"] is not None:
+        clusters_gdf = st.session_state["clusters_gdf"]
+        
+        # Create and display the map using the new create_map function
+        create_map(clusters_gdf)
 
     else:
-        st.write("Standard method not yet implemented.")
+        st.write("No clustering data available. Please run the clustering process first.")
+
 
         '''
         # Ensure clustering was performed before attempting to export
