@@ -145,6 +145,7 @@ def building_to_cluster_v1(crs, flag):
 
     return clusters_gdf, buildings_df, output_path_clusters, output_path_points_clipped
 
+@st.cache_resource
 def show():
     st.session_state["clusters_gdf"] = None
     
