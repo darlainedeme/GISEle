@@ -55,7 +55,7 @@ elif main_section == "⚙️ GISELE":
     pages = {
         "Modelling Parameters": modelling_parameters.show,
         "Clustering": clustering_modes.show,
-        "Case Study": case_study_creation.create,
+        "Case Study": case_study_creation.show,
         "Demand Estimation": demand_estimation.show,
         "Mini-grid Sizing": minigrid_sizing.show,
         "Routing": routing.show,

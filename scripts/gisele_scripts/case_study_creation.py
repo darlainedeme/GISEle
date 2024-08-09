@@ -1,7 +1,10 @@
 import os
 import geopandas as gpd
 import pandas as pd
+import rasterio
+from shapely.geometry import MultiPoint, MultiLineString
 import streamlit as st
+
 
 def new_case_study(parameters, output_path_clusters):
     try:
@@ -56,7 +59,7 @@ def new_case_study(parameters, output_path_clusters):
         st.error(f"An error occurred during case study creation: {e}")
         raise
 
-def create():
+def create_study():
     try:
         st.write("Initializing case study creation...")
 
@@ -79,3 +82,347 @@ def create():
     except Exception as e:
         st.error(f"An error occurred during the case study creation process: {e}")
         raise
+
+def create_input_csv(crs, resolution, resolution_population, landcover_option, database, study_area):
+    """
+    Create a weighted grid of points for the area of interest.
+    """
+    crs_str = 'epsg:' + str(crs)
+
+    # Define the necessary paths
+    geospatial_data_path = os.path.join(database, 'data', '4_intermediate_output', 'Geospatial_Data')
+    
+    # Open the roads, protected areas, and rivers
+    protected_areas_file = locate_file(geospatial_data_path, folder='Protected_areas', extension='.shp')
+    protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
+
+    roads_file = locate_file(geospatial_data_path, folder='Roads', extension='.shp')
+    streets = gpd.read_file(roads_file).to_crs(crs)
+
+    study_area_crs = study_area.to_crs(crs)
+
+    # Create a small buffer to avoid issues
+    study_area_buffered = study_area.buffer((resolution * 0.1 / 11250) / 2)
+
+    # Clip the protected areas and streets
+    protected_areas_clipped = gpd.clip(protected_areas, study_area_crs)
+    streets_clipped = gpd.clip(streets, study_area_crs)
+
+    if not streets_clipped.empty:
+        streets_clipped.to_file(os.path.join(geospatial_data_path, 'Roads.shp'))
+
+    if not protected_areas_clipped.empty:
+        protected_areas_clipped.to_file(os.path.join(geospatial_data_path, 'protected_area.shp'))
+
+    # Clip the elevation and then change the CRS
+    elevation_file = locate_file(geospatial_data_path, folder='Elevation', extension='.tif')
+    with rasterio.open(elevation_file, mode='r') as src:
+        out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
+
+    out_meta = src.meta
+    out_meta.update({"driver": "GTiff",
+                     "height": out_image.shape[1],
+                     "width": out_image.shape[2],
+                     "transform": out_transform})
+
+    with rasterio.open(os.path.join(geospatial_data_path, 'Elevation.tif'), "w", **out_meta) as dest:
+        dest.write(out_image)
+
+    # Reproject using rasterio
+    input_raster = os.path.join(geospatial_data_path, 'Elevation.tif')
+    output_raster = os.path.join(geospatial_data_path, f'Elevation_{crs}.tif')
+    reproject_raster(input_raster, output_raster, crs_str)
+
+    # Clip the slope and then change the CRS
+    slope_file = locate_file(geospatial_data_path, folder='Slope', extension='.tif')
+    with rasterio.open(slope_file, mode='r') as src:
+        out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
+
+    out_meta = src.meta
+    out_meta.update({"driver": "GTiff",
+                     "height": out_image.shape[1],
+                     "width": out_image.shape[2],
+                     "transform": out_transform})
+
+    with rasterio.open(os.path.join(geospatial_data_path, 'Slope.tif'), "w", **out_meta) as dest:
+        dest.write(out_image)
+
+    # Reproject using rasterio
+    input_raster = os.path.join(geospatial_data_path, 'Slope.tif')
+    output_raster = os.path.join(geospatial_data_path, f'Slope_{crs}.tif')
+    reproject_raster(input_raster, output_raster, crs_str)
+
+    # Clip the land cover and then change the CRS
+    landcover_file = locate_file(geospatial_data_path, folder='LandCover', extension='.tif')
+    with rasterio.open(landcover_file, mode='r') as src:
+        out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
+
+    out_meta = src.meta
+    out_meta.update({"driver": "GTiff",
+                     "height": out_image.shape[1],
+                     "width": out_image.shape[2],
+                     "transform": out_transform})
+
+    with rasterio.open(os.path.join(geospatial_data_path, 'LandCover.tif'), "w", **out_meta) as dest:
+        dest.write(out_image)
+
+    # Reproject using rasterio
+    input_raster = os.path.join(geospatial_data_path, 'LandCover.tif')
+    output_raster = os.path.join(geospatial_data_path, f'LandCover_{crs}.tif')
+    reproject_raster(input_raster, output_raster, crs_str)
+
+    # Convert streets from lines to multipoints
+    streets_points = []
+    for line in streets_clipped['geometry']:
+        try:
+            if line.geom_type == 'MultiLineString':
+                for line1 in line.geoms:
+                    for x in zip(line1.xy[0], line1.xy[1]):
+                        streets_points.append(x)
+            elif line.geom_type == 'LineString':
+                for x in zip(line.xy[0], line.xy[1]):
+                    streets_points.append(x)
+            else:
+                st.warning(f"Unexpected geometry type: {line.geom_type}")
+        except AttributeError as e:
+            st.error(f"AttributeError: {e} for geometry: {line}")
+        except TypeError as e:
+            st.error(f"TypeError: {e} for geometry: {line}")
+
+    if streets_points:
+        streets_multipoint = MultiPoint(streets_points)
+    else:
+        streets_multipoint = MultiPoint()
+        st.warning("No points extracted from streets data")
+
+    # Create and populate the grid of points
+    df, geo_df = rasters_to_points(study_area_crs, crs, resolution, geospatial_data_path, protected_areas_clipped, streets_multipoint, resolution_population)
+    geo_df.to_file(os.path.join(geospatial_data_path, 'grid_of_points.shp'))
+
+    geo_df = geo_df.reset_index(drop=True)
+    geo_df['ID'] = geo_df.index
+    df = df.reset_index(drop=True)
+    df['ID'] = df.index
+
+    df.to_csv(os.path.join(geospatial_data_path, 'grid_of_points.csv'), index=False)
+
+    # Check if the required columns exist
+    required_columns = ['Elevation', 'Slope', 'Land_cover', 'Road_dist', 'Protected_area']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"Column {col} not found in DataFrame")
+
+    # Perform the weighting of the grid of points
+    df_weighted = initialization.weighting(df, resolution, landcover_option)
+    df_weighted.to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'), index=False)
+
+    # Delete leftover files
+    delete_leftover_files(geospatial_data_path, crs)
+
+    return df_weighted
+
+def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
+    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'Geospatial_Data')
+
+    weighted_grid_of_points = pd.read_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'))
+    starting_ID = weighted_grid_of_points['ID'].max() + 1
+    ROADS_unfiltered = gpd.read_file(os.path.join(geospatial_data_path, 'Roads.shp'))
+    ROADS_unfiltered = ROADS_unfiltered.to_crs(crs)
+    ROADS = MultiLine_to_Line(ROADS_unfiltered)
+    all_points = gpd.GeoDataFrame()
+    gdf_ROADS, ROADS_segments = create_roads2(ROADS, all_points, crs)
+    gdf_ROADS.crs = crs
+    ROADS_segments.crs = crs
+
+    MP = MultiPolygon([p for p in Clusters['geometry']])
+    nodes = ROADS_segments.ID1.to_list() + ROADS_segments.ID2.to_list()
+    nodes = [int(i) for i in nodes]
+    occurence = Counter(nodes)
+
+    intersection_IDs = []
+    terminal_IDs = []
+    for i in occurence:
+        if occurence[i] == 1:
+            terminal_IDs.append(i)
+        elif occurence[i] > 2:
+            intersection_IDs.append(i)
+    new_nodes = terminal_IDs + intersection_IDs
+
+    Substations = new_nodes
+    Nodes = gdf_ROADS.copy()
+    Nodes.loc[Nodes['ID'].isin(new_nodes), 'Substation'] = 1
+
+    Nodes['inside_clusters'] = [1 if MP.contains(row['geometry']) else 0 for i, row in Nodes.iterrows()]
+    Lines = ROADS_segments.copy()
+    Lines.ID1 = Lines.ID1.astype(int)
+    Lines.ID2 = Lines.ID2.astype(int)
+
+    Lines_marked = Lines.copy()
+    conn_param = 0
+    New_Lines = gpd.GeoDataFrame(columns=['ID1', 'ID2', 'Cost', 'length', 'geometry', 'Conn_param'], crs=crs, geometry='geometry')
+    while not Lines.empty:
+        nodes = Lines.ID1.to_list() + Lines.ID2.to_list()
+        nodes = [int(i) for i in nodes]
+        Substations = list(set(Substations) & set(nodes))
+        current_node = int(Substations[0])
+        no_lines = False
+        tot_length = 0
+        tot_cost = 0
+        id1 = current_node
+        while not no_lines:
+            next_index = Lines.index[Lines['ID1'] == current_node].to_list()
+            if next_index:
+                next_index = next_index[0]
+                next_node = Lines.loc[next_index, 'ID2']
+                tot_length = tot_length + Lines.loc[next_index, 'length']
+                tot_cost = tot_cost + Lines.loc[next_index, 'length']
+                Lines.drop(index=next_index, inplace=True)
+            else:
+                next_index = Lines.index[Lines['ID2'] == current_node].to_list()
+                if next_index:
+                    next_index = next_index[0]
+                    next_node = Lines.loc[next_index, 'ID1']
+                    tot_length = tot_length + Lines.loc[next_index, 'length']
+                    tot_cost = tot_cost + Lines.loc[next_index, 'length']
+                    Lines.drop(index=next_index, inplace=True)
+                else:
+                    no_lines = True
+
+            if not no_lines:
+                is_substation = Nodes.loc[Nodes.ID == int(next_node), 'Substation'] == 1
+                is_inside = int(Nodes.loc[Nodes.ID == int(next_node), 'inside_clusters'])
+                if is_inside == 1:
+                    max_tot_length = resolution_LV / 1000
+                else:
+                    max_tot_length = resolution_MV / 1000
+                Lines_marked.loc[next_index, 'Conn_param'] = conn_param
+                if is_substation.values[0]:
+                    Point1 = Nodes.loc[Nodes['ID'] == int(id1), 'geometry'].values[0]
+                    Point2 = Nodes.loc[Nodes['ID'] == int(next_node), 'geometry'].values[0]
+                    geom = LineString([Point1, Point2])
+                    Data = {'ID1': id1, 'ID2': next_node, 'Cost': tot_cost, 'length': tot_length, 'geometry': geom, 'Conn_param': conn_param}
+                    New_Lines = pd.concat([New_Lines, gpd.GeoDataFrame([Data], crs=crs, geometry='geometry')], ignore_index=True)
+                    current_node = next_node
+                    tot_length = 0
+                    tot_cost = 0
+                    id1 = current_node
+                    conn_param = conn_param + 1
+                elif tot_length > max_tot_length:
+                    Point1 = Nodes.loc[Nodes['ID'] == int(id1), 'geometry'].values[0]
+                    Point2 = Nodes.loc[Nodes['ID'] == int(next_node), 'geometry'].values[0]
+                    geom = LineString([Point1, Point2])
+                    Data = {'ID1': id1, 'ID2': next_node, 'Cost': tot_cost, 'length': tot_length, 'geometry': geom, 'Conn_param': conn_param}
+                    New_Lines = pd.concat([New_Lines, gpd.GeoDataFrame([Data], crs=crs, geometry='geometry')], ignore_index=True)
+                    current_node = next_node
+                    tot_length = 0
+                    tot_cost = 0
+                    id1 = current_node
+                    conn_param = conn_param + 1
+                else:
+                    current_node = next_node
+
+    new_lines = []
+    for i, row in New_Lines.iterrows():
+        actual_Lines = Lines_marked.loc[Lines_marked['Conn_param'] == row['Conn_param'], 'geometry']
+        new_line = MultiLineString([actual_Lines.values[i] for i in range(len(actual_Lines))])
+        new_lines.append(new_line)
+
+    New_Lines.geometry = new_lines
+
+    new_nodes = New_Lines.ID1.to_list() + New_Lines.ID2.to_list()
+    New_Nodes = gdf_ROADS[gdf_ROADS['ID'].isin(new_nodes)]
+    New_Nodes.reset_index(inplace=True)
+    for i, row in New_Nodes.iterrows():
+        id = int(i)
+        New_Nodes.loc[i, 'ID'] = id
+        New_Lines.loc[New_Lines['ID1'] == row['ID'], 'ID1'] = id
+        New_Lines.loc[New_Lines['ID2'] == row['ID'], 'ID2'] = id
+
+    New_Nodes['ID'] += starting_ID
+    New_Lines['ID1'] += starting_ID
+    New_Lines['ID2'] += starting_ID
+
+    drop = New_Lines.loc[New_Lines['ID1'] == New_Lines['ID2'], :]
+    if not len(drop) == 0:
+        New_Lines.drop(index=drop.index, inplace=True)
+
+    New_Lines.to_file(os.path.join(geospatial_data_path, 'Roads_lines', 'Roads_lines.shp'))
+    New_Nodes.to_file(os.path.join(geospatial_data_path, 'Roads_points', 'Roads_points.shp'))
+
+    return New_Nodes, New_Lines
+
+def Merge_Roads_GridOfPoints(gisele_folder):
+    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'Geospatial_Data')
+
+    road_points = gpd.read_file(os.path.join(geospatial_data_path, 'Roads_points', 'Roads_points.shp'))
+    weighted_grid_points = pd.read_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'))
+
+    weighted_grid_points['Type'] = 'Standard'
+    road_points['Type'] = 'Road'
+
+    road_points.drop(columns=['geometry'], inplace=True)
+
+    weighted_grid_points_with_roads = pd.concat([weighted_grid_points, road_points], ignore_index=True)
+    weighted_grid_points_with_roads[['X', 'Y', 'ID', 'Elevation', 'Type', 'Weight', 'Elevation']].\
+        to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points_with_roads.csv'))
+
+def show():
+    st.title("Case Study Creation and Weighted Grid of Points")
+
+    # Step 1: Create the Case Study
+    with st.expander("Case Study Parameters", expanded=True):
+        st.write("Initialize the parameters for creating a new case study.")
+        
+        # Parameters for case study creation
+        gisele_folder = st.text_input("GISELE Folder Path", "/mount/src/gisele")
+        crs = st.number_input("Coordinate Reference System (CRS)", value=4326)
+        output_path_clusters = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
+
+        if st.button("Create Case Study"):
+            parameters = {
+                "gisele_folder": gisele_folder,
+                "crs": crs
+            }
+            Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
+            st.write("Case study created successfully.")
+            st.write("Clusters:", Clusters.drop(columns='geometry'))
+            st.write("Study Area:", study_area.drop(columns='geometry'))
+            st.write("Substations:", Substations.drop(columns='geometry'))
+
+    # Step 2: Create the Weighted Grid of Points
+    with st.expander("Weighted Grid Parameters", expanded=True):
+        st.write("Define the parameters for creating a weighted grid of points.")
+        
+        resolution = st.number_input("Grid Resolution (meters)", value=100)
+        resolution_population = st.number_input("Population Resolution (meters)", value=100)
+        landcover_option = st.text_input("Landcover Option", "landcover_type")
+
+        if st.button("Create Weighted Grid CSV"):
+            study_area = gpd.read_file(os.path.join(gisele_folder, 'data', '3_user_uploaded_data', 'selected_area.geojson'))
+            df_weighted = create_input_csv(crs, resolution, resolution_population, landcover_option, gisele_folder, study_area)
+            st.write("Weighted grid of points CSV created successfully.")
+            st.dataframe(df_weighted.head())
+
+    # Optional: Additional steps for creating roads and merging grids
+    with st.expander("Roads and Merging (Optional)", expanded=False):
+        st.write("You can optionally create roads and merge them with the grid of points.")
+        
+        accepted_road_types = st.multiselect(
+            "Accepted Road Types",
+            options=[
+                'living_street', 'pedestrian', 'primary', 'primary_link', 'secondary', 'secondary_link',
+                'tertiary', 'tertiary_link', 'unclassified', 'residential'
+            ],
+            default=[
+                'living_street', 'pedestrian', 'primary', 'primary_link', 'secondary', 'secondary_link',
+                'tertiary', 'tertiary_link', 'unclassified', 'residential'
+            ]
+        )
+        resolution_MV = st.number_input("MV Resolution (meters)", value=1000)
+        resolution_LV = st.number_input("LV Resolution (meters)", value=100)
+
+        if st.button("Create Roads and Merge with Grid"):
+            Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
+            New_Nodes, New_Lines = create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV)
+            Merge_Roads_GridOfPoints(gisele_folder)
+            st.write("Roads created and merged with the grid of points successfully.")
