@@ -518,6 +518,7 @@ def create_grid(crs, resolution, study_area):
     """
     # Get the bounding box of the study area
     min_x, min_y, max_x, max_y = study_area.total_bounds
+    st.write(f"Bounding box of study area: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
 
     # Ensure resolution is valid
     if resolution <= 0:
@@ -532,12 +533,12 @@ def create_grid(crs, resolution, study_area):
         lon = np.arange(min_x, max_x, resolution)
         lat = np.arange(min_y, max_y, resolution)
         grid_points = [Point(x, y) for x in lon for y in lat]
+        st.write(f"Number of grid points generated: {len(grid_points)}")
     except Exception as e:
         raise ValueError(f"Error creating grid points: {e}")
 
     # Create a GeoDataFrame from the grid points
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
-    st.write(f"Number of grid points created: {len(grid_gdf)}")
 
     # Add X and Y columns
     grid_gdf['X'] = grid_gdf.geometry.x
@@ -545,6 +546,7 @@ def create_grid(crs, resolution, study_area):
     
     # Clip the grid to the study area
     grid_gdf = gpd.clip(grid_gdf, study_area)
+    st.write(f"Number of grid points after clipping to study area: {len(grid_gdf)}")
 
     return grid_gdf
 
