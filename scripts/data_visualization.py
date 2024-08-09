@@ -149,4 +149,12 @@ def show():
     map_output = st_folium(m, width=1400, height=800)
 
     # Save enhanced data if any
-    if map_output and 'las
+    if map_output and 'last_active_drawing' in map_output and map_output['last_active_drawing']:
+        drawn_data = map_output['last_active_drawing']['geometry']
+        drawn_gdf = gpd.GeoDataFrame([drawn_data], columns=['geometry'], crs='EPSG:4326')
+        enhanced_gdf = pd.concat([data_gdf, drawn_gdf], ignore_index=True)
+        save_enhanced_data(enhanced_gdf, DATA_PATHS[data_key])
+        st.success(f"Enhanced data saved for {selected_subpage}")
+
+if __name__ == "__main__":
+    show()
