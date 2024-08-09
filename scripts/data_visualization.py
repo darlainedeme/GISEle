@@ -4,8 +4,10 @@ from streamlit_folium import st_folium
 import geopandas as gpd
 import json
 import os
+import matplotlib.pyplot as plt
 from folium.plugins import Draw, Fullscreen, MeasureControl
 import pandas as pd
+
 
 # Define paths
 DATA_PATHS = {
@@ -66,6 +68,10 @@ def create_map(data_gdf=None, data_key=None, draw_enabled=False):
     ).add_to(m)
 
 
+# Create map function
+def create_map(data_gdf=None, data_key=None, draw_enabled=False):
+    m = folium.Map(location=[0, 0], zoom_start=2)
+
     if data_gdf is not None and not data_gdf.empty:
         bounds = data_gdf.geometry.total_bounds
         m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
@@ -73,8 +79,7 @@ def create_map(data_gdf=None, data_key=None, draw_enabled=False):
         if data_key == "buildings":
             # Add building layers with different colors based on the "source"
             unique_sources = data_gdf["source"].unique()
-            colors = folium.colors.linear.Set1_09.scale(0, len(unique_sources))
-            source_color_map = dict(zip(unique_sources, colors))
+            source_color_map = generate_color_map(unique_sources)
 
             for _, row in data_gdf.iterrows():
                 folium.GeoJson(
