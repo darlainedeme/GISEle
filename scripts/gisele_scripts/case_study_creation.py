@@ -574,7 +574,7 @@ def show():
         
         resolution = st.number_input("Grid Resolution (meters)", value=100)
         resolution_population = st.number_input("Population Resolution (meters)", value=100)
-        landcover_option = st.text_input("Landcover Option", "landcover_type")
+        landcover_option = st.text_input("Landcover Option", "ESA")
 
         if st.button("Create Weighted Grid CSV"):
             study_area = gpd.read_file(os.path.join(gisele_folder, 'data', '3_user_uploaded_data', 'selected_area.geojson'))
