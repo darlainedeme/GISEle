@@ -1,21 +1,19 @@
 import os
 import numpy as np
-import pandas as pd
 import geopandas as gpd
 import rasterio
+from rasterio.mask import mask
+from shapely.geometry import MultiPoint, MultiPolygon, Polygon
+from shapely.ops import unary_union
 from scipy.ndimage import convolve
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import pdist, squareform
 from sklearn.cluster import AgglomerativeClustering
-from rasterio.mask import mask
-from shapely.geometry import MultiPoint, MultiPolygon, Polygon
-from shapely.ops import unary_union
 from scipy.interpolate import interp1d
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
-from rasterio.enums import Resampling
 import zipfile
 
 # Function to perform clustering and cleaning on building data
@@ -81,22 +79,19 @@ def poles_clustering_and_cleaning(buildings_filter, crs, chain_upper_bound, pole
     return buildings_adjusted_gdf
 
 # Main function to perform the building clustering
-def building_to_cluster_v1(crs, radius, dens_filter, flag):
+def building_to_cluster_v1(crs, flag):
     # Hardcoded path to the study region
     path = os.path.join("data", "3_user_uploaded_data", "selected_area.geojson")
     studyregion_original = gpd.read_file(path)
     study_area_buffered = studyregion_original.buffer((2500 * 0.1 / 11250))
 
     # Update paths as per the new directory structure
-    base_dir = os.path.dirname(path)
     building_path = os.path.join("data", "2_downloaded_input_data", "buildings", "mit", "merged.shp")
     urbanity = os.path.join("data", "2_downloaded_input_data", "urbanity", "urbanity.tif")
-    output_folder_points = os.path.join("data", "2_downloaded_input_data", "buildings", "mit")
-    output_folder_pointsclipped = os.path.join("data", "2_downloaded_input_data", "buildings", "mit", "points")
     output_folder_clusters = os.path.join("data", "4_intermediate_output", "clustering")
     output_path_clusters = os.path.join(output_folder_clusters, "Communities_boundaries.shp")
     
-    output_path_points = os.path.join(output_folder_points, 'points.shp')
+    output_folder_pointsclipped = os.path.join("data", "2_downloaded_input_data", "buildings", "mit", "points")
     output_path_points_clipped = os.path.join(output_folder_pointsclipped, 'points_clipped.shp')
 
     if not flag:
@@ -145,15 +140,6 @@ def building_to_cluster_v1(crs, radius, dens_filter, flag):
         if not os.path.exists(output_folder_pointsclipped):
             os.makedirs(output_folder_pointsclipped)
         buildings_df.to_file(output_path_points_clipped)
-
-        if not os.path.exists(output_folder_points):
-            os.makedirs(output_folder_points)
-
-        # Apply clustering
-        max_distance = 20
-        pole_distance = 30
-        buildings_df_up = poles_clustering_and_cleaning(buildings_df, crs, max_distance, pole_distance)
-        buildings_df_up.to_file(output_path_points)
 
     else:
         buildings_df = gpd.read_file(output_path_points_clipped)
@@ -209,17 +195,15 @@ def building_to_cluster_v1(crs, radius, dens_filter, flag):
 
     clusters_gdf.to_file(output_path_clusters)
 
-    return clusters_gdf, buildings_df
+    return clusters_gdf, buildings_df, output_path_clusters, output_path_points_clipped
 
 def show():
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
     
     with st.expander("Parameters", expanded=False):
-        # Input fields for the user to specify paths, CRS, etc.
+        # Input fields for the user to specify CRS and whether to skip processing
         crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
-        radius = st.number_input("Radius", value=200)
-        dens_filter = st.number_input("Density Filter", value=10)
         flag = st.checkbox("Skip Processing", value=False)
 
     # Initialize session state for clusters and buildings
@@ -230,7 +214,7 @@ def show():
 
     if method == 'MIT':
         if st.button("Run Clustering"):
-            clusters_gdf, buildings_df = building_to_cluster_v1(crs, radius, dens_filter, flag)
+            clusters_gdf, buildings_df, output_path_clusters, output_path_points_clipped = building_to_cluster_v1(crs, flag)
             
             # Ensure that the output GeoDataFrames are in the correct CRS
             clusters_gdf = clusters_gdf.to_crs(epsg=crs)
@@ -295,20 +279,18 @@ def show():
         # Add a button to export the clusters and points as a ZIP file
         if st.button("Export Clusters and Points"):
             # File paths for export
-            clusters_path = "clusters_export.geojson"
             zip_path = "exported_data.zip"
 
-            # Export the GeoDataFrames to GeoJSON
-            clusters_gdf.to_file(clusters_path, driver='GeoJSON')
-
-            # Create a ZIP file containing the GeoJSON files
+            # Create a ZIP file containing the Shapefile
             with zipfile.ZipFile(zip_path, 'w') as zipf:
-                zipf.write(clusters_path, os.path.basename(clusters_path))
-                # zipf.write(points_path, os.path.basename(points_path))
+                zipf.write(output_path_clusters, os.path.basename(output_path_clusters))
+                for file in os.listdir(os.path.dirname(output_path_clusters)):
+                    if file.startswith("Communities_boundaries"):
+                        zipf.write(os.path.join(os.path.dirname(output_path_clusters), file), file)
+                zipf.write(output_path_points_clipped, os.path.basename(output_path_points_clipped))
 
             st.success(f"Export completed! Files saved in '{zip_path}'.")
 
             # Provide a download button for the ZIP file
             with open(zip_path, "rb") as f:
                 st.download_button('Download Exported Data', f, file_name=zip_path)
-
