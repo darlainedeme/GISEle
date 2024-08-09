@@ -183,55 +183,55 @@ def show():
     else:
         st.write("Standard method not yet implemented.")
 
- # Display map if clustering has been run
-if st.session_state["clusters_gdf"] is not None:
-    clusters_gdf = st.session_state["clusters_gdf"].to_crs(epsg=4326)  # Ensure CRS is WGS84 for Folium
-    
-    # Initialize map centered on the first cluster's centroid
-    m = folium.Map(location=[clusters_gdf.geometry.centroid.y.mean(), clusters_gdf.geometry.centroid.x.mean()],
-                   zoom_start=12)
+    # Display map if clustering has been run
+    if st.session_state["clusters_gdf"] is not None:
+        clusters_gdf = st.session_state["clusters_gdf"].to_crs(epsg=4326)  # Ensure CRS is WGS84 for Folium
+        
+        # Initialize map centered on the first cluster's centroid
+        m = folium.Map(location=[clusters_gdf.geometry.centroid.y.mean(), clusters_gdf.geometry.centroid.x.mean()],
+                       zoom_start=12)
 
-    # Add tile layers
-    folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
-    folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
-    folium.TileLayer(
-        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
-        attr='Google',
-        name='Google Maps',
-        overlay=False,
-        control=True
-    ).add_to(m)
-    folium.TileLayer(
-        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
-        attr='Google',
-        name='Google Hybrid',
-        overlay=False,
-        control=True
-    ).add_to(m)
-    folium.TileLayer(
-        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr='Esri',
-        name='Esri Satellite',
-        overlay=False,
-        control=True
-    ).add_to(m)
-
-    # Add clusters polygons to map
-    for _, row in clusters_gdf.iterrows():
-        folium.GeoJson(
-            row.geometry,
-            style_function=lambda x, color=row.name: {
-                'fillColor': '#0000ff',
-                'color': '#0000ff',
-                'weight': 1,
-                'fillOpacity': 0.2
-            }
+        # Add tile layers
+        folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+        folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+        folium.TileLayer(
+            tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+            attr='Google',
+            name='Google Maps',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        folium.TileLayer(
+            tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+            attr='Google',
+            name='Google Hybrid',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        folium.TileLayer(
+            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attr='Esri',
+            name='Esri Satellite',
+            overlay=False,
+            control=True
         ).add_to(m)
 
-    folium.LayerControl().add_to(m)
+        # Add clusters polygons to map
+        for _, row in clusters_gdf.iterrows():
+            folium.GeoJson(
+                row.geometry,
+                style_function=lambda x, color=row.name: {
+                    'fillColor': '#0000ff',
+                    'color': '#0000ff',
+                    'weight': 1,
+                    'fillOpacity': 0.2
+                }
+            ).add_to(m)
 
-    # Display map in Streamlit
-    st_folium(m, width=1400, height=800)   
+        folium.LayerControl().add_to(m)
+
+        # Display map in Streamlit
+        st_folium(m, width=1400, height=800)   
 
 
         '''
