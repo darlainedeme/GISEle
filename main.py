@@ -19,7 +19,7 @@ main_section = st.sidebar.radio("Navigation", list(main_sections.keys()))
 
 # Visual separation and styling for subpages
 if main_section == "🏠 Home":
-    st.sidebar.markdown("**🏠 Home**", unsafe_allow_html=True)
+    # st.sidebar.markdown("**🏠 Home**", unsafe_allow_html=True)
     subpage = "Home"
     pages = {
         "Home": home.show
@@ -27,7 +27,7 @@ if main_section == "🏠 Home":
 
 elif main_section == "📍 Area Identification":
     st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
-    st.sidebar.markdown("**📍 Area Identification**", unsafe_allow_html=True)
+    # st.sidebar.markdown("**📍 Area Identification**", unsafe_allow_html=True)
     subpage = st.sidebar.radio("Area Identification", main_sections[main_section], index=0, key="area_id")
     pages = {
         "Area Selection": area_selection.show,
