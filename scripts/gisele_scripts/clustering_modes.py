@@ -230,10 +230,12 @@ def save_clustered_points(gdf):
 def save_buffered_polygons(gdf):
     gdf.to_file(BUFFERED_POLYGONS_FILE, driver='GeoJSON')
 
-# Create clustering map
-def create_clustering_map(clustered_gdf=None, buffered_gdf=None):
-    m = folium.Map(location=[clustered_gdf.geometry.centroid.y.mean(), 
-                             clustered_gdf.geometry.centroid.x.mean()], zoom_start=15)
+def create_clustering_map(clustered_gdf=None, buffered_gdf=None, check_access=False):
+    # Initialize the map centered around the mean of the cluster centroids
+    m = folium.Map(
+        location=[clustered_gdf.geometry.centroid.y.mean(), clustered_gdf.geometry.centroid.x.mean()],
+        zoom_start=12
+    )
 
     # Add map tiles
     folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
@@ -260,25 +262,39 @@ def create_clustering_map(clustered_gdf=None, buffered_gdf=None):
         control=True
     ).add_to(m)
 
-    # Add clustered points
-    if clustered_gdf is not None and not clustered_gdf.empty:
-        clustered_gdf_4326 = clustered_gdf.to_crs(epsg=4326)
-        for idx, row in clustered_gdf_4326.iterrows():
-            folium.CircleMarker(location=[row.geometry.y, row.geometry.x], radius=2, color='black').add_to(m)
-
-    # Add buffered polygons
     if buffered_gdf is not None and not buffered_gdf.empty:
         buffered_gdf_4326 = buffered_gdf.to_crs(epsg=4326)
-        folium.GeoJson(
-            buffered_gdf_4326,
-            style_function=lambda x: {
-                'fillColor': 'blue',
-                'color': 'blue',
-                'weight': 1,
-                'fillOpacity': 0.4,
-            }
-        ).add_to(m)
 
+        # Check if 'elec acces' attribute exists and plot accordingly
+        if check_access and 'elec acces' in buffered_gdf.columns:
+            colormap = cm.linear.YlOrRd_09.scale(buffered_gdf['elec acces'].min(), buffered_gdf['elec acces'].max())
+            folium.GeoJson(
+                buffered_gdf_4326,
+                style_function=lambda feature: {
+                    'fillColor': colormap(feature['properties']['elec acces']),
+                    'color': 'black',
+                    'weight': 1,
+                    'fillOpacity': 0.6,
+                }
+            ).add_to(m)
+            colormap.add_to(m)
+        else:
+            # Plot polygons with a default color if 'elec acces' is not checked or doesn't exist
+            folium.GeoJson(
+                buffered_gdf_4326,
+                style_function=lambda x: {
+                    'fillColor': 'blue',
+                    'color': 'blue',
+                    'weight': 1,
+                    'fillOpacity': 0.4,
+                }
+            ).add_to(m)
+
+    # Add layer control and fullscreen plugin
+    folium.LayerControl().add_to(m)
+    folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
+                              force_separate_button=False).add_to(m)
+    
     return m
 
 def show():
@@ -416,11 +432,13 @@ def show():
             st.success("Clustering completed. You can now review the results.")
 
         # Display map
+        # Display map
         if st.session_state.clustered_gdf is not None and st.session_state.buffered_gdf is not None:
-            m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.buffered_gdf)
+            m = create_clustering_map(st.session_state.clustered_gdf, st.session_state.buffered_gdf, check_access=False)
             st_folium(m, width=1400, height=800)
         else:
             st.warning("Please perform clustering first.")
+
 
 if __name__ == "__main__":
     show()
