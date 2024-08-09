@@ -295,7 +295,7 @@ def show():
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        st_data = st_folium(m, width=1400, height=800)
+        # st_data = st_folium(m, width=1400, height=800)
 
         # Add a button to export the clusters and points
         if st.button("Export Clusters and Points"):
