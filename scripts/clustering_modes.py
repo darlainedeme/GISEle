@@ -15,6 +15,7 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
 import zipfile
+from rasterio.enums import Resampling
 
 # Function to perform clustering and cleaning on building data
 def poles_clustering_and_cleaning(buildings_filter, crs, chain_upper_bound, pole_upper_bound):
