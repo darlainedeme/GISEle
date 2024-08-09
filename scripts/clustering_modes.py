@@ -12,6 +12,9 @@ from shapely.geometry import MultiPoint, MultiPolygon, Polygon
 from shapely.ops import unary_union
 from scipy.interpolate import interp1d
 import streamlit as st
+import folium
+from streamlit_folium import st_folium
+from folium.plugins import MarkerCluster
 from rasterio.enums import Resampling
 
 # Function to perform clustering and cleaning on building data
@@ -77,7 +80,9 @@ def poles_clustering_and_cleaning(buildings_filter, crs, chain_upper_bound, pole
     return buildings_adjusted_gdf
 
 # Main function to perform the building clustering
-def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
+def building_to_cluster_v1(crs, radius, dens_filter, flag):
+    # Hardcoded path to the study region
+    path = os.path.join("data", "3_user_uploaded_data", "selected_area.geojson")
     studyregion_original = gpd.read_file(path)
     study_area_buffered = studyregion_original.buffer((2500 * 0.1 / 11250))
 
@@ -150,7 +155,6 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
         buildings_df_up.to_file(output_path_points)
 
     else:
-        print('Skipped')
         buildings_df = gpd.read_file(output_path_points_clipped)
 
     buildings_df = buildings_df.reset_index(drop=True)
@@ -204,7 +208,7 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
 
     clusters_gdf.to_file(output_path_clusters)
 
-    return output_path_points, output_path_clusters
+    return clusters_gdf, buildings_df
 
 def show():
     st.title("Clustering Mode")
@@ -212,18 +216,67 @@ def show():
     # Radio button for method selection
     method = st.radio("Select Clustering Method", ('MIT', 'Standard'), index=0)
 
-    # Input fields for the user to specify paths, CRS, etc.
-    path = st.text_input("Path to Study Region GeoJSON", os.path.join("data", "3_user_uploaded_data", "selected_area.geojson"))
-    crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
-    radius = st.number_input("Radius", value=200)
-    dens_filter = st.number_input("Density Filter", value=100)
-    flag = st.checkbox("Skip Processing", value=False)
+    with st.expander("Parameters", expanded=False):
+        # Input fields for the user to specify paths, CRS, etc.
+        crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
+        radius = st.number_input("Radius", value=200)
+        dens_filter = st.number_input("Density Filter", value=100)
+        flag = st.checkbox("Skip Processing", value=False)
 
     if method == 'MIT':
         if st.button("Run Clustering"):
-            output_path_points, output_path_clusters = building_to_cluster_v1(path, crs, radius, dens_filter, flag)
+            clusters_gdf, buildings_df = building_to_cluster_v1(crs, radius, dens_filter, flag)
             st.success("Clustering completed.")
-            st.write(f"Points saved at: {output_path_points}")
-            st.write(f"Clusters saved at: {output_path_clusters}")
+
+            # Initialize map centered on the first cluster's centroid
+            m = folium.Map(location=[clusters_gdf.geometry.centroid.y.mean(), clusters_gdf.geometry.centroid.x.mean()],
+                           zoom_start=12)
+
+            # Add tile layers
+            folium.TileLayer('cartodbpositron', name="Positron").add_to(m)
+            folium.TileLayer('cartodbdark_matter', name="Dark Matter").add_to(m)
+            folium.TileLayer(
+                tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+                attr='Google',
+                name='Google Maps',
+                overlay=False,
+                control=True
+            ).add_to(m)
+            folium.TileLayer(
+                tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+                attr='Google',
+                name='Google Hybrid',
+                overlay=False,
+                control=True
+            ).add_to(m)
+            folium.TileLayer(
+                tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attr='Esri',
+                name='Esri Satellite',
+                overlay=False,
+                control=True
+            ).add_to(m)
+
+            # Add clusters polygons to map
+            for _, row in clusters_gdf.iterrows():
+                folium.GeoJson(
+                    row.geometry,
+                    style_function=lambda x, color=row.name: {
+                        'fillColor': '#0000ff',
+                        'color': '#0000ff',
+                        'weight': 1,
+                        'fillOpacity': 0.2
+                    }
+                ).add_to(m)
+
+            # Add marker clusters for points
+            marker_cluster = MarkerCluster().add_to(m)
+            for _, row in buildings_df.iterrows():
+                folium.Marker(location=[row.geometry.y, row.geometry.x]).add_to(marker_cluster)
+
+            folium.LayerControl().add_to(m)
+
+            # Display map in Streamlit
+            st_data = st_folium(m, width=800, height=600)
     else:
         st.write("Standard method not yet implemented.")
