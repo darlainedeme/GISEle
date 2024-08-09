@@ -16,6 +16,7 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
 from rasterio.enums import Resampling
+import zipfile
 
 # Function to perform clustering and cleaning on building data
 def poles_clustering_and_cleaning(buildings_filter, crs, chain_upper_bound, pole_upper_bound):
@@ -295,12 +296,27 @@ def show():
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        # st_data = st_folium(m, width=1400, height=800)
+        st_data = st_folium(m, width=1400, height=800)
 
-        # Add a button to export the clusters and points
+        # Add a button to export the clusters and points as a ZIP file
         if st.button("Export Clusters and Points"):
-            # Export Clusters
-            clusters_gdf.to_file("clusters_export.geojson", driver='GeoJSON')
-            # Export Points
-            buildings_df.to_file("points_export.geojson", driver='GeoJSON')
-            st.success("Export completed! Files saved as 'clusters_export.geojson' and 'points_export.geojson'.")
+            # File paths for export
+            clusters_path = "clusters_export.geojson"
+            points_path = "points_export.geojson"
+            zip_path = "exported_data.zip"
+
+            # Export the GeoDataFrames to GeoJSON
+            clusters_gdf.to_file(clusters_path, driver='GeoJSON')
+            buildings_df.to_file(points_path, driver='GeoJSON')
+
+            # Create a ZIP file containing the GeoJSON files
+            with zipfile.ZipFile(zip_path, 'w') as zipf:
+                zipf.write(clusters_path, os.path.basename(clusters_path))
+                zipf.write(points_path, os.path.basename(points_path))
+
+            st.success(f"Export completed! Files saved in '{zip_path}'.")
+
+            # Provide a download button for the ZIP file
+            with open(zip_path, "rb") as f:
+                st.download_button('Download Exported Data', f, file_name=zip_path)
+
