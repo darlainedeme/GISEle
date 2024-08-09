@@ -219,7 +219,7 @@ def show():
         # Input fields for the user to specify paths, CRS, etc.
         crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
         radius = st.number_input("Radius", value=200)
-        dens_filter = st.number_input("Density Filter", value=25)
+        dens_filter = st.number_input("Density Filter", value=10)
         flag = st.checkbox("Skip Processing", value=False)
 
     # Initialize session state for clusters and buildings
