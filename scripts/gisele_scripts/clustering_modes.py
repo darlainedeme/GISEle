@@ -217,7 +217,7 @@ def create_map(clusters_gdf):
     st_folium(m, width=1400, height=800)
 
 # Load combined buildings
-def load_combined_buildings():
+def load_combined_buildings(COMBINED_BUILDINGS_FILE):
     if os.path.exists(COMBINED_BUILDINGS_FILE):
         return gpd.read_file(COMBINED_BUILDINGS_FILE)
     return gpd.GeoDataFrame({'geometry': [], 'source': []}, crs='EPSG:4326')
@@ -356,7 +356,7 @@ def show():
         os.makedirs('data\4_intermediate_output\clustering', exist_ok=True)
         
         # Load combined buildings
-        combined_buildings = load_combined_buildings()
+        combined_buildings = load_combined_buildings(COMBINED_BUILDINGS_FILE)
         combined_buildings = combined_buildings.to_crs(epsg=3857)  # Reproject to meters
 
         # Get building centroids
