@@ -85,8 +85,8 @@ def building_to_cluster_v1(path, crs, radius, dens_filter, flag):
     base_dir = os.path.dirname(path)
     building_path = os.path.join("data", "2_downloaded_input_data", "buildings", "mit")
     urbanity = os.path.join("data", "2_downloaded_input_data", "urbanity", "urbanity.tif")
-    output_folder_points = os.path.join("data", "4_intermediate_output", "points")
-    output_folder_pointsclipped = os.path.join("data", "4_intermediate_output", "points")
+    output_folder_points = os.path.join("data", "2_downloaded_input_data", "buildings", "mit")
+    output_folder_pointsclipped = os.path.join("data", "2_downloaded_input_data", "buildings", "mit", "points")
     output_folder_clusters = os.path.join("data", "4_intermediate_output", "clustering")
     output_path_clusters = os.path.join(output_folder_clusters, "Communities_boundaries.shp")
     
