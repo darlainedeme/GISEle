@@ -215,3 +215,19 @@ if __name__ == "__main__":
     print("Clustering completed.")
     print(f"Points saved at: {output_path_points}")
     print(f"Clusters saved at: {output_path_clusters}")
+
+def show():
+    st.title("Clustering Mode")
+
+    # Input fields for the user to specify paths, CRS, etc.
+    path = st.text_input("Path to Study Region Shapefile", r"data\_precompiled_case_studies\uganda_gulu\3_user_generated_data\study_region.shp")
+    crs = st.number_input("CRS (Coordinate Reference System)", value=21095)
+    radius = st.number_input("Radius", value=200)
+    dens_filter = st.number_input("Density Filter", value=100)
+    flag = st.checkbox("Skip Processing", value=False)
+
+    if st.button("Run Clustering"):
+        output_path_points, output_path_clusters = building_to_cluster_v1(path, crs, radius, dens_filter, flag)
+        st.success("Clustering completed.")
+        st.write(f"Points saved at: {output_path_points}")
+        st.write(f"Clusters saved at: {output_path_clusters}")
