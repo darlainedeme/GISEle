@@ -132,6 +132,7 @@ def create_map(data_gdf=None, data_key=None, draw_enabled=False):
         draw.add_to(m)
 
     Fullscreen().add_to(m)
+    folium.LayerControl().add_to(m)
     MeasureControl().add_to(m)
 
     return m
