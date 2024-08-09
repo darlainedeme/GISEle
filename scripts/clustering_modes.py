@@ -245,8 +245,7 @@ def show():
     # Display map if clustering has been run
     if st.session_state["clusters_gdf"] is not None and st.session_state["buildings_df"] is not None:
         clusters_gdf = st.session_state["clusters_gdf"]
-        buildings_df = st.session_state["buildings_df"]
-
+        
         # Initialize map centered on the first cluster's centroid
         m = folium.Map(location=[clusters_gdf.geometry.centroid.y.mean(), clusters_gdf.geometry.centroid.x.mean()],
                        zoom_start=12)
@@ -288,15 +287,10 @@ def show():
                 }
             ).add_to(m)
 
-        # Add marker clusters for points
-        marker_cluster = MarkerCluster().add_to(m)
-        for _, row in buildings_df.iterrows():
-            folium.Marker(location=[row.geometry.y, row.geometry.x]).add_to(marker_cluster)
-
         folium.LayerControl().add_to(m)
 
         # Display map in Streamlit
-        # st_data = st_folium(m, width=1400, height=800)
+        st_data = st_folium(m, width=1400, height=800)
 
         # Add a button to export the clusters and points as a ZIP file
         if st.button("Export Clusters and Points"):
@@ -312,7 +306,7 @@ def show():
             # Create a ZIP file containing the GeoJSON files
             with zipfile.ZipFile(zip_path, 'w') as zipf:
                 zipf.write(clusters_path, os.path.basename(clusters_path))
-                zipf.write(points_path, os.path.basename(points_path))
+                # zipf.write(points_path, os.path.basename(points_path))
 
             st.success(f"Export completed! Files saved in '{zip_path}'.")
 
