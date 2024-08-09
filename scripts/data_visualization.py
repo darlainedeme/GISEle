@@ -39,6 +39,12 @@ def load_data(file_path):
 def save_enhanced_data(gdf, file_path):
     gdf.to_file(file_path, driver='GeoJSON')
 
+# Function to generate a color map using matplotlib
+def generate_color_map(unique_values):
+    cmap = plt.get_cmap('Set1', len(unique_values))
+    return {value: plt.colors.rgb2hex(cmap(i)) for i, value in enumerate(unique_values)}
+
+
 # Create map function
 def create_map(data_gdf=None, data_key=None, draw_enabled=False):
     m = folium.Map(location=[0, 0], zoom_start=2)
@@ -66,11 +72,6 @@ def create_map(data_gdf=None, data_key=None, draw_enabled=False):
         overlay=False,
         control=True
     ).add_to(m)
-
-
-# Create map function
-def create_map(data_gdf=None, data_key=None, draw_enabled=False):
-    m = folium.Map(location=[0, 0], zoom_start=2)
 
     if data_gdf is not None and not data_gdf.empty:
         bounds = data_gdf.geometry.total_bounds
