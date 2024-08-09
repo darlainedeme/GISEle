@@ -227,7 +227,7 @@ def save_clustered_points(gdf, CLUSTERED_POINTS_FILE):
     gdf.to_file(CLUSTERED_POINTS_FILE, driver='GeoJSON')
 
 # Save buffered polygons
-def save_buffered_polygons(gdf, CLUSTERED_POINTS_FILE):
+def save_buffered_polygons(gdf, BUFFERED_POLYGONS_FILE):
     gdf.to_file(BUFFERED_POLYGONS_FILE, driver='GeoJSON')
 
 def create_clustering_map(clustered_gdf=None, buffered_gdf=None, check_access=False):
@@ -427,7 +427,7 @@ def show():
             st.session_state.buffered_gdf = buffered_gdf
 
             save_clustered_points(building_centroids, CLUSTERED_POINTS_FILE)
-            save_buffered_polygons(buffered_gdf, CLUSTERED_POINTS_FILE)
+            save_buffered_polygons(buffered_gdf, BUFFERED_POLYGONS_FILE)
 
             st.success("Clustering completed. You can now review the results.")
 
