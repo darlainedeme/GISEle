@@ -70,6 +70,6 @@ def download_buildings_data(polygon):
         osm_buildings = gpd.read_file(osm_buildings_path)
         combined_buildings = create_combined_buildings_layer(osm_buildings, google_buildings_geojson)
         combined_buildings.to_file(combined_buildings_file, driver='GeoJSON')
-        st.write(f"Combined buildings dataset saved to {combined_buildings_file}")
+        st.write(f"Combined buildings dataset extracted")
     else:
         st.write("Skipping buildings combination due to missing data.")
