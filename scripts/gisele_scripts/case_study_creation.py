@@ -542,6 +542,11 @@ def create_grid(crs, resolution, study_area):
     Returns:
     - GeoDataFrame of grid points.
     """
+    # Convert the study area to a CRS that uses meters if it isn't already
+    if not study_area.crs.is_projected:
+        st.write("Converting study area to a projected CRS (UTM)...")
+        study_area = study_area.to_crs(epsg=21095)  # Use an appropriate UTM zone for your area
+
     # Get the bounding box of the study area
     min_x, min_y, max_x, max_y = study_area.total_bounds
     st.write(f"Bounding box of study area: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}")
@@ -550,14 +555,14 @@ def create_grid(crs, resolution, study_area):
     if resolution <= 0:
         raise ValueError("Resolution must be a positive number.")
 
-    # Create the grid points
+    # Create the grid points using the resolution in meters
     lon = np.arange(min_x, max_x, resolution)
     st.write(lon)
     lat = np.arange(min_y, max_y, resolution)
     st.write(lat)
     grid_points = [Point(x, y) for x in lon for y in lat]
     st.write(f"Number of grid points generated: {len(grid_points)}")
-
+    
     # Create a GeoDataFrame from the grid points
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
     
