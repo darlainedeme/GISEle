@@ -4,7 +4,7 @@ st.set_page_config(layout="wide")
 
 # Import your other pages
 from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, demand_estimation, minigrid_sizing, routing, results
-from scripts.gisele_scripts import clustering_modes, case_study_creation
+from scripts.gisele_scripts import clustering_modes, case_study_creation, optimization
 
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
@@ -14,9 +14,17 @@ main_sections = {
     "🏠 Home": ["Home"],
     "📍 Area Identification": ["Area Selection", "Satellite Timelapse"],
     "📊 VANIA": ["Data Retrieve", "Data Visualization and Enhancement", "VANIA Report"],
-    "⚙️ GISELE": ["Modelling Parameters", "Clustering", "Case Study", "Demand Estimation", "Mini-grid Sizing", "Routing", "Results"]
+    "⚙️ GISELE": [
+        "Modelling Parameters", 
+        "Clustering", 
+        "Case Study", 
+        "Optimization",  # Add Optimization here
+        "Demand Estimation", 
+        "Mini-grid Sizing", 
+        "Routing", 
+        "Results"
+    ]
 }
-
 
 # Select the main section
 main_section = st.sidebar.radio("Navigation", list(main_sections.keys()))
@@ -56,6 +64,7 @@ elif main_section == "⚙️ GISELE":
         "Modelling Parameters": modelling_parameters.show,
         "Clustering": clustering_modes.show,
         "Case Study": case_study_creation.show,
+        "Optimization": optimization.show,  # Add the optimization page here
         "Demand Estimation": demand_estimation.show,
         "Mini-grid Sizing": minigrid_sizing.show,
         "Routing": routing.show,
