@@ -414,8 +414,8 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
     if not len(drop) == 0:
         New_Lines.drop(index=drop.index, inplace=True)
 
-    New_Lines.to_file(os.path.join(geospatial_data_path, 'Roads_lines', 'Roads_lines.shp'))
-    New_Nodes.to_file(os.path.join(geospatial_data_path, 'Roads_points', 'Roads_points.shp'))
+    New_Lines.to_file(os.path.join(gisele_folder, 'data', '2_downloaded_input_data','roads', 'roads_lines.shp'))
+    New_Nodes.to_file(os.path.join(gisele_folder, 'data', '2_downloaded_input_data','roads', 'roads_points.shp'))
 
     return New_Nodes, New_Lines
 
