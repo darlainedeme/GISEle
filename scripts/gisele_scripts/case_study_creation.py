@@ -572,6 +572,7 @@ def create_grid(crs, resolution, study_area):
     
     # Clip the grid to the study area
     grid_gdf = gpd.clip(grid_gdf, study_area)
+    grid_gdf = grid_gdf.to_crs(epsg=4326)
     st.write(f"Number of grid points after clipping to study area: {len(grid_gdf)}")
 
     return grid_gdf
