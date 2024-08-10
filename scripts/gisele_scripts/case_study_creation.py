@@ -221,10 +221,12 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
     
     weighted_grid_of_points = pd.read_csv(os.path.join(geospatial_data_path, 'grid_of_points', 'weighted_grid_of_points.csv'))
     starting_ID = weighted_grid_of_points['ID'].max() + 1
-    ROADS_unfiltered = gpd.read_file(os.path.join(geospatial_data_path, 'Roads.shp'))
+    
+    ROADS_unfiltered = gpd.read_file(os.path.join(gisele_folder, 'data', '2_downloaded_input_data','roads', 'roads.shp'))
     ROADS_unfiltered = ROADS_unfiltered.to_crs(crs)
     ROADS = MultiLine_to_Line(ROADS_unfiltered)
     all_points = gpd.GeoDataFrame()
+    st.write(all_points.drop(columns='geometry').head())
     gdf_ROADS, ROADS_segments = create_roads2(ROADS, all_points, crs)
     gdf_ROADS.crs = crs
     ROADS_segments.crs = crs
