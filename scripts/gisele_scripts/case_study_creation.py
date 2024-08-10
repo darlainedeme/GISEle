@@ -420,7 +420,7 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
     return New_Nodes, New_Lines
 
 def Merge_Roads_GridOfPoints(gisele_folder):
-    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output'')
+    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output')
 
     road_points = gpd.read_file(os.path.join(gisele_folder, 'data', '2_downloaded_input_data','roads', 'roads_points.shp'))
     weighted_grid_points = pd.read_csv(os.path.join(geospatial_data_path, 'grid_of_points', 'weighted_grid_of_points.csv'))
