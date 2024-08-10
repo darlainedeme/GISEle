@@ -552,13 +552,15 @@ def create_grid(crs, resolution, study_area):
 
     # Create the grid points
     lon = np.arange(min_x, max_x, resolution)
+    st.write(lon)
     lat = np.arange(min_y, max_y, resolution)
+    st.write(lat)
     grid_points = [Point(x, y) for x in lon for y in lat]
     st.write(f"Number of grid points generated: {len(grid_points)}")
 
     # Create a GeoDataFrame from the grid points
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
-
+    
     # Add X and Y columns
     grid_gdf['X'] = grid_gdf.geometry.x
     grid_gdf['Y'] = grid_gdf.geometry.y
