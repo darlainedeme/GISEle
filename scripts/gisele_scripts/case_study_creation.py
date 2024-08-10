@@ -109,7 +109,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     
     study_area_crs = study_area.to_crs(crs)
     st.write("Study area reprojected:")
-    st.write(study_area_crs.drop(columns='geometry').head())
+    st.write(study_area_crs.area)
 
     # Create a small buffer to avoid issues
     study_area_buffered = study_area.buffer((resolution * 0.1 / 11250) / 2)
