@@ -565,6 +565,7 @@ def create_grid(crs, resolution, study_area):
     
     # Create a GeoDataFrame from the grid points
     grid_gdf = gpd.GeoDataFrame(geometry=grid_points, crs=crs)
+    grid_gdf = grid_gdf.to_crs(epsg=4326)
     
     # Add X and Y columns
     grid_gdf['X'] = grid_gdf.geometry.x
@@ -572,7 +573,6 @@ def create_grid(crs, resolution, study_area):
     
     # Clip the grid to the study area
     grid_gdf = gpd.clip(grid_gdf, study_area)
-    grid_gdf = grid_gdf.to_crs(epsg=4326)
     st.write(f"Number of grid points after clipping to study area: {len(grid_gdf)}")
 
     return grid_gdf
