@@ -121,7 +121,7 @@ def show():
         "LV_distance": 500,  # Example LV distance
         "ss_data": "ss_data_evn",  # Example SS data
         "landcover_option": "GLC",  # Example land cover option
-        "gisele_dir": "/path/to/gisele_dir",  # Example GISELE directory
+        "gisele_dir": "/mount/src/gisele",  # Example GISELE directory
         "roads_weight": 2,  # Example roads weight
         "run_genetic": True,  # Example genetic algorithm flag
         "max_length_segment": 1000,  # Example max length segment
