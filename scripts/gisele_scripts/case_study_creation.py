@@ -216,6 +216,18 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
 
     return df_weighted
 
+def MultiLine_to_Line(multiline_shapefile):
+    lines = []
+    for geom in multiline_shapefile.geometry:
+        if isinstance(geom, LineString):
+            lines.append(geom)
+        elif isinstance(geom, MultiLineString):
+            lines.extend([line for line in geom.geoms])
+        else:
+            print(f"Unsupported geometry type: {type(geom)}")
+    lines_shapefile = gpd.GeoDataFrame({'geometry': lines}, crs=multiline_shapefile.crs)
+    return lines_shapefile
+
 def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
     geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output')
     
