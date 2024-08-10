@@ -545,7 +545,7 @@ def optimize(crs,country, resolution, load_capita, pop_per_household, road_coef,
         area_buffered = area
         # area_buffered = row['geometry'].buffer((resolution_MV * 0.1 / 11250) / 2)
         area_list = [area_buffered]
-        if population_dataset_type == 'raster':
+        if population_dataset_type == 'mit':
             grid_of_points = create_grid(crs, resolution, area)
             Population = rasterio.open(dir_input + '/Population_' + str(crs) + '.tif') 
         else: 
