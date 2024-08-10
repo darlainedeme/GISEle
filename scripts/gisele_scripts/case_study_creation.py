@@ -582,3 +582,28 @@ def show():
             df_weighted = create_input_csv(crs, resolution, resolution_population, landcover_option, gisele_folder, study_area)
             st.write("Weighted grid of points CSV created successfully.")
             st.dataframe(df_weighted.head())
+
+
+    # Optional: Additional steps for creating roads and merging grids
+    with st.expander("Roads and Merging (Optional)", expanded=False):
+        st.write("You can optionally create roads and merge them with the grid of points.")
+        
+        accepted_road_types = st.multiselect(
+            "Accepted Road Types",
+            options=[
+                'living_street', 'pedestrian', 'primary', 'primary_link', 'secondary', 'secondary_link',
+                'tertiary', 'tertiary_link', 'unclassified', 'residential'
+            ],
+            default=[
+                'living_street', 'pedestrian', 'primary', 'primary_link', 'secondary', 'secondary_link',
+                'tertiary', 'tertiary_link', 'unclassified', 'residential'
+            ]
+        )
+        resolution_MV = st.number_input("MV Resolution (meters)", value=1000)
+        resolution_LV = st.number_input("LV Resolution (meters)", value=100)
+
+        if st.button("Create Roads and Merge with Grid"):
+            Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
+            New_Nodes, New_Lines = create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV)
+            Merge_Roads_GridOfPoints(gisele_folder)
+            st.write("Roads created and merged with the grid of points successfully.")
