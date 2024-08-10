@@ -409,10 +409,23 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
 
     # Sample the raster files at the grid points
     elevation_data = sample_raster(os.path.join(dir, 'elevation', 'Elevation.tif'), coords, crs)
-    slope_data = sample_raster(os.path.join(dir, 'slope', 'slope.tif'), coords, crs)
+    slope_data = sample_raster(os.path.join(dir, 'slope', 'Slope.tif'), coords, crs)
     land_cover_data = sample_raster(os.path.join(dir, 'landcover', 'LandCover.tif'), coords, crs)
     road_dist_data = []  # Implement logic for road distance if applicable
     protected_area_data = []  # Implement logic for protected area if applicable
+
+    # Debugging: Check the lengths of all lists
+    st.write(f"Length of elevation_data: {len(elevation_data)}")
+    st.write(f"Length of slope_data: {len(slope_data)}")
+    st.write(f"Length of land_cover_data: {len(land_cover_data)}")
+    st.write(f"Length of coords: {len(coords)}")
+
+    # If some lists are shorter, pad them with None or NaN
+    max_length = max(len(elevation_data), len(slope_data), len(land_cover_data))
+    if len(road_dist_data) < max_length:
+        road_dist_data.extend([np.nan] * (max_length - len(road_dist_data)))
+    if len(protected_area_data) < max_length:
+        protected_area_data.extend([np.nan] * (max_length - len(protected_area_data)))
 
     # Create the DataFrame with necessary columns
     data = {
@@ -425,6 +438,11 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
         'Road_dist': road_dist_data,
         'Protected_area': protected_area_data
     }
+
+    # Final length check before creating the DataFrame
+    for key, value in data.items():
+        st.write(f"Length of {key}: {len(value)}")
+
     df = pd.DataFrame(data)
     geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['X'], df['Y']), crs=crs)
 
