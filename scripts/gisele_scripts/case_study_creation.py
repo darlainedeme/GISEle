@@ -234,7 +234,13 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
             raise ValueError(f"Column {col} not found in DataFrame")
 
     # Perform the weighting of the grid of points
+    st.write("Starting weighting of grid points...")
+    st.write(df.head())
+    
     df_weighted = weighting(df, resolution, landcover_option)
+    st.write("Weighted grid of points:")
+    st.write(df_weighted.head())
+
     df_weighted.to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'), index=False)
 
     return df_weighted
