@@ -10,8 +10,6 @@ from shapely.geometry import Point
 import math
 
 def new_case_study(parameters, output_path_clusters):
-    st.write("2. New case study creation")
-
     gisele_folder = parameters["gisele_folder"]
     crs = parameters["crs"]
 
@@ -43,9 +41,6 @@ def new_case_study(parameters, output_path_clusters):
 
     # Save the study area file
     study_area = gpd.read_file(study_area_folder)
-    st.write("ciao")
-    st.write(study_area.area)
-    st.write(len(study_area.index))
     
 
     # Process and save the clusters data
@@ -59,7 +54,6 @@ def new_case_study(parameters, output_path_clusters):
 
     st.write("New case study creation completed")
     return Clusters, study_area, Substations
-
 
 def create_study(parameters, output_path_clusters):
     st.write("Initializing case study creation...")
@@ -76,9 +70,6 @@ def create_study(parameters, output_path_clusters):
     
     # Display the results excluding the geometry column
     st.write("Case study created successfully.")
-    st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
-    st.write(len(study_area.index))  
-    st.write("Substations:", Substations.drop(columns='geometry'))  # Exclude geometry column
 
 def create_input_csv(crs, resolution, resolution_population, landcover_option, database, study_area):
     """
@@ -96,42 +87,26 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
 
     # Open the roads, protected areas, and rivers
     protected_areas = gpd.read_file(protected_areas_file).to_crs(crs)
-    st.write("Protected areas loaded and reprojected:")
-    st.write(protected_areas.drop(columns='geometry').head())
 
     streets = gpd.read_file(roads_file).to_crs(crs)
-    st.write("Roads loaded and reprojected:")
-    st.write(streets.drop(columns='geometry').head())
-    
+
     study_area_crs = study_area.to_crs(crs)
-    st.write("Study area reprojected:")
-    st.write(study_area_crs.area)
 
     # Create a small buffer to avoid issues
     study_area_buffered = study_area.buffer((resolution * 0.1 / 11250) / 2)
-    st.write("Study area buffered:")
-    st.write(study_area_buffered.area)
-  
+
     # Clip the protected areas 
     protected_areas_clipped = gpd.clip(protected_areas, study_area_crs)
-    st.write("Protected areas clipped:")
-    st.write(protected_areas_clipped.area)
 
     # Clip the streets
     streets_clipped = gpd.clip(streets, study_area_crs)
-    st.write("streets clipped:")
-    st.write(streets_clipped.area)
 
     if not streets_clipped.empty:
         streets_clipped.to_file(os.path.join(geospatial_data_path, 'Roads.shp'))
-        st.write("Streets clipped:")
-        st.write(streets_clipped.drop(columns='geometry').head())
-        
+
     if not protected_areas_clipped.empty:
         protected_areas_clipped.to_file(os.path.join(geospatial_data_path, 'protected_area.shp'))
-        st.write("Protected areas clipped:")
-        st.write(protected_areas_clipped.drop(columns='geometry').head())
-    
+
     # Clip the elevation and then change the CRS
     with rasterio.open(elevation_file, mode='r') as src:
         out_image, out_transform = rasterio.mask.mask(src, study_area_buffered.to_crs(src.crs), crop=True)
@@ -419,7 +394,7 @@ def reproject_raster(input_raster, output_raster, dst_crs):
 
 def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clipped, streets_multipoint, resolution_population):
     """
-    Convert rasters and other inputs into a grid of points.
+    Convert rasters and other inputs into a grid of points and sample the raster values.
     """
     # Create the grid
     pointData = create_grid(crs, resolution, study_area_crs)
@@ -432,26 +407,12 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
 
     coords = [(x, y) for x, y in zip(pointData['X'], pointData['Y'])]
 
-    # Placeholder for reading elevation data
-    elevation_data = []
-    slope_data = []
-    land_cover_data = []
-    road_dist_data = []
-    protected_area_data = []
-
-    # Replace these placeholder values with actual logic to read data for each coordinate
-    for x, y in coords:
-        elevation_value = get_elevation_at_point(x, y)  # Actual logic needed
-        slope_value = get_slope_at_point(x, y)  # Actual logic needed
-        land_cover_value = get_land_cover_at_point(x, y)  # Actual logic needed
-        road_dist_value = get_road_distance_at_point(x, y)  # Actual logic needed
-        protected_area_value = is_point_in_protected_area(x, y)  # Actual logic needed
-
-        elevation_data.append(elevation_value)
-        slope_data.append(slope_value)
-        land_cover_data.append(land_cover_value)
-        road_dist_data.append(road_dist_value)
-        protected_area_data.append(protected_area_value)
+    # Sample the raster files at the grid points
+    elevation_data = sample_raster(os.path.join(dir, 'elevation', 'Elevation.tif'), coords, crs)
+    slope_data = sample_raster(os.path.join(dir, 'slope', 'Slope.tif'), coords, crs)
+    land_cover_data = sample_raster(os.path.join(dir, 'landcover', 'LandCover.tif'), coords, crs)
+    road_dist_data = []  # Implement logic for road distance if applicable
+    protected_area_data = []  # Implement logic for protected area if applicable
 
     # Create the DataFrame with necessary columns
     data = {
@@ -526,6 +487,25 @@ def weighting(df, resolution, landcover_option):
     print("Cleaning and weighting process completed")
     return df_weighted
 
+def sample_raster(raster_path, coords, crs):
+    """
+    Sample a raster at specific coordinates.
+    
+    Parameters:
+    - raster_path: Path to the raster file.
+    - coords: List of (x, y) coordinates to sample.
+    - crs: CRS of the coordinates.
+    
+    Returns:
+    - A list of sampled values.
+    """
+    with rasterio.open(raster_path) as src:
+        sampled_values = []
+        for x, y in coords:
+            for val in src.sample([(x, y)]):
+                sampled_values.append(val[0])
+        return sampled_values
+        
 def create_grid(crs, resolution, study_area):
     """
     Create a grid of points for the study area with the specified resolution.
