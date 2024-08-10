@@ -409,7 +409,7 @@ def rasters_to_points(study_area_crs, crs, resolution, dir, protected_areas_clip
 
     # Sample the raster files at the grid points
     elevation_data = sample_raster(os.path.join(dir, 'elevation', 'Elevation.tif'), coords, crs)
-    slope_data = sample_raster(os.path.join(dir, 'slope', 'Slope.tif'), coords, crs)
+    slope_data = sample_raster(os.path.join(dir, 'slope', 'slope.tif'), coords, crs)
     land_cover_data = sample_raster(os.path.join(dir, 'landcover', 'LandCover.tif'), coords, crs)
     road_dist_data = []  # Implement logic for road distance if applicable
     protected_area_data = []  # Implement logic for protected area if applicable
