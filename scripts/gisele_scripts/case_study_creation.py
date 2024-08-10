@@ -218,8 +218,8 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
 
 def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
     geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output')
-
-    weighted_grid_of_points = pd.read_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'))
+    
+    weighted_grid_of_points = pd.read_csv(os.path.join(geospatial_data_path, 'grid_of_points', 'weighted_grid_of_points.csv'))
     starting_ID = weighted_grid_of_points['ID'].max() + 1
     ROADS_unfiltered = gpd.read_file(os.path.join(geospatial_data_path, 'Roads.shp'))
     ROADS_unfiltered = ROADS_unfiltered.to_crs(crs)
