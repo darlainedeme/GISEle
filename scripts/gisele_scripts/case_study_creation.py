@@ -8,6 +8,7 @@ from rasterio.enums import Resampling
 import numpy as np
 from shapely.geometry import Point, LineString
 import math
+from shapely.ops import split
 
 def new_case_study(parameters, output_path_clusters):
     gisele_folder = parameters["gisele_folder"]
