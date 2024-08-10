@@ -116,10 +116,15 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     st.write("Study area buffered:")
     st.write(study_area_buffered.area)
   
-    # Clip the protected areas and streets
+    # Clip the protected areas 
     protected_areas_clipped = gpd.clip(protected_areas, study_area_crs)
     st.write("Protected areas clipped:")
     st.write(protected_areas_clipped.area)
+
+    # Clip the streets
+    streets_clipped = gpd.clip(streets, study_area_crs)
+    st.write("streets clipped:")
+    st.write(streets_clipped.area)
 
     if not streets_clipped.empty:
         streets_clipped.to_file(os.path.join(geospatial_data_path, 'Roads.shp'))
