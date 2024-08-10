@@ -80,12 +80,11 @@ def create_study():
         Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
         study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data', 'selected_area.geojson')
         study_area = gpd.read_file(study_area_folder)
-        st.write(len(study_area.index))
         
         # Display the results excluding the geometry column
         st.write("Case study created successfully.")
         st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
-        st.write("Study Area:", study_area.area)  # Exclude geometry column
+        st.write("Study Area:", len(study_area.index))  # Exclude geometry column
         st.write("Substations:", Substations.drop(columns='geometry'))  # Exclude geometry column
 
     except Exception as e:
