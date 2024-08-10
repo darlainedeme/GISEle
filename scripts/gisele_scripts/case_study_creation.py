@@ -420,10 +420,10 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
     return New_Nodes, New_Lines
 
 def Merge_Roads_GridOfPoints(gisele_folder):
-    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'Geospatial_Data')
+    geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output'')
 
-    road_points = gpd.read_file(os.path.join(geospatial_data_path, 'Roads_points', 'Roads_points.shp'))
-    weighted_grid_points = pd.read_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points.csv'))
+    road_points = gpd.read_file(os.path.join(gisele_folder, 'data', '2_downloaded_input_data','roads', 'roads_points.shp'))
+    weighted_grid_points = pd.read_csv(os.path.join(geospatial_data_path, 'grid_of_points', 'weighted_grid_of_points.csv'))
 
     weighted_grid_points['Type'] = 'Standard'
     road_points['Type'] = 'Road'
@@ -432,7 +432,7 @@ def Merge_Roads_GridOfPoints(gisele_folder):
 
     weighted_grid_points_with_roads = pd.concat([weighted_grid_points, road_points], ignore_index=True)
     weighted_grid_points_with_roads[['X', 'Y', 'ID', 'Elevation', 'Type', 'Weight', 'Elevation']].\
-        to_csv(os.path.join(geospatial_data_path, 'weighted_grid_of_points_with_roads.csv'))
+        to_csv(os.path.join(geospatial_data_path, 'grid_of_points', 'weighted_grid_of_points_with_roads.csv'))
 
 def reproject_raster(input_raster, output_raster, dst_crs):
     """
