@@ -65,7 +65,7 @@ def new_case_study(parameters, output_path_clusters):
         st.error(f"An error occurred during case study creation: {e}")
         raise
 
-def create_study():
+def create_study(parameters, output_path_clusters):
     st.write("Initializing case study creation...")
 
     # Define the parameters required for the case study creation
