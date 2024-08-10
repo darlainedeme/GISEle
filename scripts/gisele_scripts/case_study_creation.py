@@ -66,30 +66,27 @@ def new_case_study(parameters, output_path_clusters):
         raise
 
 def create_study():
-    try:
-        st.write("Initializing case study creation...")
+    st.write("Initializing case study creation...")
 
-        # Define the parameters required for the case study creation
-        parameters = {
-            "gisele_folder": "/mount/src/gisele",  # Base folder path
-            "crs": "EPSG:4326"  # The coordinate reference system to be used
-        }
-        output_path_clusters = os.path.join(parameters["gisele_folder"], 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')  # Path to the clusters file
+    # Define the parameters required for the case study creation
+    parameters = {
+        "gisele_folder": "/mount/src/gisele",  # Base folder path
+        "crs": "EPSG:4326"  # The coordinate reference system to be used
+    }
+    output_path_clusters = os.path.join(parameters["gisele_folder"], 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')  # Path to the clusters file
 
-        # Call the new_case_study function
-        Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
-        study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data', 'selected_area.geojson')
-        study_area = gpd.read_file(study_area_folder)
-        
-        # Display the results excluding the geometry column
-        st.write("Case study created successfully.")
-        st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
-        st.write("Study Area:", len(study_area.index))  # Exclude geometry column
-        st.write("Substations:", Substations.drop(columns='geometry'))  # Exclude geometry column
+    # Call the new_case_study function
+    Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
+    study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data', 'selected_area.geojson')
+    study_area = gpd.read_file(study_area_folder)
+    
+    # Display the results excluding the geometry column
+    st.write("Case study created successfully.")
+    st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
+    st.write("Study Area:", len(study_area.index))  
+    st.write("Substations:", Substations.drop(columns='geometry'))  # Exclude geometry column
 
-    except Exception as e:
-        st.error(f"An error occurred during the case study creation process: {e}")
-        raise
+
 
 def create_input_csv(crs, resolution, resolution_population, landcover_option, database, study_area):
     """
