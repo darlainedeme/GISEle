@@ -217,7 +217,7 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     # Create and populate the grid of points
     df, geo_df = rasters_to_points(study_area_crs, crs, resolution, geospatial_data_path, protected_areas_clipped, streets_multipoint, resolution_population)
     st.write("Raster values extracted for each grid point:")
-    st.write(df.drop(columns='geometry').head())
+    st.write(df.head())
     geo_df.to_file(os.path.join(geospatial_data_path, 'grid_of_points.shp'))
 
     geo_df = geo_df.reset_index(drop=True)
