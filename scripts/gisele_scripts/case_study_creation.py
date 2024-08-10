@@ -238,7 +238,7 @@ def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resoluti
     ROADS_unfiltered = ROADS_unfiltered.to_crs(crs)
     ROADS = MultiLine_to_Line(ROADS_unfiltered)
     all_points = gpd.GeoDataFrame()
-    st.write(all_points.drop(columns='geometry').head())
+    st.write(all_points.head())
     gdf_ROADS, ROADS_segments = create_roads2(ROADS, all_points, crs)
     gdf_ROADS.crs = crs
     ROADS_segments.crs = crs
