@@ -228,6 +228,64 @@ def MultiLine_to_Line(multiline_shapefile):
     lines_shapefile = gpd.GeoDataFrame({'geometry': lines}, crs=multiline_shapefile.crs)
     return lines_shapefile
 
+def create_roads2(gdf_roads, geo_df, crs):
+    if not geo_df.empty: # In case we are just processing the roads without pre-existing grid of points
+        w = int(geo_df['ID'].max()) + 1
+    else:
+        w = 0
+
+    line_vertices = pd.DataFrame(
+        index=pd.Series(range(w, w + len(gdf_roads.index))),
+        columns=['ID', 'X', 'Y', 'ID_line', 'Weight', 'Elevation'], dtype=int)
+    
+    segments = gpd.GeoDataFrame(columns=['geometry', 'ID1', 'ID2'])
+    k = 0
+    gdf_roads.reset_index(inplace=True)
+    x = 0
+    
+    for i, row in gdf_roads.iterrows():
+        for j in list(row['geometry'].coords):
+            if not (j[0] in line_vertices['X'].to_list() and j[1] in line_vertices['Y'].to_list()):
+                line_vertices.loc[w, 'X'] = j[0]
+                line_vertices.loc[w, 'Y'] = j[1]
+                line_vertices.loc[w, 'ID_line'] = k
+                line_vertices.loc[w, 'ID'] = w
+                line_vertices.loc[w, 'Weight'] = 1
+                w = w + 1
+            else:
+                pass
+        
+        k = k + 1
+        
+        points_to_split = MultiPoint([Point(x, y) for x, y in row['geometry'].coords[1:]])
+        splitted = split(row['geometry'], points_to_split)
+        
+        if isinstance(splitted, GeometryCollection):
+            splitted = [geom for geom in splitted.geoms]
+        
+        for j in splitted:
+            segments.loc[x, 'geometry'] = j
+            segments.loc[x, 'length'] = segments.loc[x, 'geometry'].length / 1000
+            segments.loc[x, 'ID1'] = line_vertices[
+                (line_vertices['X'] == j.coords[0][0]) & (line_vertices['Y'] == j.coords[0][1])
+            ]['ID'].values[0]
+            segments.loc[x, 'ID2'] = line_vertices[
+                (line_vertices['X'] == j.coords[1][0]) & (line_vertices['Y'] == j.coords[1][1])
+            ]['ID'].values[0]
+            x = x + 1
+        
+        print('\r' + str(i) + '/' + str(gdf_roads.index.__len__()), sep=' ', end='', flush=True)
+    
+    if not geo_df.empty:
+        line_vertices.loc[:, 'Elevation'] = geo_df[geo_df['Elevation'] > 0].Elevation.mean()
+    else:
+        line_vertices.loc[:, 'Elevation'] = 1000
+    
+    geometry = [Point(xy) for xy in zip(line_vertices['X'], line_vertices['Y'])]
+    line_gdf = gpd.GeoDataFrame(line_vertices, crs=crs, geometry=geometry)
+    
+    return line_gdf, segments
+  
 def create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV):
     geospatial_data_path = os.path.join(gisele_folder, 'data', '4_intermediate_output')
     
