@@ -83,7 +83,7 @@ def create_study():
     # Display the results excluding the geometry column
     st.write("Case study created successfully.")
     st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
-    st.write("Study Area:", len(study_area.index))  
+    st.write(len(study_area.index))  
     st.write("Substations:", Substations.drop(columns='geometry'))  # Exclude geometry column
 
 
