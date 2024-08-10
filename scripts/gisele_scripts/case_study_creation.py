@@ -2,7 +2,7 @@ import os
 import geopandas as gpd
 import pandas as pd
 import rasterio
-from shapely.geometry import MultiPoint, MultiLineString, Point, LineString, GeometryCollection
+from shapely.geometry import MultiPoint, MultiLineString, MultiPolygon, Point, LineString, GeometryCollection
 import streamlit as st
 from rasterio.enums import Resampling
 import numpy as np
