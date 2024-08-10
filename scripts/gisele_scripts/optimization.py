@@ -74,18 +74,35 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         # Backbone finding and other processing...
         # Similar steps to the original code, using the new paths for saving files
 
-    # Save final outputs
-    LV_resume.to_csv(os.path.join(dir_output, 'LV_resume.csv'))
-    LV_grid.to_file(os.path.join(dir_output, 'LV_grid'))
-    secondary_substations.to_file(os.path.join(dir_output, 'secondary_substations'))
-    all_houses.to_file(os.path.join(dir_output, 'final_users'))
-    if not MV_grid.empty:
+    # Ensure GeoDataFrames are not empty and contain valid geometry before saving
+    if not LV_grid.empty and LV_grid.geometry.notnull().all():
+        LV_grid.to_file(os.path.join(dir_output, 'LV_grid'))
+    else:
+        st.error("LV_grid is empty or has invalid geometries.")
+
+    if not secondary_substations.empty and secondary_substations.geometry.notnull().all():
+        secondary_substations.to_file(os.path.join(dir_output, 'secondary_substations'))
+    else:
+        st.error("secondary_substations is empty or has invalid geometries.")
+
+    if not all_houses.empty and all_houses.geometry.notnull().all():
+        all_houses.to_file(os.path.join(dir_output, 'final_users'))
+    else:
+        st.error("all_houses is empty or has invalid geometries.")
+
+    if not MV_grid.empty and MV_grid.geometry.notnull().all():
         MV_grid.to_file(os.path.join(dir_output, 'MV_grid'), index=False)
+    else:
+        st.warning("MV_grid is empty or has invalid geometries.")
 
     # Save the final grid with secondary substations and roads
-    grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(
-        os.path.join(dir_input, 'grid_of_points', 'weighted_grid_of_points_with_ss_and_roads.csv'), index=False
-    )
+    final_grid_path = os.path.join(dir_input, 'grid_of_points', 'weighted_grid_of_points_with_ss_and_roads.csv')
+    if not grid_of_points_GDF.empty and grid_of_points_GDF.geometry.notnull().all():
+        grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(
+            final_grid_path, index=False
+        )
+    else:
+        st.error("Final grid is empty or has invalid geometries.")
 
     return LV_grid, MV_grid, secondary_substations, all_houses
 
@@ -104,7 +121,7 @@ def show():
         "LV_distance": 500,  # Example LV distance
         "ss_data": "ss_data_evn",  # Example SS data
         "landcover_option": "GLC",  # Example land cover option
-        "gisele_dir": "/mount/src/gisele",  # Example GISELE directory
+        "gisele_dir": "/path/to/gisele_dir",  # Example GISELE directory
         "roads_weight": 2,  # Example roads weight
         "run_genetic": True,  # Example genetic algorithm flag
         "max_length_segment": 1000,  # Example max length segment
@@ -131,8 +148,11 @@ def show():
         )
 
         st.write("Optimization completed!")
-        st.write(LV_grid.head())
-        st.write(MV_grid.head())
-        st.write(secondary_substations.head())
-        st.write(all_houses.head())
-
+        if not LV_grid.empty:
+            st.write(LV_grid.head())
+        if not MV_grid.empty:
+            st.write(MV_grid.head())
+        if not secondary_substations.empty:
+            st.write(secondary_substations.head())
+        if not all_houses.empty:
+            st.write(all_houses.head())
