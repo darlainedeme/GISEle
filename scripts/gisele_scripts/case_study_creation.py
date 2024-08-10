@@ -129,12 +129,12 @@ def create_input_csv(crs, resolution, resolution_population, landcover_option, d
     if not streets_clipped.empty:
         streets_clipped.to_file(os.path.join(geospatial_data_path, 'Roads.shp'))
         st.write("Streets clipped:")
-        st.write(streets_clipped)
+        st.write(streets_clipped.drop(columns='geometry').head())
         
     if not protected_areas_clipped.empty:
         protected_areas_clipped.to_file(os.path.join(geospatial_data_path, 'protected_area.shp'))
         st.write("Protected areas clipped:")
-        st.write(protected_areas_clipped.area)
+        st.write(protected_areas_clipped.drop(columns='geometry').head())
     
     # Clip the elevation and then change the CRS
     with rasterio.open(elevation_file, mode='r') as src:
