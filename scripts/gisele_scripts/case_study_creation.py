@@ -76,7 +76,9 @@ def create_study():
 
         # Call the new_case_study function
         Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
-
+        study_area_folder = os.path.join(database, 'data', '3_user_uploaded_data', 'selected_area.geojson')
+        study_area = gpd.read_file(study_area_folder)
+        
         # Display the results excluding the geometry column
         st.write("Case study created successfully.")
         st.write("Clusters:", Clusters.drop(columns='geometry'))  # Exclude geometry column
