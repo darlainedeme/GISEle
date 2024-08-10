@@ -569,7 +569,7 @@ def show():
             Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
             st.write("Case study created successfully.")
             st.write("Clusters:", Clusters.drop(columns='geometry'))
-            st.write("Study Area:", study_area.drop(columns='geometry'))
+            st.write("Study Area:", study_area.area)
             st.write("Substations:", Substations.drop(columns='geometry'))
 
     # Step 2: Create the Weighted Grid of Points
