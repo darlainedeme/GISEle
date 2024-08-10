@@ -627,6 +627,11 @@ def show():
         resolution_LV = st.number_input("LV Resolution (meters)", value=100)
 
         if st.button("Create Roads and Merge with Grid"):
+            # Define the parameters required for the case study creation
+            parameters = {
+                "gisele_folder": "/mount/src/gisele",  # Base folder path
+                "crs": "EPSG:4326"  # The coordinate reference system to be used
+            }
             Clusters, study_area, Substations = new_case_study(parameters, output_path_clusters)
             New_Nodes, New_Lines = create_roads_new(gisele_folder, Clusters, crs, accepted_road_types, resolution_MV, resolution_LV)
             Merge_Roads_GridOfPoints(gisele_folder)
