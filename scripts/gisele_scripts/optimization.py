@@ -110,8 +110,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         grid_of_points['X'] = grid_of_points.geometry.x
         grid_of_points['Y'] = grid_of_points.geometry.y
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
-        st.write(f"Clipped grid of points for cluster {row['cluster_ID']} (without geometry):")
-        st.write(grid_of_points.drop(columns='geometry').head())
 
         # Clip roads points and lines to the study area
         print("Clipping roads data to study area...")
