@@ -99,7 +99,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         # Reproject rasters to the specified CRS on the fly
         elevation_src = os.path.join(dir_input_1, 'elevation', 'Elevation.tif')
-        slope_src = os.path.join(dir_input_1, 'slope', 'Slope.tif')
+        slope_src = os.path.join(dir_input_1, 'slope', 'slope.tif')
         landcover_src = os.path.join(dir_input_1, 'landcover', 'LandCover.tif')
 
         Elevation = rasterio.open(reproject_raster(elevation_src, os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'), crs))
