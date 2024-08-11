@@ -559,7 +559,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     return LV_grid, MV_grid, secondary_substations, all_houses
     
 def show():
-    st.title("Optimization")
 
     # Example parameters
     parameters = {
