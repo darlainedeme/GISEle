@@ -1,7 +1,6 @@
 import os
 import geopandas as gpd
 import pandas as pd
-import numpy as np
 import rasterio
 import streamlit as st
 from shapely.geometry import Point
@@ -67,6 +66,10 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     grid_of_points = pd.read_csv(grid_of_points_path)
     grid_of_points_GDF = gpd.GeoDataFrame(grid_of_points, geometry=gpd.points_from_xy(grid_of_points.X, grid_of_points.Y), crs=crs)
 
+    # Drop duplicate Elevation column if exists
+    if 'Elevation.1' in grid_of_points_GDF.columns:
+        grid_of_points_GDF.drop(columns=['Elevation.1'], inplace=True)
+
     Starting_node = int(grid_of_points_GDF['ID'].max() + 1)
     LV_resume = pd.DataFrame()
     LV_grid = gpd.GeoDataFrame()
@@ -100,11 +103,12 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         # Reproject rasters to the specified CRS on the fly
         Elevation = reproject_raster(os.path.join(dir_input_1, 'elevation', 'Elevation.tif'), crs)
-        Slope = reproject_raster(os.path.join(dir_input_1, 'slope', 'slope.tif'), crs)
+        Slope = reproject_raster(os.path.join(dir_input_1, 'slope', 'Slope.tif'), crs)
         LandCover = reproject_raster(os.path.join(dir_input_1, 'landcover', 'LandCover.tif'), crs)
 
         # Populate the grid of points with raster data
         coords = [(x, y) for x, y in zip(grid_of_points.X, grid_of_points.Y)]
+        grid_of_points['Population'] = sample_raster(Elevation, coords)  # Placeholder, replace with actual population sampling logic
         grid_of_points['Elevation'] = sample_raster(Elevation, coords)
         grid_of_points['Slope'] = sample_raster(Slope, coords)
         grid_of_points['Land_cover'] = sample_raster(LandCover, coords)
@@ -113,7 +117,19 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
 
         # Backbone finding and other processing...
-        # Similar steps to the original code, using the new paths for saving files
+        # Ensure the necessary columns are populated
+
+    # Add missing columns to grid_of_points_GDF
+    if 'Population' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Population'] = np.nan
+    if 'Land_cover' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Land_cover'] = np.nan
+    if 'Cluster' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Cluster'] = np.nan
+    if 'MV_Power' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['MV_Power'] = np.nan
+    if 'Substation' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Substation'] = np.nan
 
     # Check columns present in grid_of_points_GDF
     st.write(f"Final columns in grid_of_points_GDF: {grid_of_points_GDF.columns.tolist()}")
