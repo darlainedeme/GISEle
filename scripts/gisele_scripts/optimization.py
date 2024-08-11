@@ -6,7 +6,7 @@ import streamlit as st
 from shapely.geometry import Point
 from rasterio.enums import Resampling
 from rasterio.warp import calculate_default_transform, reproject
-
+import numpy as np
 
 def reproject_raster(input_raster, dst_crs):
     """
