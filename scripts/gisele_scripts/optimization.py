@@ -143,8 +143,8 @@ def show():
         "LV_base_cost": 10000,  # Example LV base cost
         "population_dataset_type": "raster"  # Example population dataset type
     }
-    
-    Clusters = gpd.read_file("/path/to/clusters.shp")  # Example clusters file
+    path_to_clusters = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
+    Clusters = gpd.read_file(path_to_clusters)  # Example clusters file
     
     # Run the optimization
     LV_grid, MV_grid, secondary_substations, all_houses = optimize(
