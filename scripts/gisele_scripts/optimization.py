@@ -361,14 +361,22 @@ def show():
     )
 
     # Display the results
-    st.write("LV_grid:")
-    st.write(LV_grid.drop(columns='geometry').head())
+    if 'geometry' in LV_grid.columns:
+        st.write(LV_grid.drop(columns='geometry').head())
+    else:
+        st.write(LV_grid.head())
 
-    st.write("MV_grid:")
-    st.write(MV_grid.drop(columns='geometry').head())
+    if 'geometry' in MV_grid.columns:
+        st.write(MV_grid.drop(columns='geometry').head())
+    else:
+        st.write(MV_grid.head())
 
-    st.write("Secondary Substations:")
-    st.write(secondary_substations.drop(columns='geometry').head())
+    if 'geometry' in secondary_substations.columns:
+        st.write(secondary_substations.drop(columns='geometry').head())
+    else:
+        st.write(secondary_substations.head())
 
-    st.write("All Houses:")
-    st.write(all_houses.drop(columns='geometry').head())
+    if 'geometry' in all_houses.columns:
+        st.write(all_houses.drop(columns='geometry').head())
+    else:
+        st.write(all_houses.head())
