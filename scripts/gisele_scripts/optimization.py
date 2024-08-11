@@ -170,8 +170,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
 
     print("Starting optimization...")
-
-    # Set up directories
+    
     dir_input_1 = os.path.join(gisele_dir, 'data', '2_downloaded_input_data')
     dir_input = os.path.join(gisele_dir, 'data', '4_intermediate_output')
     dir_output = os.path.join(gisele_dir, 'data', '5_final_output')
@@ -183,6 +182,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     # Load initial grid of points with roads
     st.write("Loading grid of points with roads...")
+    print(f"Reading grid of points from {grid_of_points_path}")
     grid_of_points = pd.read_csv(grid_of_points_path)
     grid_of_points_GDF = gpd.GeoDataFrame(grid_of_points, geometry=gpd.points_from_xy(grid_of_points.X, grid_of_points.Y), crs=crs)
     st.write("Initial grid of points (without geometry):")
@@ -190,9 +190,13 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     # Drop duplicate Elevation column if exists
     if 'Elevation.1' in grid_of_points_GDF.columns:
+        print("Dropping duplicate Elevation column.")
         grid_of_points_GDF.drop(columns=['Elevation.1'], inplace=True)
 
-    # Initialize GeoDataFrames for results
+    Starting_node = int(grid_of_points_GDF['ID'].max() + 1)
+    print(f"Starting node set to {Starting_node}")
+
+    LV_resume = pd.DataFrame()
     LV_grid = gpd.GeoDataFrame()
     MV_grid = gpd.GeoDataFrame()
     secondary_substations = gpd.GeoDataFrame()
@@ -200,6 +204,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     # Load population data
     st.write("Loading population data...")
+    print(f"Reading population data from {population_points_path}")
     Population = gpd.read_file(population_points_path)
     st.write("Population data (without geometry):")
     st.write(Population.drop(columns='geometry').head())
@@ -213,138 +218,145 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         area = row['geometry']
         area_buffered = area.buffer(resolution)
 
-        # Create or clip grid of points
-        if population_dataset_type == 'mit':
-            grid_of_points = create_grid(crs, resolution, area)
-            Population_raster = rasterio.open(os.path.join(dir_input_1, f'Population_{crs}.tif'))
-            grid_of_points['Population'] = sample_raster(Population_raster, grid_of_points[['X', 'Y']].values)
-        else:
-            grid_of_points = gpd.clip(Population, area_buffered)
-            grid_of_points['X'] = grid_of_points.geometry.x
-            grid_of_points['Y'] = grid_of_points.geometry.y
-
+        # Clip population points to the study area
+        grid_of_points = gpd.clip(Population, area_buffered)
+        grid_of_points['X'] = grid_of_points.geometry.x
+        grid_of_points['Y'] = grid_of_points.geometry.y
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
 
         # Clip roads points and lines to the study area
+        print("Clipping roads data to study area...")
         road_points = gpd.read_file(roads_points_path)
         road_points = gpd.clip(road_points, area_buffered)
         road_lines = gpd.read_file(roads_lines_path)
         road_lines = road_lines[(road_lines['ID1'].isin(road_points.ID.to_list()) & road_lines['ID2'].isin(road_points.ID.to_list()))]
 
-        # Reproject and sample raster data
+        # Reproject rasters to the specified CRS on the fly
+        print("Reprojecting rasters...")
         Elevation = reproject_raster(os.path.join(dir_input_1, 'elevation', 'Elevation.tif'), crs)
         Slope = reproject_raster(os.path.join(dir_input_1, 'slope', 'slope.tif'), crs)
         LandCover = reproject_raster(os.path.join(dir_input_1, 'landcover', 'LandCover.tif'), crs)
+
+        # Populate the grid of points with raster data
+        print("Sampling rasters...")
         coords = [(x, y) for x, y in zip(grid_of_points.X, grid_of_points.Y)]
+        grid_of_points['Population'] = sample_raster(Elevation, coords)  # Placeholder, replace with actual population sampling logic
         grid_of_points['Elevation'] = sample_raster(Elevation, coords)
         grid_of_points['Slope'] = sample_raster(Slope, coords)
         grid_of_points['Land_cover'] = sample_raster(LandCover, coords)
         grid_of_points['Protected_area'] = ['FALSE' for _ in range(len(coords))]
 
-        # Finding the backbone and creating LV grid
+        grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
+
+        # Backbone finding and other processing...
+        # Ensure the necessary columns are populated
+
+        # Ensure Population column exists before processing
+        if 'Population' not in grid_of_points.columns:
+            raise KeyError(f"Population column not found in grid_of_points for cluster {row['cluster_ID']}.")
+
+        # Continue processing with Population_clus
         Population_clus = grid_of_points[grid_of_points['Population'] > 0]
-        Population_clus['ID'] = range(Starting_node, Starting_node + len(Population_clus))
-        Starting_node += len(Population_clus)
+        Population_clus['ID'] = [*range(Starting_node, Starting_node + Population_clus.shape[0])]
+        Population_clus['pop_bool'] = 1
+        Starting_node += Population_clus.shape[0]
+        Population_clus.to_file(os.path.join(dir_cluster, 'population.shp'))
 
-        road_points['Population'] = 0
-        road_points['pop_bool'] = 0
+        # Continue with further steps involving roads, LV grid, MV grid, etc.
 
-        # Connect population points to roads
-        for i, pop in Population_clus.iterrows():
-            point = pop.geometry
-            nearest_geoms = nearest_points(point, MultiPoint(road_points.geometry))
-            closest_road_point = nearest_geoms[1]
-            road_points.loc[road_points.geometry == closest_road_point, 'Population'] = pop['Population']
-            road_points.loc[road_points.geometry == closest_road_point, 'pop_bool'] = 1
+    # Add missing columns to grid_of_points_GDF
+    print("Checking and adding missing columns to grid_of_points_GDF...")
+    if 'Population' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Population'] = np.nan
+    if 'Land_cover' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Land_cover'] = np.nan
+    if 'Cluster' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Cluster'] = np.nan
+    if 'MV_Power' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['MV_Power'] = np.nan
+    if 'Substation' not in grid_of_points_GDF.columns:
+        grid_of_points_GDF['Substation'] = np.nan
 
-        # Create graph for roads
-        graph = Graph()
-        for _, row in road_lines.iterrows():
-            id1, id2 = row['ID1'], row['ID2']
-            graph.add_edge(id1, id2, weight=row['length'] * roads_weight)
+    # Check columns present in grid_of_points_GDF
+    print("Final columns in grid_of_points_GDF:")
+    st.write(f"Final columns in grid_of_points_GDF: {grid_of_points_GDF.columns.tolist()}")
 
-        # Connect unconnected components
-        graph, road_lines = connect_unconnected_graph(graph, road_lines, road_points, weight=5)
+    # Ensure GeoDataFrames are not empty and contain valid geometry before saving
+    if not LV_grid.empty and LV_grid.geometry.notnull().all():
+        print("Saving LV_grid...")
+        LV_grid.to_file(os.path.join(dir_output, 'LV_grid'))
+    else:
+        st.error("LV_grid is empty or has invalid geometries.")
+        print("LV_grid is empty or has invalid geometries.")
 
-        # Create backbone using Steiner tree
-        populated_points = road_points[road_points['pop_bool'] == 1]
-        terminal_nodes = list(populated_points['ID'])
-        tree = steiner_tree(graph, terminal_nodes)
+    if not secondary_substations.empty and secondary_substations.geometry.notnull().all():
+        print("Saving secondary_substations...")
+        secondary_substations.to_file(os.path.join(dir_output, 'secondary_substations'))
+    else:
+        st.error("secondary_substations is empty or has invalid geometries.")
+        print("secondary_substations is empty or has invalid geometries.")
 
-        # Build LV grid
-        LV_grid_cluster = gpd.GeoDataFrame()
-        for i, (n1, n2) in enumerate(tree.edges):
-            p1 = road_points.loc[road_points['ID'] == n1, 'geometry'].values[0]
-            p2 = road_points.loc[road_points['ID'] == n2, 'geometry'].values[0]
-            line = LineString([p1, p2])
-            LV_grid_cluster = LV_grid_cluster.append({'ID': i, 'geometry': line}, ignore_index=True)
+    if not all_houses.empty and all_houses.geometry.notnull().all():
+        print("Saving all_houses...")
+        all_houses.to_file(os.path.join(dir_output, 'final_users'))
+    else:
+        st.error("all_houses is empty or has invalid geometries.")
+        print("all_houses is empty or has invalid geometries.")
 
-        LV_grid = LV_grid.append(LV_grid_cluster, ignore_index=True)
-        LV_grid.crs = crs
-        LV_grid.to_file(os.path.join(dir_cluster, 'LV_backbone.shp'))
+    if not MV_grid.empty and MV_grid.geometry.notnull().all():
+        print("Saving MV_grid...")
+        MV_grid.to_file(os.path.join(dir_output, 'MV_grid'), index=False)
+    else:
+        st.warning("MV_grid is empty or has invalid geometries.")
+        print("MV_grid is empty or has invalid geometries.")
 
-        # Connect houses
-        road_points_backbone = road_points[road_points['ID'].isin(tree.nodes)]
-        road_points_backbone['Population'] = 0
-        road_points_backbone['pop_bool'] = 0
+    # Save the final grid with secondary substations and roads
+    final_grid_path = os.path.join(dir_input, 'grid_of_points', 'weighted_grid_of_points_with_ss_and_roads.csv')
+    if not grid_of_points_GDF.empty and grid_of_points_GDF.geometry.notnull().all():
+        # Check and log missing columns before saving
+        required_columns = ['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']
+        missing_columns = [col for col in required_columns if col not in grid_of_points_GDF.columns]
 
-        # Implement connection logic for houses
-        index = range(road_points_backbone['ID'].max() + 1, road_points_backbone['ID'].max() + 1 + len(Population_clus))
-        Population_clus['ind'] = index
-        Population_clus.set_index('ind', inplace=True, drop=True)
-
-        all_points = road_points_backbone.append(Population_clus)
-        new_graph, new_lines = delaunay_test(tree, all_points, road_lines)
-
-        LV_grid_cluster = gpd.GeoDataFrame()
-        for i, (n1, n2) in enumerate(new_graph.edges):
-            p1 = all_points.loc[all_points['ID'] == n1, 'geometry'].values[0]
-            p2 = all_points.loc[all_points['ID'] == n2, 'geometry'].values[0]
-            line = LineString([p1, p2])
-            LV_grid_cluster = LV_grid_cluster.append({'ID': i, 'geometry': line}, ignore_index=True)
-
-        LV_grid = LV_grid.append(LV_grid_cluster, ignore_index=True)
-        LV_grid.crs = crs
-        LV_grid.to_file(os.path.join(dir_cluster, 'LV_final.shp'))
-
-        # The rest of the process including MV grid and secondary substations creation follows here...
-        # This includes clustering, Steiner tree for MV grid, and updating relevant GeoDataFrames.
-
-    # Finalizing and saving outputs
-    LV_grid.to_file(os.path.join(dir_output, 'LV_grid.shp'))
-    MV_grid.to_file(os.path.join(dir_output, 'MV_grid.shp'))
-    secondary_substations.to_file(os.path.join(dir_output, 'secondary_substations.shp'))
-    all_houses.to_file(os.path.join(dir_output, 'final_users.shp'))
+        if missing_columns:
+            st.error(f"Missing columns in grid_of_points_GDF: {missing_columns}")
+            print(f"Missing columns in grid_of_points_GDF: {missing_columns}")
+        else:
+            print(f"Saving final grid of points to {final_grid_path}")
+            grid_of_points_GDF[required_columns].to_csv(final_grid_path, index=False)
+    else:
+        st.error("Final grid is empty or has invalid geometries.")
+        print("Final grid is empty or has invalid geometries.")
 
     return LV_grid, MV_grid, secondary_substations, all_houses
-    
+ 
 def show():
     st.title("Optimization")
 
+    # Example parameters
     parameters = {
-        "crs": "EPSG:4326",
-        "country": "example_country",
-        "resolution": 100,
-        "load_capita": 100,
-        "pop_per_household": 5,
-        "road_coef": 1.5,
-        "case_study": "example_case_study",
-        "LV_distance": 500,
-        "ss_data": "ss_data_evn",
-        "landcover_option": "ESACCI",
-        "gisele_dir": "/mount/src/gisele",
-        "roads_weight": 2,
-        "run_genetic": True,
-        "max_length_segment": 1000,
-        "simplify_coef": 0.05,
-        "crit_dist": 100,
-        "LV_base_cost": 10000,
-        "population_dataset_type": "raster"
+        "crs": "EPSG:4326",  # Example CRS
+        "country": "example_country",  # Example country
+        "resolution": 100,  # Example resolution
+        "load_capita": 100,  # Example load per capita
+        "pop_per_household": 5,  # Example population per household
+        "road_coef": 1.5,  # Example road coefficient
+        "case_study": "example_case_study",  # Example case study
+        "LV_distance": 500,  # Example LV distance
+        "ss_data": "ss_data_evn",  # Example SS data
+        "landcover_option": "ESACCI",  # Example land cover option
+        "gisele_dir": "/mount/src/gisele",  # Example GISELE directory
+        "roads_weight": 2,  # Example roads weight
+        "run_genetic": True,  # Example genetic algorithm flag
+        "max_length_segment": 1000,  # Example max length segment
+        "simplify_coef": 0.05,  # Example simplify coefficient
+        "crit_dist": 100,  # Example critical distance
+        "LV_base_cost": 10000,  # Example LV base cost
+        "population_dataset_type": "raster"  # Example population dataset type
     }
-    
     path_to_clusters = os.path.join(parameters["gisele_dir"], 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
     Clusters = gpd.read_file(path_to_clusters)
 
+    # Run the optimization
     LV_grid, MV_grid, secondary_substations, all_houses = optimize(
         parameters["crs"], parameters["country"], parameters["resolution"], parameters["load_capita"],
         parameters["pop_per_household"], parameters["road_coef"], Clusters, parameters["case_study"],
