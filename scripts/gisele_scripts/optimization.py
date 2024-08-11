@@ -38,9 +38,12 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     secondary_substations = gpd.GeoDataFrame()
     all_houses = gpd.GeoDataFrame()
 
-    # Load population data
+    # Load population data and reproject to desired CRS
     st.write("Loading population data...")
     Population = gpd.read_file(population_points_path)
+    if Population.crs != crs:
+        st.write(f"Reprojecting population data from {Population.crs} to {crs}")
+        Population = Population.to_crs(crs)
 
     for index, row in Clusters.iterrows():
         dir_cluster = os.path.join(gisele_dir, r'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
@@ -56,13 +59,22 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         grid_of_points['Y'] = [point['geometry'].xy[1][0] for _, point in grid_of_points.iterrows()]
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
 
-        # Clip roads points and lines to the study area
+        # Load and reproject roads points and lines to the desired CRS
+        st.write("Loading and reprojecting roads data...")
         road_points = gpd.read_file(roads_points_path)
+        if road_points.crs != crs:
+            st.write(f"Reprojecting roads points from {road_points.crs} to {crs}")
+            road_points = road_points.to_crs(crs)
         road_points = gpd.clip(road_points, area_buffered)
+        
         road_lines = gpd.read_file(roads_lines_path)
+        if road_lines.crs != crs:
+            st.write(f"Reprojecting roads lines from {road_lines.crs} to {crs}")
+            road_lines = road_lines.to_crs(crs)
         road_lines = road_lines[(road_lines['ID1'].isin(road_points.ID.to_list()) & road_lines['ID2'].isin(road_points.ID.to_list()))]
 
-        # Load rasters for the specific region
+        # Load rasters and reproject on-the-fly
+        st.write("Loading and reprojecting raster data...")
         Elevation = rasterio.open(os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'))
         Slope = rasterio.open(os.path.join(dir_input_1, 'slope', f'Slope_{crs}.tif'))
         LandCover = rasterio.open(os.path.join(dir_input_1, 'landcover', f'LandCover_{crs}.tif'))
