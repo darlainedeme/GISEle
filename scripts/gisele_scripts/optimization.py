@@ -23,9 +23,13 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     ss_data_path = os.path.join(gisele_dir, r'data', '0_configuration_files', ss_data)
     
     # Load initial grid of points with roads
+    st.write("Loading grid of points with roads...")
     grid_of_points = pd.read_csv(grid_of_points_path)
+    st.write(f"Columns in grid_of_points: {grid_of_points.columns.tolist()}")
     grid_of_points_GDF = gpd.GeoDataFrame(grid_of_points, geometry=gpd.points_from_xy(grid_of_points.X, grid_of_points.Y), crs=crs)
-
+    
+    st.write(f"Initial GeoDataFrame: {grid_of_points_GDF.head()}")
+    
     Starting_node = int(grid_of_points_GDF['ID'].max() + 1)
     LV_resume = pd.DataFrame()
     LV_grid = gpd.GeoDataFrame()
@@ -34,6 +38,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     all_houses = gpd.GeoDataFrame()
 
     # Load population data
+    st.write("Loading population data...")
     Population = gpd.read_file(population_points_path)
 
     for index, row in Clusters.iterrows():
@@ -74,6 +79,9 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         # Backbone finding and other processing...
         # Similar steps to the original code, using the new paths for saving files
 
+    # Check columns present in grid_of_points_GDF
+    st.write(f"Final columns in grid_of_points_GDF: {grid_of_points_GDF.columns.tolist()}")
+    
     # Ensure GeoDataFrames are not empty and contain valid geometry before saving
     if not LV_grid.empty and LV_grid.geometry.notnull().all():
         LV_grid.to_file(os.path.join(dir_output, 'LV_grid'))
@@ -98,9 +106,14 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     # Save the final grid with secondary substations and roads
     final_grid_path = os.path.join(dir_input, 'grid_of_points', 'weighted_grid_of_points_with_ss_and_roads.csv')
     if not grid_of_points_GDF.empty and grid_of_points_GDF.geometry.notnull().all():
-        grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(
-            final_grid_path, index=False
-        )
+        # Check and log missing columns before saving
+        required_columns = ['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']
+        missing_columns = [col for col in required_columns if col not in grid_of_points_GDF.columns]
+        
+        if missing_columns:
+            st.error(f"Missing columns in grid_of_points_GDF: {missing_columns}")
+        else:
+            grid_of_points_GDF[required_columns].to_csv(final_grid_path, index=False)
     else:
         st.error("Final grid is empty or has invalid geometries.")
 
@@ -121,7 +134,7 @@ def show():
         "LV_distance": 500,  # Example LV distance
         "ss_data": "ss_data_evn",  # Example SS data
         "landcover_option": "GLC",  # Example land cover option
-        "gisele_dir": "/mount/src/gisele",  # Example GISELE directory
+        "gisele_dir": "/path/to/gisele_dir",  # Example GISELE directory
         "roads_weight": 2,  # Example roads weight
         "run_genetic": True,  # Example genetic algorithm flag
         "max_length_segment": 1000,  # Example max length segment
@@ -131,28 +144,27 @@ def show():
         "population_dataset_type": "raster"  # Example population dataset type
     }
     
-    # Example clusters data (empty DataFrame for illustration)
-    Clusters = gpd.GeoDataFrame()
-
-    if st.button("Run Optimization"):
-        LV_grid, MV_grid, secondary_substations, all_houses = optimize(
-            parameters["crs"], parameters["country"], parameters["resolution"], 
-            parameters["load_capita"], parameters["pop_per_household"], 
-            parameters["road_coef"], Clusters, parameters["case_study"], 
-            parameters["LV_distance"], parameters["ss_data"], 
-            parameters["landcover_option"], parameters["gisele_dir"], 
-            parameters["roads_weight"], parameters["run_genetic"], 
-            parameters["max_length_segment"], parameters["simplify_coef"], 
-            parameters["crit_dist"], parameters["LV_base_cost"], 
-            parameters["population_dataset_type"]
-        )
-
-        st.write("Optimization completed!")
-        if not LV_grid.empty:
-            st.write(LV_grid.head())
-        if not MV_grid.empty:
-            st.write(MV_grid.head())
-        if not secondary_substations.empty:
-            st.write(secondary_substations.head())
-        if not all_houses.empty:
-            st.write(all_houses.head())
+    Clusters = gpd.read_file("/path/to/clusters.shp")  # Example clusters file
+    
+    # Run the optimization
+    LV_grid, MV_grid, secondary_substations, all_houses = optimize(
+        parameters["crs"], parameters["country"], parameters["resolution"], parameters["load_capita"],
+        parameters["pop_per_household"], parameters["road_coef"], Clusters, parameters["case_study"],
+        parameters["LV_distance"], parameters["ss_data"], parameters["landcover_option"], parameters["gisele_dir"],
+        parameters["roads_weight"], parameters["run_genetic"], parameters["max_length_segment"],
+        parameters["simplify_coef"], parameters["crit_dist"], parameters["LV_base_cost"],
+        parameters["population_dataset_type"]
+    )
+    
+    # Display the results
+    st.write("LV_grid:")
+    st.write(LV_grid.head())
+    
+    st.write("MV_grid:")
+    st.write(MV_grid.head())
+    
+    st.write("Secondary Substations:")
+    st.write(secondary_substations.head())
+    
+    st.write("All Houses:")
+    st.write(all_houses.head())
