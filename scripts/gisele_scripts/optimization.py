@@ -40,7 +40,6 @@ def reproject_raster(input_raster, dst_crs):
             print(f"Reprojection completed for {input_raster}")
             return memfile.open()
 
-
 def sample_raster(raster, coords):
     """
     Sample values from a raster file at the specified coordinates.
@@ -52,6 +51,21 @@ def sample_raster(raster, coords):
     print("Sampling completed.")
     return values
 
+def create_grid(crs, resolution, study_area):
+    # crs and resolution should be a numbers, while the study area is a polygon
+    df = pd.DataFrame(columns=['X', 'Y'])
+    min_x, min_y, max_x, max_y = study_area.bounds
+    # create one-dimensional arrays for x and y
+    lon = np.arange(min_x, max_x, resolution)
+    lat = np.arange(min_y, max_y, resolution)
+    lon, lat = np.meshgrid(lon, lat)
+    df['X'] = lon.reshape((np.prod(lon.shape),))
+    df['Y'] = lat.reshape((np.prod(lat.shape),))
+    geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.X, df.Y),
+                              crs=crs)
+    geo_df_clipped = gpd.clip(geo_df, study_area)
+    # geo_df_clipped.to_file(r'Test\grid_of_points.shp')
+    return geo_df_clipped
 
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
@@ -203,6 +217,111 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     return LV_grid, MV_grid, secondary_substations, all_houses
 
+def metric_closure(G, weight='weight'):
+    """  Return the metric closure of a graph.
+
+    The metric closure of a graph *G* is the complete graph in which each edge
+    is weighted by the shortest path distance between the nodes in *G* .
+
+    Parameters
+    ----------
+    G : NetworkX graph
+
+    Returns
+    -------
+    NetworkX graph
+        Metric closure of the graph `G`.
+
+    """
+    M = nx.Graph()
+
+    Gnodes = set(G)
+
+    # check for connected graph while processing first node
+    all_paths_iter = nx.all_pairs_dijkstra(G, weight=weight)
+    u, (distance, path) = next(all_paths_iter)
+    if Gnodes - set(distance):
+        msg = "G is not a connected graph. metric_closure is not defined."
+        raise nx.NetworkXError(msg)
+    Gnodes.remove(u)
+    for v in Gnodes:
+        M.add_edge(u, v, distance=distance[v], path=path[v])
+
+    # first node done -- now process the rest
+    for u, (distance, path) in all_paths_iter:
+        Gnodes.remove(u)
+        for v in Gnodes:
+            M.add_edge(u, v, distance=distance[v], path=path[v])
+
+    return M
+
+def genetic2(clustered_points,points_new_graph,distance_matrix,n_clusters,graph):
+    clustered_points.reset_index(drop=True,inplace=True)
+    lookup_edges = [i for i in graph.edges]
+    dim = len(lookup_edges)-1
+    dist_matrix_df = pd.DataFrame(distance_matrix,columns = [i for i in points_new_graph['ID']],index = [i for i in points_new_graph['ID']])
+    #initial_solution = np.array(clustered_points['Cluster'].to_list())
+    varbound=np.array([[0,dim]]*(n_clusters-1))
+    #lookup_edges = [i for i in graph.edges([190,184,29,171,202,201,206,205,209,210,22,221,231,127,235,244,230,229,228,220,210,227,215,216,226,234,204,198,197,56,194,191,179])]
+    #dim = len(lookup_edges) - 1
+    def fitness(X):
+        T = graph.copy()
+        length_deleted_lines = 0
+        count=Counter(X)
+        for i in count:
+            if count[i]>1:
+                return 1000000 # this is in case it is trying to cut the same branch more than once
+        for i in X:
+            delete_edge = lookup_edges[int(i)]
+            length_deleted_lines += graph[lookup_edges[int(i)][0]][lookup_edges[int(i)][1]]['weight']['distance']
+            T.remove_edge(*delete_edge)
+        islands = [c for c in nx.connected_components(T)]
+        cost = 0
+        penalty = 0
+        for i in range(len(islands)):
+            subgraph = T.subgraph(islands[i])
+            subset_IDs = [i for i in subgraph.nodes]
+            population =points_new_graph[points_new_graph['ID'].isin(subset_IDs)]['Population'].sum()
+            power = population*0.7*0.3
+            if power < 25:
+                cost += 1500
+            elif power < 50:
+                cost += 2300
+            elif power < 100:
+                cost += 3500
+            else:
+                cost += 100000
+            sub_dist_matrix = dist_matrix_df.loc[subset_IDs, subset_IDs]
+            max_dist = sub_dist_matrix.max().max()
+            if max_dist >1000:
+                penalty = penalty+ 50000+ (max_dist-500)*25
+
+        cost = cost - length_deleted_lines/1000*10000 # divided by 1000 for m->km and the multiplied by 10000euro/km
+
+        if penalty>0:
+            return penalty
+        else:
+            return cost
+
+    algorithm_param = {'max_num_iteration': 1000, 'population_size': 40, 'mutation_probability': 0.1,
+                       'elit_ratio': 0.025, 'crossover_probability': 0.6, 'parents_portion': 0.25,
+                       'crossover_type': 'one_point', 'max_iteration_without_improv': 100}
+    model = ga(function=fitness, dimension=n_clusters-1, variable_type='int', variable_boundaries=varbound,
+             function_timeout=10000,algorithm_parameters=algorithm_param)
+    model.run()
+    cut_edges = model.best_variable
+    T=graph.copy()
+    for i in cut_edges:
+        delete_edge = lookup_edges[int(i)]
+        T.remove_edge(*delete_edge)
+
+    islands = [c for c in nx.connected_components(T)]
+    for i in range(len(islands)):
+        subgraph = T.subgraph(islands[i])
+        subset_IDs = [i for i in subgraph.nodes]
+        clustered_points.loc[clustered_points['ID'].isin(subset_IDs),'Cluster']=i
+
+    return clustered_points, cut_edges
 
 def show():
     st.title("Optimization")
