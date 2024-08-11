@@ -578,7 +578,7 @@ def show():
         "simplify_coef": 0.05,  # Example simplify coefficient
         "crit_dist": 100,  # Example critical distance
         "LV_base_cost": 10000,  # Example LV base cost
-        "population_dataset_type": "raster"  # Example population dataset type
+        "population_dataset_type": "mit"  # Example population dataset type
     }
     path_to_clusters = os.path.join(parameters["gisele_dir"], 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
     Clusters = gpd.read_file(path_to_clusters)
