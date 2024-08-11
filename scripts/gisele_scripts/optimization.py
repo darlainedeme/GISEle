@@ -203,7 +203,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         if population_dataset_type == 'mit':
             grid_of_points = create_grid(crs, resolution, area)
-            Population = rasterio.open(os.path.join(dir_input, 'Population.tif'))
+            Population = rasterio.open(os.path.join(dir_input_1, 'population', 'Population.tif'))
             Population = Population.to_crs(parameters["crs"])
 
         else:
