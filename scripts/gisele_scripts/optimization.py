@@ -136,8 +136,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         grid_of_points['Protected_area'] = ['FALSE' for _ in range(len(coords))]
 
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
-        st.write(f"Final grid of points for cluster {row['cluster_ID']} (without geometry):")
-        st.write(grid_of_points.drop(columns='geometry').head())
 
         # Backbone finding and other processing...
         # Ensure the necessary columns are populated
