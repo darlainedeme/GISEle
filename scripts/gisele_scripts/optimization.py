@@ -40,6 +40,15 @@ def reproject_raster(input_raster, output_raster, dst_crs):
 
     return output_raster
 
+def sample_raster(raster, coords):
+    """
+    Sample values from a raster file at the specified coordinates.
+    """
+    values = []
+    for val in raster.sample(coords):
+        values.append(val[0])
+    return values
+
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
     
@@ -90,7 +99,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         # Reproject rasters to the specified CRS on the fly
         elevation_src = os.path.join(dir_input_1, 'elevation', 'Elevation.tif')
-        slope_src = os.path.join(dir_input_1, 'slope', 'slope.tif')
+        slope_src = os.path.join(dir_input_1, 'slope', 'Slope.tif')
         landcover_src = os.path.join(dir_input_1, 'landcover', 'LandCover.tif')
 
         Elevation = rasterio.open(reproject_raster(elevation_src, os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'), crs))
@@ -99,10 +108,10 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         # Populate the grid of points with raster data
         coords = [(x, y) for x, y in zip(grid_of_points.X, grid_of_points.Y)]
-        grid_of_points['Population'] = [x[0] for x in Population.sample(coords)]
-        grid_of_points['Elevation'] = [x[0] for x in Elevation.sample(coords)]
-        grid_of_points['Slope'] = [x[0] for x in Slope.sample(coords)]
-        grid_of_points['Land_cover'] = [x[0] for x in LandCover.sample(coords)]
+        grid_of_points['Population'] = sample_raster(Population, coords)
+        grid_of_points['Elevation'] = sample_raster(Elevation, coords)
+        grid_of_points['Slope'] = sample_raster(Slope, coords)
+        grid_of_points['Land_cover'] = sample_raster(LandCover, coords)
         grid_of_points['Protected_area'] = ['FALSE' for _ in LandCover.sample(coords)]
 
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
