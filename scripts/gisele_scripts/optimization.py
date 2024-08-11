@@ -204,8 +204,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         if population_dataset_type == 'mit':
             grid_of_points = create_grid(crs, resolution, area)
             Population = rasterio.open(os.path.join(dir_input_1, 'population', 'Population.tif'))
-            st.write(grid_of_points.crs)
-            st.write(Population.crs)
             # Reproject the grid points to the CRS of the raster before sampling
             if grid_of_points.crs != Population.crs:
                 grid_of_points = grid_of_points.to_crs(Population.crs)
@@ -234,6 +232,9 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         if population_dataset_type == 'raster':
             grid_of_points['Population'] = sample_raster(Population, coords)
         else:
+            st.write("Grid of points (without geometry):")
+            st.write(grid_of_points.drop(columns='geometry').head())
+
             grid_of_points['Population'] = pop_per_household
             grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120), 'Population'] = 10
             grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['height'].astype(float) > 12), 'Population'] = 10
