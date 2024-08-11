@@ -100,7 +100,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         # Reproject rasters to the specified CRS on the fly
         Elevation = reproject_raster(os.path.join(dir_input_1, 'elevation', 'Elevation.tif'), crs)
-        Slope = reproject_raster(os.path.join(dir_input_1, 'slope', 'Slope.tif'), crs)
+        Slope = reproject_raster(os.path.join(dir_input_1, 'slope', 'slope.tif'), crs)
         LandCover = reproject_raster(os.path.join(dir_input_1, 'landcover', 'LandCover.tif'), crs)
 
         # Populate the grid of points with raster data
