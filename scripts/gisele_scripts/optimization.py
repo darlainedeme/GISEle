@@ -10,6 +10,35 @@ from shapely.geometry import Point, LineString, MultiPoint
 from geneticalgorithm_github import geneticalgorithm as ga
 from Steiner_tree_code import steiner_tree, metric_closure
 from sklearn.cluster import AgglomerativeClustering
+from rasterio.enums import Resampling
+
+def reproject_raster(input_raster, output_raster, dst_crs):
+    """
+    Reproject a raster to a different CRS using rasterio.
+    """
+    with rasterio.open(input_raster) as src:
+        transform, width, height = rasterio.warp.calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds)
+        kwargs = src.meta.copy()
+        kwargs.update({
+            'crs': dst_crs,
+            'transform': transform,
+            'width': width,
+            'height': height
+        })
+
+        with rasterio.open(output_raster, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                rasterio.warp.reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.nearest)
+
+    return output_raster
 
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
@@ -26,10 +55,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     # Load initial grid of points with roads
     st.write("Loading grid of points with roads...")
     grid_of_points = pd.read_csv(grid_of_points_path)
-    st.write(f"Columns in grid_of_points: {grid_of_points.columns.tolist()}")
     grid_of_points_GDF = gpd.GeoDataFrame(grid_of_points, geometry=gpd.points_from_xy(grid_of_points.X, grid_of_points.Y), crs=crs)
-    
-    st.write(f"Initial GeoDataFrame: {grid_of_points_GDF.head()}")
     
     Starting_node = int(grid_of_points_GDF['ID'].max() + 1)
     LV_resume = pd.DataFrame()
@@ -38,12 +64,9 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     secondary_substations = gpd.GeoDataFrame()
     all_houses = gpd.GeoDataFrame()
 
-    # Load population data and reproject to desired CRS
+    # Load population data
     st.write("Loading population data...")
     Population = gpd.read_file(population_points_path)
-    if Population.crs != crs:
-        st.write(f"Reprojecting population data from {Population.crs} to {crs}")
-        Population = Population.to_crs(crs)
 
     for index, row in Clusters.iterrows():
         dir_cluster = os.path.join(gisele_dir, r'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
@@ -59,25 +82,20 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         grid_of_points['Y'] = [point['geometry'].xy[1][0] for _, point in grid_of_points.iterrows()]
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
 
-        # Load and reproject roads points and lines to the desired CRS
-        st.write("Loading and reprojecting roads data...")
+        # Clip roads points and lines to the study area
         road_points = gpd.read_file(roads_points_path)
-        if road_points.crs != crs:
-            st.write(f"Reprojecting roads points from {road_points.crs} to {crs}")
-            road_points = road_points.to_crs(crs)
         road_points = gpd.clip(road_points, area_buffered)
-        
         road_lines = gpd.read_file(roads_lines_path)
-        if road_lines.crs != crs:
-            st.write(f"Reprojecting roads lines from {road_lines.crs} to {crs}")
-            road_lines = road_lines.to_crs(crs)
         road_lines = road_lines[(road_lines['ID1'].isin(road_points.ID.to_list()) & road_lines['ID2'].isin(road_points.ID.to_list()))]
 
-        # Load rasters and reproject on-the-fly
-        st.write("Loading and reprojecting raster data...")
-        Elevation = rasterio.open(os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'))
-        Slope = rasterio.open(os.path.join(dir_input_1, 'slope', f'Slope_{crs}.tif'))
-        LandCover = rasterio.open(os.path.join(dir_input_1, 'landcover', f'LandCover_{crs}.tif'))
+        # Reproject rasters to the specified CRS on the fly
+        elevation_src = os.path.join(dir_input_1, 'elevation', 'Elevation.tif')
+        slope_src = os.path.join(dir_input_1, 'slope', 'Slope.tif')
+        landcover_src = os.path.join(dir_input_1, 'landcover', 'LandCover.tif')
+
+        Elevation = rasterio.open(reproject_raster(elevation_src, os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'), crs))
+        Slope = rasterio.open(reproject_raster(slope_src, os.path.join(dir_input_1, 'slope', f'Slope_{crs}.tif'), crs))
+        LandCover = rasterio.open(reproject_raster(landcover_src, os.path.join(dir_input_1, 'landcover', f'LandCover_{crs}.tif'), crs))
 
         # Populate the grid of points with raster data
         coords = [(x, y) for x, y in zip(grid_of_points.X, grid_of_points.Y)]
