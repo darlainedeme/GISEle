@@ -1,23 +1,21 @@
 import os
-import time
 import geopandas as gpd
 import pandas as pd
-import networkx as nx
 import numpy as np
 import rasterio
 import streamlit as st
-from shapely.geometry import Point, LineString, MultiPoint
-from geneticalgorithm_github import geneticalgorithm as ga
-from Steiner_tree_code import steiner_tree, metric_closure
-from sklearn.cluster import AgglomerativeClustering
+from shapely.geometry import Point
 from rasterio.enums import Resampling
+from rasterio.warp import calculate_default_transform, reproject
 
-def reproject_raster(input_raster, output_raster, dst_crs):
+
+def reproject_raster(input_raster, dst_crs):
     """
     Reproject a raster to a different CRS using rasterio.
+    Returns the reprojected raster in memory.
     """
     with rasterio.open(input_raster) as src:
-        transform, width, height = rasterio.warp.calculate_default_transform(
+        transform, width, height = calculate_default_transform(
             src.crs, dst_crs, src.width, src.height, *src.bounds)
         kwargs = src.meta.copy()
         kwargs.update({
@@ -27,18 +25,20 @@ def reproject_raster(input_raster, output_raster, dst_crs):
             'height': height
         })
 
-        with rasterio.open(output_raster, 'w', **kwargs) as dst:
-            for i in range(1, src.count + 1):
-                rasterio.warp.reproject(
-                    source=rasterio.band(src, i),
-                    destination=rasterio.band(dst, i),
-                    src_transform=src.transform,
-                    src_crs=src.crs,
-                    dst_transform=transform,
-                    dst_crs=dst_crs,
-                    resampling=Resampling.nearest)
+        with rasterio.MemoryFile() as memfile:
+            with memfile.open(**kwargs) as dst:
+                for i in range(1, src.count + 1):
+                    reproject(
+                        source=rasterio.band(src, i),
+                        destination=rasterio.band(dst, i),
+                        src_transform=src.transform,
+                        src_crs=src.crs,
+                        dst_transform=transform,
+                        dst_crs=dst_crs,
+                        resampling=Resampling.nearest
+                    )
+            return memfile.open()
 
-    return output_raster
 
 def sample_raster(raster, coords):
     """
@@ -49,23 +49,24 @@ def sample_raster(raster, coords):
         values.append(val[0])
     return values
 
+
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
-    
-    dir_input_1 = os.path.join(gisele_dir, r'data', '2_downloaded_input_data')
-    dir_input = os.path.join(gisele_dir, r'data', '4_intermediate_output')
-    dir_output = os.path.join(gisele_dir, r'data', '5_final_output')
+
+    dir_input_1 = os.path.join(gisele_dir, 'data', '2_downloaded_input_data')
+    dir_input = os.path.join(gisele_dir, 'data', '4_intermediate_output')
+    dir_output = os.path.join(gisele_dir, 'data', '5_final_output')
     grid_of_points_path = os.path.join(dir_input, 'grid_of_points', 'weighted_grid_of_points_with_roads.csv')
-    population_points_path = os.path.join(gisele_dir, r'data', '2_downloaded_input_data', 'buildings', 'mit', 'points_clipped', 'points_clipped.shp')
-    roads_points_path = os.path.join(gisele_dir, r'data', '2_downloaded_input_data', 'roads', 'roads_points.shp')
-    roads_lines_path = os.path.join(gisele_dir, r'data', '2_downloaded_input_data', 'roads', 'roads_lines.shp')
-    ss_data_path = os.path.join(gisele_dir, r'data', '0_configuration_files', ss_data)
-    
+    population_points_path = os.path.join(gisele_dir, 'data', '2_downloaded_input_data', 'buildings', 'mit', 'points_clipped', 'points_clipped.shp')
+    roads_points_path = os.path.join(gisele_dir, 'data', '2_downloaded_input_data', 'roads', 'roads_points.shp')
+    roads_lines_path = os.path.join(gisele_dir, 'data', '2_downloaded_input_data', 'roads', 'roads_lines.shp')
+    ss_data_path = os.path.join(gisele_dir, 'data', '0_configuration_files', ss_data)
+
     # Load initial grid of points with roads
     st.write("Loading grid of points with roads...")
     grid_of_points = pd.read_csv(grid_of_points_path)
     grid_of_points_GDF = gpd.GeoDataFrame(grid_of_points, geometry=gpd.points_from_xy(grid_of_points.X, grid_of_points.Y), crs=crs)
-    
+
     Starting_node = int(grid_of_points_GDF['ID'].max() + 1)
     LV_resume = pd.DataFrame()
     LV_grid = gpd.GeoDataFrame()
@@ -78,7 +79,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     Population = gpd.read_file(population_points_path)
 
     for index, row in Clusters.iterrows():
-        dir_cluster = os.path.join(gisele_dir, r'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
+        dir_cluster = os.path.join(gisele_dir, 'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
         os.makedirs(dir_cluster, exist_ok=True)
         os.makedirs(os.path.join(dir_cluster, 'grids'), exist_ok=True)
 
@@ -87,8 +88,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         # Clip population points to the study area
         grid_of_points = gpd.clip(Population, area_buffered)
-        grid_of_points['X'] = [point['geometry'].xy[0][0] for _, point in grid_of_points.iterrows()]
-        grid_of_points['Y'] = [point['geometry'].xy[1][0] for _, point in grid_of_points.iterrows()]
+        grid_of_points['X'] = [point.geometry.x for point in grid_of_points.geometry]
+        grid_of_points['Y'] = [point.geometry.y for point in grid_of_points.geometry]
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
 
         # Clip roads points and lines to the study area
@@ -98,21 +99,16 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         road_lines = road_lines[(road_lines['ID1'].isin(road_points.ID.to_list()) & road_lines['ID2'].isin(road_points.ID.to_list()))]
 
         # Reproject rasters to the specified CRS on the fly
-        elevation_src = os.path.join(dir_input_1, 'elevation', 'Elevation.tif')
-        slope_src = os.path.join(dir_input_1, 'slope', 'slope.tif')
-        landcover_src = os.path.join(dir_input_1, 'landcover', 'LandCover.tif')
-
-        Elevation = rasterio.open(reproject_raster(elevation_src, os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'), crs))
-        Slope = rasterio.open(reproject_raster(slope_src, os.path.join(dir_input_1, 'slope', f'Slope_{crs}.tif'), crs))
-        LandCover = rasterio.open(reproject_raster(landcover_src, os.path.join(dir_input_1, 'landcover', f'LandCover_{crs}.tif'), crs))
+        Elevation = reproject_raster(os.path.join(dir_input_1, 'elevation', 'Elevation.tif'), crs)
+        Slope = reproject_raster(os.path.join(dir_input_1, 'slope', 'Slope.tif'), crs)
+        LandCover = reproject_raster(os.path.join(dir_input_1, 'landcover', 'LandCover.tif'), crs)
 
         # Populate the grid of points with raster data
         coords = [(x, y) for x, y in zip(grid_of_points.X, grid_of_points.Y)]
-        grid_of_points['Population'] = sample_raster(Population, coords)
         grid_of_points['Elevation'] = sample_raster(Elevation, coords)
         grid_of_points['Slope'] = sample_raster(Slope, coords)
         grid_of_points['Land_cover'] = sample_raster(LandCover, coords)
-        grid_of_points['Protected_area'] = ['FALSE' for _ in LandCover.sample(coords)]
+        grid_of_points['Protected_area'] = ['FALSE' for _ in range(len(coords))]
 
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
 
@@ -121,7 +117,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     # Check columns present in grid_of_points_GDF
     st.write(f"Final columns in grid_of_points_GDF: {grid_of_points_GDF.columns.tolist()}")
-    
+
     # Ensure GeoDataFrames are not empty and contain valid geometry before saving
     if not LV_grid.empty and LV_grid.geometry.notnull().all():
         LV_grid.to_file(os.path.join(dir_output, 'LV_grid'))
@@ -149,7 +145,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         # Check and log missing columns before saving
         required_columns = ['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']
         missing_columns = [col for col in required_columns if col not in grid_of_points_GDF.columns]
-        
+
         if missing_columns:
             st.error(f"Missing columns in grid_of_points_GDF: {missing_columns}")
         else:
@@ -159,9 +155,10 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     return LV_grid, MV_grid, secondary_substations, all_houses
 
+
 def show():
     st.title("Optimization")
-    
+
     # Example parameters
     parameters = {
         "crs": "EPSG:4326",  # Example CRS
@@ -184,8 +181,8 @@ def show():
         "population_dataset_type": "raster"  # Example population dataset type
     }
     path_to_clusters = os.path.join(parameters["gisele_dir"], 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
-    Clusters = gpd.read_file(path_to_clusters) 
-    
+    Clusters = gpd.read_file(path_to_clusters)
+
     # Run the optimization
     LV_grid, MV_grid, secondary_substations, all_houses = optimize(
         parameters["crs"], parameters["country"], parameters["resolution"], parameters["load_capita"],
@@ -195,16 +192,16 @@ def show():
         parameters["simplify_coef"], parameters["crit_dist"], parameters["LV_base_cost"],
         parameters["population_dataset_type"]
     )
-    
+
     # Display the results
     st.write("LV_grid:")
     st.write(LV_grid.head())
-    
+
     st.write("MV_grid:")
     st.write(MV_grid.head())
-    
+
     st.write("Secondary Substations:")
     st.write(secondary_substations.head())
-    
+
     st.write("All Houses:")
     st.write(all_houses.head())
