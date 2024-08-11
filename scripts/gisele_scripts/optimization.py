@@ -133,8 +133,8 @@ def show():
         "case_study": "example_case_study",  # Example case study
         "LV_distance": 500,  # Example LV distance
         "ss_data": "ss_data_evn",  # Example SS data
-        "landcover_option": "GLC",  # Example land cover option
-        "gisele_dir": "/path/to/gisele_dir",  # Example GISELE directory
+        "landcover_option": "ESACCI",  # Example land cover option
+        "gisele_dir": "/mount/src/gisele",  # Example GISELE directory
         "roads_weight": 2,  # Example roads weight
         "run_genetic": True,  # Example genetic algorithm flag
         "max_length_segment": 1000,  # Example max length segment
@@ -143,8 +143,8 @@ def show():
         "LV_base_cost": 10000,  # Example LV base cost
         "population_dataset_type": "raster"  # Example population dataset type
     }
-    path_to_clusters = os.path.join(gisele_folder, 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
-    Clusters = gpd.read_file(path_to_clusters)  # Example clusters file
+    path_to_clusters = os.path.join(gisele_dir, 'data', '4_intermediate_output', 'clustering', 'Communities_boundaries.shp')
+    Clusters = gpd.read_file(path_to_clusters) 
     
     # Run the optimization
     LV_grid, MV_grid, secondary_substations, all_houses = optimize(
