@@ -14,6 +14,7 @@ from sklearn.cluster import AgglomerativeClustering
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
     
+    dir_input_1 = os.path.join(gisele_dir, r'data', '2_downloaded_input_data')
     dir_input = os.path.join(gisele_dir, r'data', '4_intermediate_output')
     dir_output = os.path.join(gisele_dir, r'data', '5_final_output')
     grid_of_points_path = os.path.join(dir_input, 'grid_of_points', 'weighted_grid_of_points_with_roads.csv')
@@ -62,9 +63,9 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         road_lines = road_lines[(road_lines['ID1'].isin(road_points.ID.to_list()) & road_lines['ID2'].isin(road_points.ID.to_list()))]
 
         # Load rasters for the specific region
-        Elevation = rasterio.open(os.path.join(dir_input, f'Elevation_{crs}.tif'))
-        Slope = rasterio.open(os.path.join(dir_input, f'Slope_{crs}.tif'))
-        LandCover = rasterio.open(os.path.join(dir_input, f'LandCover_{crs}.tif'))
+        Elevation = rasterio.open(os.path.join(dir_input_1, 'elevation', f'Elevation_{crs}.tif'))
+        Slope = rasterio.open(os.path.join(dir_input_1, 'slope', f'Slope_{crs}.tif'))
+        LandCover = rasterio.open(os.path.join(dir_input_1, 'landcover', f'LandCover_{crs}.tif'))
 
         # Populate the grid of points with raster data
         coords = [(x, y) for x, y in zip(grid_of_points.X, grid_of_points.Y)]
