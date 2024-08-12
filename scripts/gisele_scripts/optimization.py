@@ -293,11 +293,14 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             road_points_populated.crs = crs
             road_points_populated.to_file(os.path.join(dir_cluster, 'road_points_populated.shp'))
 
+            # Check if 'ID' exists in the columns
             if 'ID' not in road_points_populated.columns:
-                road_points_populated['ID'] = road_points_populated.index
+                road_points_populated = road_points_populated.reset_index(drop=False).set_index('ID', drop=False)
+            else:
+                road_points_populated = road_points_populated.set_index('ID', drop=False)
 
-            road_points_populated = road_points_populated.set_index('ID', drop=False)
 
+            # road_points_populated = road_points_populated.set_index('ID', drop=False)
             road_lines = road_lines.set_index(pd.Index([*range(road_lines.shape[0])]))
 
             graph = nx.Graph()
