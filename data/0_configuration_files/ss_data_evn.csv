@@ -1,4 +1,4 @@
-Rated_power [kVA],Cost[euro]
+MV_Power,Cost[euro]
 50,1500
 100,2100
 160,2550
