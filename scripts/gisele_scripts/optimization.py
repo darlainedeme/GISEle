@@ -810,7 +810,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     st.write("MV_LV_substations DataFrame:")
                     st.write(MV_LV_substations.drop(columns='geometry').head())
                     st.write(f"Filtering for cluster {i}:")
-                    st.write(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].drop(columns='geometry').head()))
+                    st.write(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].drop(columns='geometry').head())
 
                     LV_grid_cost = 0  # Handle the case where there's no LV length
                     
