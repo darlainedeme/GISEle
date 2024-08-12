@@ -13,6 +13,7 @@ import networkx as nx
 from itertools import chain
 from networkx.utils import pairwise
 from scipy.spatial import Delaunay
+from sklearn.cluster import AgglomerativeClustering
 
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
@@ -475,7 +476,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             point1 = all_points.loc[all_points['ID'] == i[0], 'geometry'].values[0]
             point2 = all_points.loc[all_points['ID'] == i[1], 'geometry'].values[0]
             geom = LineString([point1, point2])
-            grid_final = grid_final.append(gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom]}))
+            
+            grid_final = pd.concat([grid_final, gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom]})], ignore_index=True)
             counter += 1
         grid_final.crs = crs
         grid_final.to_file(os.path.join(dir_cluster, 'grid_final.shp'))
