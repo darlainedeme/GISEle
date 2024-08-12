@@ -3,7 +3,7 @@ import geopandas as gpd
 import pandas as pd
 import rasterio
 import streamlit as st
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, LineString, MultiPoint
 from rasterio.enums import Resampling
 from rasterio.warp import calculate_default_transform, reproject
 import numpy as np
