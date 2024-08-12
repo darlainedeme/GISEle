@@ -766,8 +766,14 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     LV_grid_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length']) / 1000
                 except:
                     pass
-                LV_grid_cost = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length']) * LV_base_cost / 1000
-                max_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'max_distance']) / 1000
+                    
+                try:
+                    LV_grid_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].values[0]) / 1000
+                except:
+                    pass
+
+                LV_grid_cost = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].values[0]) * LV_base_cost / 1000
+                max_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'max_distance'].values[0]) / 1000
 
                 try:
                     sum_pop = subset['cons (kWh/'].sum()
