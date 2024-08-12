@@ -12,6 +12,7 @@ from shapely.ops import split,nearest_points
 import networkx as nx
 from itertools import chain
 from networkx.utils import pairwise
+from scipy.spatial import Delaunay
 
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
