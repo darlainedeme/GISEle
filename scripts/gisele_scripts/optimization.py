@@ -17,6 +17,7 @@ from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
 from math import ceil
 from scripts.gisele_scripts.geneticalgorithm_github import geneticalgorithm as ga
+from scipy.spatial import distance_matrix
 
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
