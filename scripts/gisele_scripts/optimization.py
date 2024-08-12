@@ -10,6 +10,7 @@ import numpy as np
 from networkx import Graph
 from shapely.ops import split,nearest_points
 import networkx as nx
+from itertools import chain
 
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
