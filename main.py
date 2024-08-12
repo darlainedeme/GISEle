@@ -22,7 +22,7 @@ def file_navigator(current_dir):
         if current_dir != Path.cwd():
             if st.button("Go Up"):
                 st.session_state.current_dir = current_dir.parent
-                st.experimental_rerun()
+                st.experimental_set_query_params()  # Refresh the page by setting query parameters
 
         # List Files and Directories
         files = sorted(current_dir.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
@@ -32,7 +32,7 @@ def file_navigator(current_dir):
                 if file.is_dir():
                     if st.button("📁", key=file.name):
                         st.session_state.current_dir = file
-                        st.experimental_rerun()
+                        st.experimental_set_query_params()  # Refresh the page by setting query parameters
                 else:
                     st.text("📄")
             with col2:
