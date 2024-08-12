@@ -6,6 +6,38 @@ from scripts.gisele_scripts import clustering_modes, case_study_creation, optimi
 
 st.set_page_config(layout="wide")
 
+# File Navigator Implementation
+def file_navigator(current_dir):
+    st.title("File Navigator")
+    
+    if current_dir.is_dir():
+        # Display the current directory
+        st.write(f"**Current Directory: {current_dir}**")
+
+        # Parent Directory Link
+        if current_dir != Path.cwd():
+            if st.button("Go Up"):
+                st.session_state.current_dir = current_dir.parent
+                st.experimental_rerun()
+
+        # List Files and Directories
+        files = sorted(current_dir.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
+        for file in files:
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                if file.is_dir():
+                    if st.button("📁", key=file.name):
+                        st.session_state.current_dir = file
+                        st.experimental_rerun()
+                else:
+                    st.text("📄")
+            with col2:
+                if file.is_dir():
+                    st.write(f"**{file.name}/**")
+                else:
+                    st.write(file.name)
+                    st.download_button("Download", open(file, 'rb'), file_name=file.name)
+
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
 
@@ -71,38 +103,6 @@ elif main_section == "⚙️ GISELE":
 # Display the selected page
 if subpage in pages:
     pages[subpage]()
-
-# File Navigator Implementation
-def file_navigator(current_dir):
-    st.title("File Navigator")
-    
-    if current_dir.is_dir():
-        # Display the current directory
-        st.write(f"**Current Directory: {current_dir}**")
-
-        # Parent Directory Link
-        if current_dir != Path.cwd():
-            if st.button("Go Up"):
-                st.session_state.current_dir = current_dir.parent
-                st.experimental_rerun()
-
-        # List Files and Directories
-        files = sorted(current_dir.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
-        for file in files:
-            col1, col2 = st.columns([0.1, 0.9])
-            with col1:
-                if file.is_dir():
-                    if st.button("📁", key=file.name):
-                        st.session_state.current_dir = file
-                        st.experimental_rerun()
-                else:
-                    st.text("📄")
-            with col2:
-                if file.is_dir():
-                    st.write(f"**{file.name}/**")
-                else:
-                    st.write(file.name)
-                    st.download_button("Download", open(file, 'rb'), file_name=file.name)
 
 # Initialize session state
 if "current_dir" not in st.session_state:
