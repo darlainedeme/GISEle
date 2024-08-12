@@ -13,7 +13,6 @@ from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
 from math import ceil
 from scipy.spatial.distance import cdist
-from geneticalgorithm import geneticalgorithm as ga
 import streamlit as st
 from scripts.gisele_scripts.geneticalgorithm_github import geneticalgorithm as ga
 
