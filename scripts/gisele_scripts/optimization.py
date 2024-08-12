@@ -236,6 +236,28 @@ def connect_unconnected_graph(graph,lines,points,weight):
                 graph.add_edge(id_point1,id_point2,weight = distance*weight,length = distance)
     return graph,lines
 
+def distance_2d(df1, df2, x, y):
+    """
+    Find the 2D distance matrix between two datasets of points.
+    :param df1: first point dataframe
+    :param df2: second point dataframe
+    :param x: column representing the x coordinates (longitude)
+    :param y: column representing the y coordinates (latitude)
+    :return value: 2D Distance matrix between df1 and df2
+    """
+
+    d1_coordinates = {'x': df1[x], 'y': df1[y]}
+    df1_loc = pd.DataFrame(data=d1_coordinates)
+    df1_loc.index = df1['ID']
+
+
+    d2_coordinates = {'x': df2[x], 'y': df2[y]}
+    df2_loc = pd.DataFrame(data=d2_coordinates)
+    df2_loc.index = df2['ID']
+
+    value = distance_matrix(df1_loc, df2_loc)
+    return value
+
 def delaunay_test(graph,new_points,new_lines):
     tocki = new_points['geometry'].values
     number_points = new_points.shape[0]
