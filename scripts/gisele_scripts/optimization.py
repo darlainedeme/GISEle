@@ -835,6 +835,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         secondary_substations = pd.concat([secondary_substations, MV_LV_substations], ignore_index=True)
         st.write(secondary_substations.drop(columns='geometry').head())
         substation_data = pd.read_csv(os.path.join(gisele_dir, 'data', '0_configuration_files', ss_data))
+        st.write("substations:")
         clusters_list = categorize_substation(clusters_list, substation_data)
         clusters_list['Population'] = [ceil(i) for i in clusters_list['Population']]
         clusters_list.to_csv(os.path.join(dir_cluster, 'LV_networks_resume.csv'), index=False)
