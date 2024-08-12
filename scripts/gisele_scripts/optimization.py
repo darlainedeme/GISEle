@@ -280,7 +280,8 @@ def delaunay_test(graph,new_points,new_lines):
 
                 data_segment = {'ID1': [id1], 'ID2': [id2], 'length': [point1.distance(point2) / 1000],
                                 'geometry': [line], 'Type': ['Colateral']}
-                new_lines = new_lines.append(gpd.GeoDataFrame(data_segment))
+                new_lines = pd.concat([new_lines, gpd.GeoDataFrame(data_segment)], ignore_index=True)
+
     else: # this is for the case without roads in the cluster, just create the lines in a straightforward way
         new_points = new_points.reset_index()
         for i, j in final_sides2:
