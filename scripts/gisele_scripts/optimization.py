@@ -258,7 +258,7 @@ def categorize_substation(clusters_list, substations):
     substations['Rated_power [kVA]'] = substations['Rated_power [kVA]']
     substations1 = substations['Rated_power [kVA]'].to_list()
     for index, row in clusters_list.iterrows():
-        load_kVA = row.loc['Load [kW]'] / 0.9  # considering a power factor of 0.9
+        load_kVA = row.loc['MV_Power'] / 0.9  # considering a power factor of 0.9
         substations2 = [i - load_kVA if i - load_kVA > 0 else 10000 for i in substations1]
         power = int(min(substations2) + load_kVA)
         values.append(power)
