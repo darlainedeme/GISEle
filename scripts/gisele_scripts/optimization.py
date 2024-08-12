@@ -296,8 +296,82 @@ def delaunay_test(graph,new_points,new_lines):
 
             data_segment = {'ID1': [id1], 'ID2': [id2], 'length': [point1.distance(point2) / 1000],
                             'geometry': [line], 'Type': ['Colateral']}
-            new_lines = new_lines.append(gpd.GeoDataFrame(data_segment))
+            new_lines = pd.concat([new_lines, gpd.GeoDataFrame(data_segment)], ignore_index=True)
+
     return graph,new_lines
+
+def create_clean_graph(graph,points,terminal_points,T_metric,crs):
+    '''This function returns a graph that is composed only of population nodes(translated on the roads) and the intersection points(points
+    which are present in the existing graph more than 2 times. The idea is to start cutting the highest cost lines as the path
+    to a much better clustering that includes the actual electrical distances.'''
+    #WORKS
+    #
+    # STEP 1. Take all the terminal nodes + the intersection nodes
+
+    terminal_IDs = terminal_points['ID'].to_list()
+    edges_tuples = [i for i in graph.edges]
+    nodes = [edges_tuples[i][0] for i in range(len(edges_tuples))]
+    nodes+=[edges_tuples[i][1] for i in range(len(edges_tuples))]
+    occurence = Counter(nodes)
+    intersection_IDs=[]
+    for i in occurence:
+        if occurence[i]>2 and not i in terminal_IDs:
+            intersection_IDs.append(i)
+    new_nodes = terminal_IDs + intersection_IDs
+
+    # STEP 2. Create the new graph
+    start_node = new_nodes[0]
+    #start_node = 154
+    current_node = start_node
+    graph_copy = graph.copy()
+    new_graph=nx.Graph()
+    terminal_IDs_2 = terminal_IDs.copy()
+    unique_nodes=new_nodes.copy()
+    while True:
+        try:
+            next_node = [i for i in graph_copy[current_node]][0]
+            #print(next_node)
+        except:
+            print('A terminal node has been reached, back to the set of points')
+            if current_node in terminal_IDs_2:
+                terminal_IDs_2.remove(current_node)
+                #print('Node ' + str(current_node) + ' was deleted.')
+            #print('Next point is '+str(unique_nodes[0]))
+            start_node = unique_nodes[0]
+            current_node = start_node
+            next_node = [i for i in graph_copy[start_node]][0]
+        if next_node in new_nodes:
+            new_graph.add_edge(start_node, next_node, weight=T_metric[start_node][next_node])
+            #print('add ' + str(start_node) + ' and ' + str(next_node))
+            graph_copy.remove_edge(current_node,next_node)
+            #print('remove '+str(current_node)+' and ' + str(next_node))
+            if start_node in terminal_IDs_2:
+                terminal_IDs_2.remove(start_node)
+                print('Node '+ str(start_node)+' was deleted.')
+            start_node = next_node
+            current_node = start_node
+        else:
+            graph_copy.remove_edge(current_node, next_node)
+            #print('remove ' + str(current_node) + ' and ' + str(next_node))
+            current_node = next_node
+
+        if nx.is_empty(graph_copy):
+            break
+        new_edges = [i for i in graph_copy.edges]
+        unique_nodes = list(set([new_edges[i][0] for i in range(len(new_edges))] + [new_edges[i][1] for i in range(len(new_edges))]))
+        unique_nodes = list(set(unique_nodes) & set(new_nodes))
+    new_edges = [i for i in new_graph.edges]
+    new_lines=gpd.GeoDataFrame()
+    for j in new_edges:
+        point1 = points.loc[points['ID'] == j[0],'geometry'].values[0]
+        point2 = points.loc[points['ID'] == j[1],'geometry'].values[0]
+        length = new_graph[j[0]][j[1]]['weight']['distance']
+        new_lines=new_lines.append({'geometry': LineString([point1,point2]),'length': length},ignore_index=True)
+    new_lines.crs = crs
+
+
+    new_points = points[points['ID'].isin(new_nodes)]
+    return new_lines, new_points, new_graph
 
 # Main optimization function
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
@@ -608,7 +682,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             length = T_metric[i[0]][i[1]]['distance'] / 1000
             cost = length * LV_base_cost
             geom = LineString([point1, point2])
-            grid_final = grid_final.append(gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom], 'Length [km]': [length], 'Cost [euro]': [cost]}))
+            grid_final = pd.concat([grid_final, gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom], 'Length [km]': [length], 'Cost [euro]': [cost]})], ignore_index=True)
+
             counter += 1
         grid_final.crs = crs
         grid_final.to_file(os.path.join(dir_cluster, 'grid_final_cut.shp'))
@@ -705,7 +780,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     secondary_substations['Type'] = 'Secondary Substation'
     terminal_MV_nodes = secondary_substations.ID.to_list()
     grid_of_points_GDF.drop(grid_of_points_GDF[grid_of_points_GDF['ID'].isin(terminal_MV_nodes)].index, axis=0, inplace=True)
-    grid_of_points_GDF = grid_of_points_GDF.append(secondary_substations)
+    grid_of_points_GDF = pd.concat([grid_of_points_GDF, secondary_substations], ignore_index=True)
     grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(os.path.join(gisele_dir, dir_input, 'weighted_grid_of_points_with_ss_and_roads.csv'), index=False)
 
     return LV_grid, MV_grid, secondary_substations, all_houses
