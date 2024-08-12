@@ -750,7 +750,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     load = sum_pop / normalization * 0.35
                 except:
                     sum_pop = subset['Population'].sum()
-                    load = sum_pop * load_capita * coincidence_factor(sum_pop, pop_per_household)
+                    load = sum_pop * load_capita * 0.35 # coincidence_factor(sum_pop, pop_per_household)
 
             ID_substation = int(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'ID'])
             data = np.array([[int(clus), int(i), sum_pop, load, LV_grid_length, LV_grid_cost, max_length]])
