@@ -660,7 +660,15 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             tree_final_copy = tree_final.copy()
             for i in cut_edges:
                 edge = lookup_edges[int(i)]
-                edge_path = nx.dijkstra_path(tree_final, edge[0], edge[1])
+
+                if nx.has_path(tree_final, edge[0], edge[1]): # darlain
+                    edge_path = nx.dijkstra_path(tree_final, edge[0], edge[1])
+                
+                else:
+                    # Handle the case where no path exists
+                    print(f"No path exists between nodes {edge[0]} and {edge[1]}")
+                    continue  # or perform any other necessary action
+                    
                 for j in range(len(edge_path) - 1):
                     tree_final.remove_edge(*(edge_path[j], edge_path[j + 1]))
         islands = [c for c in nx.connected_components(tree_final)]
