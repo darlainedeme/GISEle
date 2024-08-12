@@ -416,9 +416,11 @@ def create_clean_graph(graph,points,terminal_points,T_metric,crs):
     return new_lines, new_points, new_graph
 
 # Main optimization function
+# Main optimization function
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
 
+    print("Starting the optimization process...")
     dir_input_1 = os.path.join(gisele_dir, 'data', '2_downloaded_input_data')
     dir_input = os.path.join(gisele_dir, 'data', '4_intermediate_output')
     dir_output = os.path.join(gisele_dir, 'data', '5_final_output')
@@ -444,8 +446,10 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     Population = gpd.read_file(population_points_path)
 
     for index, row in Clusters.iterrows():
+        print(f"Processing cluster {row['cluster_ID']}...")
+
         dir_cluster = os.path.join(gisele_dir, 'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
-        clus = row['cluster_ID'] 
+        clus = row['cluster_ID']
         os.makedirs(dir_cluster, exist_ok=True)
         os.makedirs(os.path.join(dir_cluster, 'grids'), exist_ok=True)
 
@@ -492,14 +496,22 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['height'].astype(float) > 12), 'Population'] = 10
                 grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120) & (grid_of_points['height'].astype(float) > 12), 'Population'] = 25
 
-            except: 
-                grid_of_points['Population'] = 1    #TODO check this assumption   
+            except:
+                grid_of_points['Population'] = 1    #TODO check this assumption
+
         grid_of_points['Elevation'] = sample_raster(Elevation, coords)
         grid_of_points['Slope'] = sample_raster(Slope, coords)
         grid_of_points['Land_cover'] = sample_raster(LandCover, coords)
         grid_of_points['Protected_area'] = ['FALSE' for _ in range(len(coords))]
 
         grid_of_points.to_file(os.path.join(dir_cluster, 'points.shp'))
+
+        # Visualization: Plot grid points
+        plt.figure(figsize=(10, 10))
+        grid_of_points.plot()
+        plt.title(f"Grid Points for Cluster {clus}")
+        plt.savefig(os.path.join(dir_cluster, 'grid_points_plot.png'))
+        plt.close()
 
         Population_clus = grid_of_points[grid_of_points['Population'] > 0]
         Population_clus['ID'] = [*range(Starting_node, Starting_node + Population_clus.shape[0])]
@@ -527,8 +539,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             else:
                 road_points_populated = road_points_populated.set_index('ID', drop=False)
 
-
-            # road_points_populated = road_points_populated.set_index('ID', drop=False)
             road_lines = road_lines.set_index(pd.Index([*range(road_lines.shape[0])]))
 
             graph = nx.Graph()
@@ -540,7 +550,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             road_lines.to_file(os.path.join(dir_cluster, 'road_lines.shp'))
 
             populated_points = road_points_populated[road_points_populated['pop_bool'] == 1]
-            terminal_nodes = list(populated_points['ID'])
             st.write(road_points_populated.drop(columns='geometry').head())
             road_points_populated = road_points_populated.reset_index(drop=True)
             road_points_populated.to_file(os.path.join(dir_cluster, 'road_terminal_points.shp'))
@@ -593,11 +602,18 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             point1 = all_points.loc[all_points['ID'] == i[0], 'geometry'].values[0]
             point2 = all_points.loc[all_points['ID'] == i[1], 'geometry'].values[0]
             geom = LineString([point1, point2])
-            
+
             grid_final = pd.concat([grid_final, gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom]})], ignore_index=True)
             counter += 1
         grid_final.crs = crs
         grid_final.to_file(os.path.join(dir_cluster, 'grid_final.shp'))
+
+        # Visualization: Plot final grid
+        plt.figure(figsize=(10, 10))
+        grid_final.plot()
+        plt.title(f"Final Grid for Cluster {clus}")
+        plt.savefig(os.path.join(dir_cluster, 'grid_final_plot.png'))
+        plt.close()
 
         T_metric = metric_closure(tree_final, weight='length')
         populated_points = all_points[all_points['pop_bool'] == 1]
@@ -664,12 +680,12 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
                 if nx.has_path(tree_final, edge[0], edge[1]): # darlain
                     edge_path = nx.dijkstra_path(tree_final, edge[0], edge[1])
-                
+
                 else:
                     # Handle the case where no path exists
                     print(f"No path exists between nodes {edge[0]} and {edge[1]}")
                     continue  # or perform any other necessary action
-                    
+
                 for j in range(len(edge_path) - 1):
                     tree_final.remove_edge(*(edge_path[j], edge_path[j + 1]))
         islands = [c for c in nx.connected_components(tree_final)]
@@ -766,7 +782,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     LV_grid_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length']) / 1000
                 except:
                     pass
-                    
+
                 try:
                     LV_grid_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].values[0]) / 1000
                 except:
@@ -829,6 +845,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             grid_MV['Cluster'] = clus
             grid_MV.to_file(os.path.join(dir_cluster, 'grid_MV.shp'))
             MV_grid = pd.concat([MV_grid, grid_MV], ignore_index=True)
+
+    print("Finalizing the optimization process...")
 
     LV_resume.to_csv(os.path.join(gisele_dir, dir_output, 'LV_resume.csv'))
     LV_grid.to_file(os.path.join(gisele_dir, dir_output, 'LV_grid.shp'))
