@@ -366,7 +366,9 @@ def create_clean_graph(graph,points,terminal_points,T_metric,crs):
         point1 = points.loc[points['ID'] == j[0],'geometry'].values[0]
         point2 = points.loc[points['ID'] == j[1],'geometry'].values[0]
         length = new_graph[j[0]][j[1]]['weight']['distance']
-        new_lines=new_lines.append({'geometry': LineString([point1,point2]),'length': length},ignore_index=True)
+        new_data = pd.DataFrame([{'geometry': LineString([point1, point2]), 'length': length}])
+        new_lines = pd.concat([new_lines, new_data], ignore_index=True)
+
     new_lines.crs = crs
 
 
