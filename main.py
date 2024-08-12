@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+from pathlib import Path
 from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, demand_estimation, minigrid_sizing, routing, results
 from scripts.gisele_scripts import clustering_modes, case_study_creation, optimization, geneticalgorithm_github
 
@@ -10,7 +11,7 @@ st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
 
 # Define the main sections with emojis
 main_sections = {
-    "🏠 Home": ["Home"],
+    "🏠 Home": ["Home", "File Navigator"],  # Added File Navigator here
     "📍 Area Identification": ["Area Selection", "Satellite Timelapse"],
     "📊 VANIA": ["Data Retrieve", "Data Visualization and Enhancement", "VANIA Report"],
     "⚙️ GISELE": [
@@ -30,9 +31,10 @@ main_section = st.sidebar.radio("Navigation", list(main_sections.keys()))
 
 # Visual separation and styling for subpages
 if main_section == "🏠 Home":
-    subpage = "Home"
+    subpage = st.sidebar.radio("Home", main_sections[main_section], index=0, key="home")
     pages = {
-        "Home": home.show
+        "Home": home.show,
+        "File Navigator": lambda: file_navigator(st.session_state.get("current_dir", Path.cwd()))  # Call the file navigator
     }
 
 elif main_section == "📍 Area Identification":
@@ -66,37 +68,42 @@ elif main_section == "⚙️ GISELE":
         "Results": results.show
     }
 
-# File Explorer Section
-st.sidebar.markdown("<hr style='border: none; border-bottom: 2px solid #ccc;'>", unsafe_allow_html=True)
-
-# Function to list and download files
-def list_files(directory):
-    files = []
-    for file in os.listdir(directory):
-        path = os.path.join(directory, file)
-        if os.path.isfile(path):
-            files.append((file, path))
-        else:
-            files.append((file + "/", path))
-    return files
-
-def file_explorer(directory):
-    st.sidebar.write("**File Explorer**")
-    files = list_files(directory)
-    for filename, filepath in files:
-        if os.path.isdir(filepath):
-            if st.sidebar.button(f"Open {filename}"):
-                st.session_state.current_dir = filepath
-        else:
-            st.sidebar.write(f"**{filename}**")
-            st.sidebar.download_button("Download", open(filepath, 'rb'), file_name=filename)
-
-# Initial directory to start from
-if "current_dir" not in st.session_state:
-    st.session_state.current_dir = os.getcwd()
-
-file_explorer(st.session_state.current_dir)
-
 # Display the selected page
 if subpage in pages:
     pages[subpage]()
+
+# File Navigator Implementation
+def file_navigator(current_dir):
+    st.title("File Navigator")
+    
+    if current_dir.is_dir():
+        # Display the current directory
+        st.write(f"**Current Directory: {current_dir}**")
+
+        # Parent Directory Link
+        if current_dir != Path.cwd():
+            if st.button("Go Up"):
+                st.session_state.current_dir = current_dir.parent
+                st.experimental_rerun()
+
+        # List Files and Directories
+        files = sorted(current_dir.iterdir(), key=lambda x: (x.is_file(), x.name.lower()))
+        for file in files:
+            col1, col2 = st.columns([0.1, 0.9])
+            with col1:
+                if file.is_dir():
+                    if st.button("📁", key=file.name):
+                        st.session_state.current_dir = file
+                        st.experimental_rerun()
+                else:
+                    st.text("📄")
+            with col2:
+                if file.is_dir():
+                    st.write(f"**{file.name}/**")
+                else:
+                    st.write(file.name)
+                    st.download_button("Download", open(file, 'rb'), file_name=file.name)
+
+# Initialize session state
+if "current_dir" not in st.session_state:
+    st.session_state.current_dir = Path.cwd()
