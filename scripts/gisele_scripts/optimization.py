@@ -799,7 +799,21 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     LV_grid_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].values[0]) / 1000
                 except:
                     pass
+                # Example fix with debugging output
+                lv_length_values = MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].values
 
+                # Check if the array is empty before accessing its first element
+                if len(lv_length_values) > 0:
+                    LV_grid_cost = float(lv_length_values[0]) * LV_base_cost / 1000
+                else:
+                    st.write(f"No LV length found for cluster {i}. The DataFrame or array might be empty.")
+                    st.write("MV_LV_substations DataFrame:")
+                    st.write(MV_LV_substations)
+                    st.write(f"Filtering for cluster {i}:")
+                    st.write(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'])
+
+                    LV_grid_cost = 0  # Handle the case where there's no LV length
+                    
                 LV_grid_cost = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'].values[0]) * LV_base_cost / 1000
                 max_length = float(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'max_distance'].values[0]) / 1000
 
