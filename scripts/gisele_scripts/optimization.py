@@ -781,8 +781,13 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 except:
                     sum_pop = subset['Population'].sum()
                     load = sum_pop * load_capita * 0.35 # coincidence_factor(sum_pop, pop_per_household)
+            try:
+                ID_substation = int(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'ID'].values[0])
+            except IndexError:
+                print(f"No substation ID found for cluster {i}")
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
-            ID_substation = int(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'ID'])
             data = np.array([[int(clus), int(i), sum_pop, load, LV_grid_length, LV_grid_cost, max_length]])
             df2 = pd.DataFrame(data, columns=['Cluster', 'Sub_cluster', 'Population', 'Load [kW]', 'Grid_Length [km]', 'Grid Cost [euro]', 'Max length [km]'])
             clusters_list = pd.concat([clusters_list, df2], ignore_index=True)
