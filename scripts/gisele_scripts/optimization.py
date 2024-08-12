@@ -313,7 +313,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
             populated_points = road_points_populated[road_points_populated['pop_bool'] == 1]
             terminal_nodes = list(populated_points['ID'])
-            st.write(road_points_populated.drop(columns=['Elevation.1'], inplace=True).head())
+            st.write(road_points_populated.drop(columns='geometry').head())
             road_points_populated[road_points_populated['ID'].isin(terminal_nodes)].to_file(os.path.join(dir_cluster, 'road_terminal_points.shp'))
             tree = steiner_tree(graph, terminal_nodes)
             path = list(tree.edges)
