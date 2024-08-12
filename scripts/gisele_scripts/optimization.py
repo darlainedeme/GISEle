@@ -16,6 +16,7 @@ from scipy.spatial import Delaunay
 from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
 from math import ceil
+from scripts.gisele_scripts.geneticalgorithm_github import geneticalgorithm as ga
 
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
@@ -577,7 +578,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         clustered_points.to_file(os.path.join(dir_cluster, 'Clustered_points.shp'))
         populated_points['Population'] = [ceil(i) for i in populated_points['Population']]
-        number_clusters = populated_points['Cluster'].max() + 1
+            = populated_points['Cluster'].max() + 1
         if number_clusters > 1:
             lookup_edges = [i for i in new_graph.edges]
 
