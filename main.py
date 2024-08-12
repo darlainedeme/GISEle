@@ -6,6 +6,10 @@ from scripts.gisele_scripts import clustering_modes, case_study_creation, optimi
 
 st.set_page_config(layout="wide")
 
+# Display logo at the very top of the sidebar
+st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
+
+
 # File Navigator Implementation
 def file_navigator(current_dir):
     st.title("File Navigator")
@@ -38,8 +42,9 @@ def file_navigator(current_dir):
                     st.write(file.name)
                     st.download_button("Download", open(file, 'rb'), file_name=file.name)
 
-# Display logo at the very top of the sidebar
-st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
+# Initialize session state
+if "current_dir" not in st.session_state:
+    st.session_state.current_dir = Path.cwd()
 
 # Define the main sections with emojis
 main_sections = {
@@ -103,7 +108,3 @@ elif main_section == "⚙️ GISELE":
 # Display the selected page
 if subpage in pages:
     pages[subpage]()
-
-# Initialize session state
-if "current_dir" not in st.session_state:
-    st.session_state.current_dir = Path.cwd()
