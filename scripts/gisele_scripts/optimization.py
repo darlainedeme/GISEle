@@ -578,7 +578,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
         clustered_points.to_file(os.path.join(dir_cluster, 'Clustered_points.shp'))
         populated_points['Population'] = [ceil(i) for i in populated_points['Population']]
-            = populated_points['Cluster'].max() + 1
+        number_clusters = populated_points['Cluster'].max() + 1
         if number_clusters > 1:
             lookup_edges = [i for i in new_graph.edges]
 
