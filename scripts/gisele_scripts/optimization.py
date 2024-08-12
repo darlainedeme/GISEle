@@ -167,6 +167,28 @@ def genetic2(clustered_points,points_new_graph,distance_matrix,n_clusters,graph)
 
     return clustered_points, cut_edges
 
+def connect_unconnected_graph(graph,lines,points,weight):
+    if nx.is_connected(graph):
+        return graph,lines
+    else:
+        islands = [c for c in nx.connected_components(graph)]
+        for i in range(len(islands)):
+            for j in range(i+1,len(islands)):
+                subgraph_1 = [val for val in islands[i]]
+                subgraph_2 = [val for val in islands[j]]
+                points_s1 = points.loc[points['ID'].isin(subgraph_1),:]
+                points_s2 = points.loc[points['ID'].isin(subgraph_2), :]
+                multi_point1= MultiPoint([row['geometry'] for i, row in points_s1.iterrows()])
+                multi_point2 = MultiPoint([row['geometry'] for i, row in points_s2.iterrows()])
+                closest_points = nearest_points(multi_point1,multi_point2)
+                distance = multi_point1.distance(multi_point2)#in km
+                id_point1 = int(points.loc[points['geometry']==closest_points[0],'ID'])
+                id_point2 = int(points.loc[points['geometry'] == closest_points[1], 'ID'])
+                lines=lines.append(gpd.GeoDataFrame({'ID1':[id_point1],'ID2':[id_point2],'length':[distance]
+                                            , 'geometry':[LineString([closest_points[0],closest_points[1]])]}))
+                graph.add_edge(id_point1,id_point2,weight = distance*weight,length = distance)
+    return graph,lines
+
 # Main optimization function
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
