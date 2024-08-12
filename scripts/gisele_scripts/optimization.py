@@ -184,8 +184,7 @@ def connect_unconnected_graph(graph,lines,points,weight):
                 distance = multi_point1.distance(multi_point2)#in km
                 id_point1 = int(points.loc[points['geometry']==closest_points[0],'ID'])
                 id_point2 = int(points.loc[points['geometry'] == closest_points[1], 'ID'])
-                lines=lines.append(gpd.GeoDataFrame({'ID1':[id_point1],'ID2':[id_point2],'length':[distance]
-                                            , 'geometry':[LineString([closest_points[0],closest_points[1]])]}))
+                lines = pd.concat([lines, gpd.GeoDataFrame({'ID1':[id_point1],'ID2':[id_point2],'length':[distance], 'geometry':[LineString([closest_points[0],closest_points[1]])]})], ignore_index=True)
                 graph.add_edge(id_point1,id_point2,weight = distance*weight,length = distance)
     return graph,lines
 
@@ -316,7 +315,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 point1 = road_points_populated.loc[road_points_populated['ID'] == i[0], 'geometry'].values[0]
                 point2 = road_points_populated.loc[road_points_populated['ID'] == i[1], 'geometry'].values[0]
                 geom = LineString([point1, point2])
-                grid_routing = grid_routing.append(gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom]}))
+                grid_routing = pd.concat([grid_routing, gpd.GeoDataFrame({'ID': [counter], 'geometry': [geom]})], ignore_index=True)
                 counter += 1
             grid_routing.crs = crs
             grid_routing.to_file(os.path.join(dir_cluster, 'LV_backbone.shp'))
@@ -329,7 +328,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             Population_clus['ind'] = index
             Population_clus.set_index('ind', inplace=True, drop=True)
 
-            all_points = road_points_backbone.append(Population_clus)
+            all_points = pd.concat([road_points_backbone, Population_clus], ignore_index=True)
             new_graph = tree.copy()
             for n in new_graph.edges:
                 new_graph[n[0]][n[1]]['weight'] = new_graph[n[0]][n[1]]['weight'] * 0.03
@@ -492,7 +491,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             counter += 1
         grid_final.crs = crs
         grid_final.to_file(os.path.join(dir_cluster, 'grid_final_cut.shp'))
-        LV_grid = LV_grid.append(grid_final)
+        LV_grid = pd.concat([LV_grid, grid_final], ignore_index=True)
 
         all_points[all_points['substations'] == True].to_file(os.path.join(dir_cluster, 'secondary_substations.shp'))
 
@@ -511,7 +510,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 except:
                     sum_pop = subset['Population'].sum()
                     load = sum_pop * load_capita
-                MV_LV_substations = MV_LV_substations.append(subset)
+                MV_LV_substations = pd.concat([MV_LV_substations, subset], ignore_index=True)
                 MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'LV_length'] = 0
                 MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'max_distance'] = 0
                 MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'MV_Power'] = load
@@ -533,20 +532,20 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             ID_substation = int(MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'ID'])
             data = np.array([[int(clus), int(i), sum_pop, load, LV_grid_length, LV_grid_cost, max_length]])
             df2 = pd.DataFrame(data, columns=['Cluster', 'Sub_cluster', 'Population', 'Load [kW]', 'Grid_Length [km]', 'Grid Cost [euro]', 'Max length [km]'])
-            clusters_list = clusters_list.append(df2)
+            clusters_list = pd.concat([clusters_list, df2], ignore_index=True)
             MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'MV_Power'] = load
             MV_LV_substations.loc[MV_LV_substations['Cluster'] == i, 'Population'] = sum_pop
             MV_LV_substations.to_file(os.path.join(dir_cluster, 'secondary_substations.shp'))
         MV_LV_substations['Cluster2'] = MV_LV_substations['Cluster']
         MV_LV_substations['Cluster'] = clus
-        secondary_substations = secondary_substations.append(MV_LV_substations)
+        secondary_substations = pd.concat([secondary_substations, MV_LV_substations], ignore_index=True)
         substation_data = pd.read_csv(os.path.join(gisele_dir, 'general_input', ss_data))
         clusters_list = categorize_substation(clusters_list, substation_data)
         clusters_list['Population'] = [ceil(i) for i in clusters_list['Population']]
         clusters_list.to_csv(os.path.join(dir_cluster, 'LV_networks_resume.csv'), index=False)
-        LV_resume = LV_resume.append(clusters_list)
-        all_houses = all_houses.append(clustered_points)
-        LV_grid = LV_grid.append(grid_final)
+        LV_resume = pd.concat([LV_resume, clusters_list], ignore_index=True)
+        all_houses = pd.concat([all_houses, clustered_points], ignore_index=True)
+        LV_resume = pd.concat([LV_resume, clusters_list], ignore_index=True)
         terminal_MV_nodes = MV_LV_substations['ID'].to_list()
 
         if len(terminal_MV_nodes) > 1:
@@ -571,7 +570,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             grid_MV.crs = crs
             grid_MV['Cluster'] = clus
             grid_MV.to_file(os.path.join(dir_cluster, 'grid_MV.shp'))
-            MV_grid = MV_grid.append(grid_MV)
+            MV_grid = pd.concat([MV_grid, grid_MV], ignore_index=True)
 
     LV_resume.to_csv(os.path.join(gisele_dir, dir_output, 'LV_resume.csv'))
     LV_grid.to_file(os.path.join(gisele_dir, dir_output, 'LV_grid.shp'))
