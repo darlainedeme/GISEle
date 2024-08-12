@@ -568,7 +568,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             for j in range(len(points_set)):
                 if not i == j:
                     dist_matrix[i, j] = T_metric[points_set[i]][points_set[j]]['distance']
-        clustering = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='complete',
+        clustering = AgglomerativeClustering(n_clusters=None, metric='precomputed', linkage='complete',
                                              distance_threshold=2 * LV_distance).fit(dist_matrix)
 
         populated_points.loc[:, 'Cluster'] = clustering.labels_
