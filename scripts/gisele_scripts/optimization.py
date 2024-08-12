@@ -158,9 +158,16 @@ def genetic2(clustered_points, points_new_graph, distance_matrix, n_clusters, gr
         else:
             return cost
 
-    algorithm_param = {'max_num_iteration': 1000, 'population_size': 40, 'mutation_probability': 0.1,
-                       'elit_ratio': 0.025, 'crossover_probability': 0.6, 'parents_portion': 0.25,
-                       'crossover_type': 'one_point', 'max_iteration_without_improv': 100}
+    algorithm_param = {
+        'max_num_iteration': 100,  # Reduce iterations
+        'population_size': 20,  # Reduce population size
+        'mutation_probability': 0.05,  # Adjust as needed
+        'elit_ratio': 0.02,
+        'crossover_probability': 0.5,
+        'parents_portion': 0.3,
+        'crossover_type': 'uniform',
+        'max_iteration_without_improv': 50  # Stop earlier if no improvement
+    }              
     model = ga(function=fitness, dimension=n_clusters - 1, variable_type='int', variable_boundaries=varbound,
                function_timeout=10000, algorithm_parameters=algorithm_param)
     model.run()
