@@ -14,6 +14,7 @@ from itertools import chain
 from networkx.utils import pairwise
 from scipy.spatial import Delaunay
 from sklearn.cluster import AgglomerativeClustering
+from collections import Counter
 
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
