@@ -895,7 +895,7 @@ def show():
         "road_coef": 1.5,  # Example road coefficient
         "case_study": "example_case_study",  # Example case study
         "LV_distance": 500,  # Example LV distance
-        "ss_data": "ss_data_evn",  # Example SS data
+        "ss_data": "ss_data_evn.csv",  # Example SS data
         "landcover_option": "ESACCI",  # Example land cover option
         "gisele_dir": "/mount/src/gisele",  # Example GISELE directory
         "roads_weight": 2,  # Example roads weight
