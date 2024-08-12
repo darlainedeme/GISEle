@@ -231,6 +231,71 @@ def connect_unconnected_graph(graph,lines,points,weight):
                 graph.add_edge(id_point1,id_point2,weight = distance*weight,length = distance)
     return graph,lines
 
+def delaunay_test(graph,new_points,new_lines):
+    tocki = new_points['geometry'].values
+    number_points = new_points.shape[0]
+    arr = np.zeros([number_points,2])
+    counter=0
+    for i in tocki:
+        x = i.xy[0][0]
+        y=i.xy[1][0]
+        arr[counter,0] = x
+        arr[counter,1] = y
+        counter+=1
+    tri = Delaunay(arr)
+    triangle_sides = tri.simplices
+    final_sides = []
+    for i in triangle_sides:
+        a=i[0]
+        b=i[1]
+        c=i[2]
+        if a>b:
+            final_sides.append((i[0],i[1]))
+        else:
+            final_sides.append((i[1], i[0]))
+        if b>c:
+            final_sides.append((i[1],i[2]))
+        else:
+            final_sides.append((i[2], i[1]))
+        if a>c:
+            final_sides.append((i[0],i[2]))
+        else:
+            final_sides.append((i[2], i[0]))
+    final_sides2 = list(set(final_sides))
+    new_lines_old=new_lines.copy() # dataframe without the new possible connections
+
+    if not nx.is_empty(graph): # this is for the standard case with roads in the cluster
+        for i,j in final_sides2:
+            point1 = new_points.loc[new_points['order']==i,'geometry'].values[0]
+            point2 = new_points.loc[new_points['order'] == j, 'geometry'].values[0]
+            id1 = int(new_points.loc[new_points['order'] == i, 'ID'])
+            id2 = int(new_points.loc[new_points['order'] == j, 'ID'])
+            length = point1.distance(point2)
+            line = LineString([point1, point2])
+            if length<500 and not graph.has_edge(id1,id2) and ((sum([line.intersects(line1) for line1 in new_lines_old.geometry]) == 0) or
+                    ((new_points.loc[new_points['ID'] == id1, 'pop_bool'] == 0).values[0]) or
+                    (new_points.loc[new_points['ID'] == id2, 'pop_bool'] == 0).values[0]):
+                graph.add_edge(id1,id2 , weight=length, length=length)
+
+                data_segment = {'ID1': [id1], 'ID2': [id2], 'length': [point1.distance(point2) / 1000],
+                                'geometry': [line], 'Type': ['Colateral']}
+                new_lines = new_lines.append(gpd.GeoDataFrame(data_segment))
+    else: # this is for the case without roads in the cluster, just create the lines in a straightforward way
+        new_points = new_points.reset_index()
+        for i, j in final_sides2:
+            point1 = new_points.loc[new_points.index == i, 'geometry'].values[0]
+            point2 = new_points.loc[new_points.index== j, 'geometry'].values[0]
+            id1 = int(new_points.loc[new_points.index == i, 'ID'].values[0])
+            id2 = int(new_points.loc[new_points.index== j, 'ID'].values[0])
+            length = point1.distance(point2)
+            line = LineString([point1, point2])
+            graph.add_edge(id1, id2, weight=length, length=length)
+
+            data_segment = {'ID1': [id1], 'ID2': [id2], 'length': [point1.distance(point2) / 1000],
+                            'geometry': [line], 'Type': ['Colateral']}
+            new_lines = new_lines.append(gpd.GeoDataFrame(data_segment))
+    return graph,new_lines
+
 # Main optimization function
 def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef, Clusters, case_study, LV_distance, ss_data,
              landcover_option, gisele_dir, roads_weight, run_genetic, max_length_segment, simplify_coef, crit_dist, LV_base_cost, population_dataset_type):
