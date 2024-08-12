@@ -232,14 +232,17 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         if population_dataset_type == 'raster':
             grid_of_points['Population'] = sample_raster(Population, coords)
         else:
-            st.write("Grid of points (without geometry):")
-            st.write(grid_of_points.drop(columns='geometry').head())
+            try:
+                st.write("Grid of points (without geometry):")
+                st.write(grid_of_points.drop(columns='geometry').head())
 
-            grid_of_points['Population'] = pop_per_household
-            grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120), 'Population'] = 10
-            grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['height'].astype(float) > 12), 'Population'] = 10
-            grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120) & (grid_of_points['height'].astype(float) > 12), 'Population'] = 25
+                grid_of_points['Population'] = pop_per_household
+                grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120), 'Population'] = 10
+                grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['height'].astype(float) > 12), 'Population'] = 10
+                grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120) & (grid_of_points['height'].astype(float) > 12), 'Population'] = 25
 
+            except: 
+                grid_of_points['Population'] = 1    #TODO check this assumption   
         grid_of_points['Elevation'] = sample_raster(Elevation, coords)
         grid_of_points['Slope'] = sample_raster(Slope, coords)
         grid_of_points['Land_cover'] = sample_raster(LandCover, coords)
