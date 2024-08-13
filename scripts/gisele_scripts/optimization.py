@@ -862,7 +862,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 length = T_metric[i[0]][i[1]]['distance']
                 cost = length * LV_base_cost
                 geom = LineString([point1, point2])
-                grid_MV = grid_MV.append(gpd.GeoDataFrame({'ID1': [id1], 'ID2': [id2], 'geometry': [geom], 'Length': [length], 'Cost': [cost]}))
+                new_row = gpd.GeoDataFrame({'ID1': [id1], 'ID2': [id2], 'geometry': [geom], 'Length': [length], 'Cost': [cost]})
+                grid_MV = pd.concat([grid_MV, new_row], ignore_index=True)
                 counter += 1
             grid_MV.crs = crs
             grid_MV['Cluster'] = clus
