@@ -883,6 +883,9 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             grid_MV = gpd.GeoDataFrame()
             path = list(tree_MV.edges)
             counter = 0
+            
+            # Define a list to hold batch data
+            batch_data = []
 
             for i in path:
                 print("Processing edge:", i)
@@ -893,14 +896,23 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 length = T_metric[i[0]][i[1]]['distance']
                 cost = length * LV_base_cost
                 geom = LineString([point1, point2])
-                new_row = gpd.GeoDataFrame({'ID1': [id1], 'ID2': [id2], 'geometry': [geom], 'Length': [length], 'Cost': [cost]})
-                print("New row created:\n", new_row)
+                new_row = {'ID1': id1, 'ID2': id2, 'geometry': geom, 'Length': length, 'Cost': cost}
+                
+                # Append new_row to batch_data
+                batch_data.append(new_row)
 
-                print("Concatenating new row to grid_MV")
-                grid_MV = pd.concat([grid_MV, new_row], ignore_index=True)
-                counter += 1
+                # If batch_data reaches a certain size, concatenate to grid_MV
+                if len(batch_data) >= 100:  # Adjust the batch size as needed
+                    print("Concatenating batch of rows to grid_MV")
+                    grid_MV = pd.concat([grid_MV, gpd.GeoDataFrame(batch_data)], ignore_index=True)
+                    batch_data = []  # Clear the batch data
 
-            print("Setting CRS for grid_MV")
+            # Concatenate any remaining rows in batch_data to grid_MV
+            if batch_data:
+                print("Concatenating remaining rows to grid_MV")
+                grid_MV = pd.concat([grid_MV, gpd.GeoDataFrame(batch_data)], ignore_index=True)
+
+            # Continue with the rest of the code...
             grid_MV.crs = crs
             grid_MV['Cluster'] = clus
             print("Saving grid_MV to file")
