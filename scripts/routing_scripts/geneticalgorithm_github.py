@@ -72,7 +72,7 @@ class geneticalgorithm():
                                        'parents_portion': 0.3,\
                                        'crossover_type':'uniform',\
                                        'max_iteration_without_improv':None},\
-                     convergence_curve=True,\
+                     convergence_curve=False,\
                          progress_bar=True):
 
 

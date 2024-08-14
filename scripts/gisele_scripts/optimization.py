@@ -19,6 +19,10 @@ from math import ceil
 from scripts.gisele_scripts.geneticalgorithm_github import geneticalgorithm as ga
 from scipy.spatial import distance_matrix
 
+@st.cache_data
+def load_data(file_path):
+    return gpd.read_file(file_path)
+    
 # Reproject raster utility function
 def reproject_raster(input_raster, dst_crs):
     with rasterio.open(input_raster) as src:
@@ -160,8 +164,8 @@ def genetic2(clustered_points, points_new_graph, distance_matrix, n_clusters, gr
             return cost
 
     algorithm_param = {
-        'max_num_iteration': 100,  # Reduce iterations
-        'population_size': 20,  # Reduce population size
+        'max_num_iteration': 50,  # Reduce iterations
+        'population_size': 10,  # Reduce population size
         'mutation_probability': 0.05,  # Adjust as needed
         'elit_ratio': 0.02,
         'crossover_probability': 0.5,
