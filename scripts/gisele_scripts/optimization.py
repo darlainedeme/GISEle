@@ -841,24 +841,51 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         st.write("substations:")
         st.write(secondary_substations.drop(columns='geometry').head())
         substation_data = pd.read_csv(os.path.join(gisele_dir, 'data', '0_configuration_files', ss_data))
+        print("Categorizing substations")
         clusters_list = categorize_substation(clusters_list, substation_data)
+        print("Substations categorized:\n", clusters_list.head())
+
+        print("Rounding Population values")
         clusters_list['Population'] = [ceil(i) for i in clusters_list['Population']]
+        print("Population rounded:\n", clusters_list['Population'].head())
+
+        print("Saving clusters_list to file")
         clusters_list.to_csv(os.path.join(dir_cluster, 'LV_networks_resume.csv'), index=False)
+        print("File saved successfully")
+
+        print("Concatenating clusters_list to LV_resume")
         LV_resume = pd.concat([LV_resume, clusters_list], ignore_index=True)
+        print("Updated LV_resume:\n", LV_resume.head())
+
+        print("Concatenating clustered_points to all_houses")
         all_houses = pd.concat([all_houses, clustered_points], ignore_index=True)
+        print("Updated all_houses:\n", all_houses.head())
+
+        print("Concatenating clusters_list to LV_resume again")
         LV_resume = pd.concat([LV_resume, clusters_list], ignore_index=True)
+        print("Updated LV_resume:\n", LV_resume.head())
+
+        print("Extracting terminal MV nodes")
         terminal_MV_nodes = MV_LV_substations['ID'].to_list()
+        print("Terminal MV nodes extracted:", terminal_MV_nodes)
 
         if len(terminal_MV_nodes) > 1:
+            print("More than one terminal MV node found. Processing Steiner tree")
             for i in tree_final_copy.edges:
                 if tree_final.has_edge(*i):
                     tree_final_copy[i[0]][i[1]]['weight'] *= 1
+            print("Steiner tree edges adjusted")
 
+            print("Generating Steiner tree")
             tree_MV = steiner_tree(tree_final_copy, terminal_MV_nodes)
+            print("Steiner tree generated")
+
             grid_MV = gpd.GeoDataFrame()
             path = list(tree_MV.edges)
             counter = 0
+
             for i in path:
+                print("Processing edge:", i)
                 point1 = all_points.loc[all_points['ID'] == i[0], 'geometry'].values[0]
                 point2 = all_points.loc[all_points['ID'] == i[1], 'geometry'].values[0]
                 id1 = int(all_points.loc[all_points['ID'] == i[0], 'ID'])
@@ -867,27 +894,57 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 cost = length * LV_base_cost
                 geom = LineString([point1, point2])
                 new_row = gpd.GeoDataFrame({'ID1': [id1], 'ID2': [id2], 'geometry': [geom], 'Length': [length], 'Cost': [cost]})
+                print("New row created:\n", new_row)
+
+                print("Concatenating new row to grid_MV")
                 grid_MV = pd.concat([grid_MV, new_row], ignore_index=True)
                 counter += 1
+
+            print("Setting CRS for grid_MV")
             grid_MV.crs = crs
             grid_MV['Cluster'] = clus
+            print("Saving grid_MV to file")
             grid_MV.to_file(os.path.join(dir_cluster, 'grid_MV.shp'))
+            print("File saved successfully")
+
+            print("Concatenating grid_MV to MV_grid")
             MV_grid = pd.concat([MV_grid, grid_MV], ignore_index=True)
-
+            print("Updated MV_grid:\n", MV_grid.head())
+            
+    print("Saving LV_resume to file")
     LV_resume.to_csv(os.path.join(gisele_dir, dir_output, 'LV_resume.csv'))
-    LV_grid.to_file(os.path.join(gisele_dir, dir_output, 'LV_grid.shp'))
-    secondary_substations.to_file(os.path.join(gisele_dir, dir_output, 'secondary_substations.shp'))
-    all_houses.to_file(os.path.join(gisele_dir, dir_output, 'final_users.shp'))
-    if not MV_grid.empty:
-        MV_grid.to_file(os.path.join(gisele_dir, dir_output, 'MV_grid.shp'), index=False)
+    print("LV_resume saved successfully")
 
+    print("Saving LV_grid to file")
+    LV_grid.to_file(os.path.join(gisele_dir, dir_output, 'LV_grid.shp'))
+    print("LV_grid saved successfully")
+
+    print("Saving secondary_substations to file")
+    secondary_substations.to_file(os.path.join(gisele_dir, dir_output, 'secondary_substations.shp'))
+    print("secondary_substations saved successfully")
+
+    print("Saving all_houses to file")
+    all_houses.to_file(os.path.join(gisele_dir, dir_output, 'final_users.shp'))
+    print("all_houses saved successfully")
+
+    if not MV_grid.empty:
+        print("Saving MV_grid to file")
+        MV_grid.to_file(os.path.join(gisele_dir, dir_output, 'MV_grid.shp'), index=False)
+        print("MV_grid saved successfully")
+
+    print("Updating secondary_substations with new columns")
     secondary_substations['Substation'] = 1
     secondary_substations['Weight'] = 3
     secondary_substations['Type'] = 'Secondary Substation'
+
+    print("Updating grid_of_points_GDF by dropping terminal MV nodes and concatenating secondary_substations")
     terminal_MV_nodes = secondary_substations.ID.to_list()
     grid_of_points_GDF.drop(grid_of_points_GDF[grid_of_points_GDF['ID'].isin(terminal_MV_nodes)].index, axis=0, inplace=True)
     grid_of_points_GDF = pd.concat([grid_of_points_GDF, secondary_substations], ignore_index=True)
+
+    print("Saving final weighted grid of points with SS and roads to file")
     grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(os.path.join(gisele_dir, dir_input, 'weighted_grid_of_points_with_ss_and_roads.csv'), index=False)
+    print("File saved successfully")
 
     return LV_grid, MV_grid, secondary_substations, all_houses
     
