@@ -888,25 +888,49 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             batch_data = []
 
             for i in path:
-                print("Processing edge:", i)
-                point1 = all_points.loc[all_points['ID'] == i[0], 'geometry'].values[0]
-                point2 = all_points.loc[all_points['ID'] == i[1], 'geometry'].values[0]
-                id1 = int(all_points.loc[all_points['ID'] == i[0], 'ID'])
-                id2 = int(all_points.loc[all_points['ID'] == i[1], 'ID'])
-                length = T_metric[i[0]][i[1]]['distance']
-                cost = length * LV_base_cost
-                geom = LineString([point1, point2])
-                new_row = {'ID1': id1, 'ID2': id2, 'geometry': geom, 'Length': length, 'Cost': cost}
-                
-                # Append new_row to batch_data
-                batch_data.append(new_row)
+                try:
+                    print("Processing edge:", i)
+                    
+                    # Extracting points
+                    point1 = all_points.loc[all_points['ID'] == i[0], 'geometry'].values[0]
+                    point2 = all_points.loc[all_points['ID'] == i[1], 'geometry'].values[0]
+                    
+                    # Debugging the points
+                    print(f"Point1 ID: {i[0]}, Geometry: {point1}")
+                    print(f"Point2 ID: {i[1]}, Geometry: {point2}")
+                    
+                    id1 = int(all_points.loc[all_points['ID'] == i[0], 'ID'])
+                    id2 = int(all_points.loc[all_points['ID'] == i[1], 'ID'])
+                    
+                    # Debugging IDs
+                    print(f"ID1: {id1}, ID2: {id2}")
+                    
+                    length = T_metric[i[0]][i[1]]['distance']
+                    cost = length * LV_base_cost
+                    
+                    # Debugging the length and cost
+                    print(f"Length: {length}, Cost: {cost}")
+                    
+                    geom = LineString([point1, point2])
+                    
+                    # Debugging the geometry
+                    print(f"LineString Geometry: {geom}")
+                    
+                    new_row = {'ID1': id1, 'ID2': id2, 'geometry': geom, 'Length': length, 'Cost': cost}
+                    
+                    # Append new_row to batch_data
+                    batch_data.append(new_row)
+                    
+                    # If batch_data reaches a certain size, concatenate to grid_MV
+                    if len(batch_data) >= 100:  # Adjust the batch size as needed
+                        print("Concatenating batch of rows to grid_MV")
+                        grid_MV = pd.concat([grid_MV, gpd.GeoDataFrame(batch_data)], ignore_index=True)
+                        batch_data = []  # Clear the batch data
 
-                # If batch_data reaches a certain size, concatenate to grid_MV
-                if len(batch_data) >= 100:  # Adjust the batch size as needed
-                    print("Concatenating batch of rows to grid_MV")
-                    grid_MV = pd.concat([grid_MV, gpd.GeoDataFrame(batch_data)], ignore_index=True)
-                    batch_data = []  # Clear the batch data
-
+                except Exception as e:
+                    print(f"An error occurred while processing edge {i}: {e}")
+                    print(f"Skipping this edge and continuing with the next one.")
+        
             # Concatenate any remaining rows in batch_data to grid_MV
             if batch_data:
                 print("Concatenating remaining rows to grid_MV")
