@@ -1,10 +1,10 @@
-import os
 import streamlit as st
+st.set_page_config(layout="wide")
+
+import os
 from pathlib import Path
 from scripts import home, area_selection, timelapse, data_retrieve, data_visualization, vania, modelling_parameters, demand_estimation, minigrid_sizing, routing, results
 from scripts.gisele_scripts import clustering_modes, case_study_creation, optimization, geneticalgorithm_github
-
-st.set_page_config(layout="wide")
 
 # Display logo at the very top of the sidebar
 st.sidebar.image("data/logo.png", width=100)  # Adjust the width as needed
