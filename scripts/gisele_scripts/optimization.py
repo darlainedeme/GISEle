@@ -932,6 +932,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     print(f"An error occurred while processing edge {i}: {e}")
                     print(f"Skipping this edge and continuing with the next one.")
 
+
             # Concatenate any remaining rows in batch_data to grid_MV
             if batch_data:
                 print("Concatenating remaining rows to grid_MV")
