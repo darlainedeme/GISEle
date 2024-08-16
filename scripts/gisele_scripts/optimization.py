@@ -815,8 +815,6 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     st.write(f"No max distance found for cluster {i}. Defaulting max length to zero.")
                     max_length = 0
 
-
-
                 try:
                     sum_pop = subset['cons (kWh/'].sum()
                     load = sum_pop / normalization * 0.35
@@ -888,7 +886,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             # Define a list to hold batch data
             batch_data = []
 
-            for i in path:
+            for i in tqdm(path, desc="Processing edges", unit="edge"):
                 try:
                     print("Processing edge:", i)
                     
@@ -931,60 +929,60 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 except Exception as e:
                     print(f"An error occurred while processing edge {i}: {e}")
                     print(f"Skipping this edge and continuing with the next one.")
-        
-            # Concatenate any remaining rows in batch_data to grid_MV
-            if batch_data:
-                print("Concatenating remaining rows to grid_MV")
-                grid_MV = pd.concat([grid_MV, gpd.GeoDataFrame(batch_data)], ignore_index=True)
+                    
+                        # Concatenate any remaining rows in batch_data to grid_MV
+                        if batch_data:
+                            print("Concatenating remaining rows to grid_MV")
+                            grid_MV = pd.concat([grid_MV, gpd.GeoDataFrame(batch_data)], ignore_index=True)
 
-            # Continue with the rest of the code...
-            grid_MV.crs = crs
-            grid_MV['Cluster'] = clus
-            print("Saving grid_MV to file")
-            grid_MV.to_file(os.path.join(dir_cluster, 'grid_MV.shp'))
-            print("File saved successfully")
+                        # Continue with the rest of the code...
+                        grid_MV.crs = crs
+                        grid_MV['Cluster'] = clus
+                        print("Saving grid_MV to file")
+                        grid_MV.to_file(os.path.join(dir_cluster, 'grid_MV.shp'))
+                        print("File saved successfully")
 
-            print("Concatenating grid_MV to MV_grid")
-            MV_grid = pd.concat([MV_grid, grid_MV], ignore_index=True)
-            print("Updated MV_grid:\n", MV_grid.head())
-            
-    print("Saving LV_resume to file")
-    LV_resume.to_csv(os.path.join(gisele_dir, dir_output, 'LV_resume.csv'))
-    print("LV_resume saved successfully")
+                        print("Concatenating grid_MV to MV_grid")
+                        MV_grid = pd.concat([MV_grid, grid_MV], ignore_index=True)
+                        print("Updated MV_grid:\n", MV_grid.head())
+                        
+                print("Saving LV_resume to file")
+                LV_resume.to_csv(os.path.join(gisele_dir, dir_output, 'LV_resume.csv'))
+                print("LV_resume saved successfully")
 
-    print("Saving LV_grid to file")
-    LV_grid.to_file(os.path.join(gisele_dir, dir_output, 'LV_grid.shp'))
-    print("LV_grid saved successfully")
+                print("Saving LV_grid to file")
+                LV_grid.to_file(os.path.join(gisele_dir, dir_output, 'LV_grid.shp'))
+                print("LV_grid saved successfully")
 
-    print("Saving secondary_substations to file")
-    secondary_substations.to_file(os.path.join(gisele_dir, dir_output, 'secondary_substations.shp'))
-    print("secondary_substations saved successfully")
+                print("Saving secondary_substations to file")
+                secondary_substations.to_file(os.path.join(gisele_dir, dir_output, 'secondary_substations.shp'))
+                print("secondary_substations saved successfully")
 
-    print("Saving all_houses to file")
-    all_houses.to_file(os.path.join(gisele_dir, dir_output, 'final_users.shp'))
-    print("all_houses saved successfully")
+                print("Saving all_houses to file")
+                all_houses.to_file(os.path.join(gisele_dir, dir_output, 'final_users.shp'))
+                print("all_houses saved successfully")
 
-    if not MV_grid.empty:
-        print("Saving MV_grid to file")
-        MV_grid.to_file(os.path.join(gisele_dir, dir_output, 'MV_grid.shp'), index=False)
-        print("MV_grid saved successfully")
+                if not MV_grid.empty:
+                    print("Saving MV_grid to file")
+                    MV_grid.to_file(os.path.join(gisele_dir, dir_output, 'MV_grid.shp'), index=False)
+                    print("MV_grid saved successfully")
 
-    print("Updating secondary_substations with new columns")
-    secondary_substations['Substation'] = 1
-    secondary_substations['Weight'] = 3
-    secondary_substations['Type'] = 'Secondary Substation'
+                print("Updating secondary_substations with new columns")
+                secondary_substations['Substation'] = 1
+                secondary_substations['Weight'] = 3
+                secondary_substations['Type'] = 'Secondary Substation'
 
-    print("Updating grid_of_points_GDF by dropping terminal MV nodes and concatenating secondary_substations")
-    terminal_MV_nodes = secondary_substations.ID.to_list()
-    grid_of_points_GDF.drop(grid_of_points_GDF[grid_of_points_GDF['ID'].isin(terminal_MV_nodes)].index, axis=0, inplace=True)
-    grid_of_points_GDF = pd.concat([grid_of_points_GDF, secondary_substations], ignore_index=True)
+                print("Updating grid_of_points_GDF by dropping terminal MV nodes and concatenating secondary_substations")
+                terminal_MV_nodes = secondary_substations.ID.to_list()
+                grid_of_points_GDF.drop(grid_of_points_GDF[grid_of_points_GDF['ID'].isin(terminal_MV_nodes)].index, axis=0, inplace=True)
+                grid_of_points_GDF = pd.concat([grid_of_points_GDF, secondary_substations], ignore_index=True)
 
-    print("Saving final weighted grid of points with SS and roads to file")
-    grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(os.path.join(gisele_dir, dir_input, 'weighted_grid_of_points_with_ss_and_roads.csv'), index=False)
-    print("File saved successfully")
+                print("Saving final weighted grid of points with SS and roads to file")
+                grid_of_points_GDF[['X', 'Y', 'ID', 'Population', 'Elevation', 'Weight', 'geometry', 'Land_cover', 'Cluster', 'MV_Power', 'Substation', 'Type']].to_csv(os.path.join(gisele_dir, dir_input, 'weighted_grid_of_points_with_ss_and_roads.csv'), index=False)
+                print("File saved successfully")
 
-    return LV_grid, MV_grid, secondary_substations, all_houses
-    
+                return LV_grid, MV_grid, secondary_substations, all_houses
+                
 def show():
 
     # Example parameters
