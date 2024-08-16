@@ -18,6 +18,7 @@ from collections import Counter
 from math import ceil
 from scripts.gisele_scripts.geneticalgorithm_github import geneticalgorithm as ga
 from scipy.spatial import distance_matrix
+from tqdm import tqdm  
 
 @st.cache_data
 def load_data(file_path):
