@@ -1092,3 +1092,5 @@ def show():
     else:
         st.write("All Houses dataset is empty or not generated correctly.")
     '''
+   
+    folium_static(folium_map)
