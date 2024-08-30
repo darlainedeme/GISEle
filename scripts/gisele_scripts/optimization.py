@@ -472,14 +472,17 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     Population = gpd.read_file(population_points_path)
 
-    st.write(len(Clusters))
-    for index, row in Clusters.iterrows():
-        st.write(index)
+    st.write(f"Total clusters: {len(Clusters)}")
+    # Adding a loading bar for cluster processing
+    for index, row in tqdm(Clusters.iterrows(), total=len(Clusters), desc="Processing clusters"):
+        st.write(f"Processing cluster {index + 1}/{len(Clusters)} with ID {row['cluster_ID']}")
+        
+        # Your existing cluster processing code goes here...
         dir_cluster = os.path.join(gisele_dir, 'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
         clus = row['cluster_ID'] 
         os.makedirs(dir_cluster, exist_ok=True)
         os.makedirs(os.path.join(dir_cluster, 'grids'), exist_ok=True)
-
+        
         area = row['geometry']
         area_buffered = area.buffer(resolution)
 
