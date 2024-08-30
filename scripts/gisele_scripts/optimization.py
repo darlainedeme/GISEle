@@ -519,8 +519,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
             grid_of_points['Population'] = sample_raster(Population, coords)
         else:
             try:
-                st.write("Grid of points (without geometry):")
-                st.write(grid_of_points.drop(columns='geometry').head())
+                # st.write("Grid of points (without geometry):")
+                # st.write(grid_of_points.drop(columns='geometry').head())
 
                 grid_of_points['Population'] = pop_per_household
                 grid_of_points.loc[(grid_of_points['building'] == 'residential') & (grid_of_points['area'] > 120), 'Population'] = 10
@@ -576,7 +576,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
             populated_points = road_points_populated[road_points_populated['pop_bool'] == 1]
             terminal_nodes = list(populated_points['ID'])
-            st.write(road_points_populated.drop(columns='geometry').head())
+            # st.write(road_points_populated.drop(columns='geometry').head())
             road_points_populated = road_points_populated.reset_index(drop=True)
             road_points_populated.to_file(os.path.join(dir_cluster, 'road_terminal_points.shp'))
             tree = steiner_tree(graph, terminal_nodes)
@@ -805,7 +805,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                     LV_grid_length = float(lv_length_values[0]) / 1000
                     LV_grid_cost = LV_grid_length * LV_base_cost
                 else:
-                    st.write(f"No LV length found for cluster {i}. Skipping cost calculation for this cluster.")
+                    # st.write(f"No LV length found for cluster {i}. Skipping cost calculation for this cluster.")
                     LV_grid_length = 0
                     LV_grid_cost = 0  # Default to zero if no LV length found
                 
@@ -813,7 +813,7 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
                 if len(max_distance_values) > 0:
                     max_length = float(max_distance_values[0]) / 1000
                 else:
-                    st.write(f"No max distance found for cluster {i}. Defaulting max length to zero.")
+                    # st.write(f"No max distance found for cluster {i}. Defaulting max length to zero.")
                     max_length = 0
 
 
@@ -840,8 +840,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
         MV_LV_substations['Cluster2'] = MV_LV_substations['Cluster']
         MV_LV_substations['Cluster'] = clus
         secondary_substations = pd.concat([secondary_substations, MV_LV_substations], ignore_index=True)
-        st.write("substations:")
-        st.write(secondary_substations.drop(columns='geometry').head())
+        # st.write("substations:")
+        # st.write(secondary_substations.drop(columns='geometry').head())
         substation_data = pd.read_csv(os.path.join(gisele_dir, 'data', '0_configuration_files', ss_data))
         print("Categorizing substations")
         clusters_list = categorize_substation(clusters_list, substation_data)
@@ -1022,7 +1022,8 @@ def show():
         parameters["simplify_coef"], parameters["crit_dist"], parameters["LV_base_cost"],
         parameters["population_dataset_type"]
     )
-
+    
+    
     # Display the results in Streamlit
     st.write("LV_grid:")
     if not LV_grid.empty:
