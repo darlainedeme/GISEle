@@ -19,6 +19,9 @@ from math import ceil
 from scripts.gisele_scripts.geneticalgorithm_github import geneticalgorithm as ga
 from scipy.spatial import distance_matrix
 from tqdm import tqdm  
+import folium
+from streamlit_folium import folium_static
+
 
 @st.cache_data
 def load_data(file_path):
@@ -1033,6 +1036,37 @@ def show():
     )
     
     
+    st.write('Completed')
+    
+    # Convert GeoDataFrames to GeoJSON format
+    lv_grid_json = LV_grid.to_crs(epsg=4326).to_json()
+    mv_grid_json = MV_grid.to_crs(epsg=4326).to_json()
+    secondary_substations_json = secondary_substations.to_crs(epsg=4326).to_json()
+    all_houses_json = all_houses.to_crs(epsg=4326).to_json()
+
+    # Initialize the Folium map centered on a reasonable default location
+    folium_map = folium.Map(location=[0, 0], zoom_start=2)
+
+    # Add LV grid as a layer
+    lv_grid_layer = folium.GeoJson(lv_grid_json, name="LV Grid")
+    lv_grid_layer.add_to(folium_map)
+
+    # Add MV grid as a layer
+    mv_grid_layer = folium.GeoJson(mv_grid_json, name="MV Grid")
+    mv_grid_layer.add_to(folium_map)
+
+    # Add Secondary Substations as a layer
+    secondary_substations_layer = folium.GeoJson(secondary_substations_json, name="Secondary Substations")
+    secondary_substations_layer.add_to(folium_map)
+
+    # Add Houses as a layer
+    all_houses_layer = folium.GeoJson(all_houses_json, name="Houses")
+    all_houses_layer.add_to(folium_map)
+
+    # Add a layer control panel
+    folium.LayerControl().add_to(folium_map)
+
+    '''
     # Display the results in Streamlit
     st.write("LV_grid:")
     if not LV_grid.empty:
@@ -1057,3 +1091,4 @@ def show():
         st.write(all_houses.drop(columns='geometry').head())
     else:
         st.write("All Houses dataset is empty or not generated correctly.")
+    '''
