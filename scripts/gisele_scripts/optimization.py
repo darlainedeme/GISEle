@@ -472,11 +472,16 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
 
     Population = gpd.read_file(population_points_path)
 
+    # Initialize the progress bar in Streamlit
+    progress_bar = st.progress(0)
+
     st.write(f"Total clusters: {len(Clusters)}")
-    # Adding a loading bar for cluster processing
-    for index, row in tqdm(Clusters.iterrows(), total=len(Clusters), desc="Processing clusters"):
-        st.write(f"Processing cluster {index + 1}/{len(Clusters)} with ID {row['cluster_ID']}")
-        
+    # Loop through clusters
+    for index, row in Clusters.iterrows():
+        # Update the progress bar
+        progress = (index + 1) / len(Clusters)
+        progress_bar.progress(progress)
+
         # Your existing cluster processing code goes here...
         dir_cluster = os.path.join(gisele_dir, 'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
         clus = row['cluster_ID'] 
