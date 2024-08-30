@@ -471,8 +471,8 @@ def optimize(crs, country, resolution, load_capita, pop_per_household, road_coef
     all_houses = gpd.GeoDataFrame()
 
     Population = gpd.read_file(population_points_path)
-    
-    st.write(len(Clustersahah))
+
+    st.write(len(Clusters))
     for index, row in Clusters.iterrows():
         st.write(index)
         dir_cluster = os.path.join(gisele_dir, 'data', '4_intermediate_output', 'optimization', str(row["cluster_ID"]))
